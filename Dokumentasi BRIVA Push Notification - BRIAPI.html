@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<!-- saved from url=(0060)https://developers.bri.co.id/id/docs/briva-push-notification -->
+<html lang="id" dir="ltr" prefix="content: http://purl.org/rss/1.0/modules/content/  dc: http://purl.org/dc/terms/  foaf: http://xmlns.com/foaf/0.1/  og: http://ogp.me/ns#  rdfs: http://www.w3.org/2000/01/rdf-schema#  schema: http://schema.org/  sioc: http://rdfs.org/sioc/ns#  sioct: http://rdfs.org/sioc/types#  skos: http://www.w3.org/2004/02/skos/core#  xsd: http://www.w3.org/2001/XMLSchema# " class="no-touchevents details no-cssgridlegacy cssgrid js fontawesome-i2svg-active fontawesome-i2svg-complete" style=""><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+<script type="text/javascript" async="" src="./Dokumentasi BRIVA Push Notification - BRIAPI_files/analytics.js.download"></script><script type="text/javascript" async="" src="./Dokumentasi BRIVA Push Notification - BRIAPI_files/js"></script><script async="" src="./Dokumentasi BRIVA Push Notification - BRIAPI_files/js(1)"></script>
+<script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments)};gtag("js", new Date());gtag("set", "developer_id.dMDhkMT", true);gtag("config", "UA-139609695-1", {"groups":"default","user_id":"_8GfCf-m6vwmCxzZKafhwEni5SihyCOFzdkMS2u-PpQ","anonymize_ip":true,"page_placeholder":"PLACEHOLDER_page_path","allow_ad_personalization_signals":false});</script>
+<style type="text/css">svg:not(:root).svg-inline--fa{overflow:visible}.svg-inline--fa{display:inline-block;font-size:inherit;height:1em;overflow:visible;vertical-align:-.125em}.svg-inline--fa.fa-lg{vertical-align:-.225em}.svg-inline--fa.fa-w-1{width:.0625em}.svg-inline--fa.fa-w-2{width:.125em}.svg-inline--fa.fa-w-3{width:.1875em}.svg-inline--fa.fa-w-4{width:.25em}.svg-inline--fa.fa-w-5{width:.3125em}.svg-inline--fa.fa-w-6{width:.375em}.svg-inline--fa.fa-w-7{width:.4375em}.svg-inline--fa.fa-w-8{width:.5em}.svg-inline--fa.fa-w-9{width:.5625em}.svg-inline--fa.fa-w-10{width:.625em}.svg-inline--fa.fa-w-11{width:.6875em}.svg-inline--fa.fa-w-12{width:.75em}.svg-inline--fa.fa-w-13{width:.8125em}.svg-inline--fa.fa-w-14{width:.875em}.svg-inline--fa.fa-w-15{width:.9375em}.svg-inline--fa.fa-w-16{width:1em}.svg-inline--fa.fa-w-17{width:1.0625em}.svg-inline--fa.fa-w-18{width:1.125em}.svg-inline--fa.fa-w-19{width:1.1875em}.svg-inline--fa.fa-w-20{width:1.25em}.svg-inline--fa.fa-pull-left{margin-right:.3em;width:auto}.svg-inline--fa.fa-pull-right{margin-left:.3em;width:auto}.svg-inline--fa.fa-border{height:1.5em}.svg-inline--fa.fa-li{width:2em}.svg-inline--fa.fa-fw{width:1.25em}.fa-layers svg.svg-inline--fa{bottom:0;left:0;margin:auto;position:absolute;right:0;top:0}.fa-layers{display:inline-block;height:1em;position:relative;text-align:center;vertical-align:-.125em;width:1em}.fa-layers svg.svg-inline--fa{-webkit-transform-origin:center center;transform-origin:center center}.fa-layers-counter,.fa-layers-text{display:inline-block;position:absolute;text-align:center}.fa-layers-text{left:50%;top:50%;-webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%);-webkit-transform-origin:center center;transform-origin:center center}.fa-layers-counter{background-color:#ff253a;border-radius:1em;-webkit-box-sizing:border-box;box-sizing:border-box;color:#fff;height:1.5em;line-height:1;max-width:5em;min-width:1.5em;overflow:hidden;padding:.25em;right:0;text-overflow:ellipsis;top:0;-webkit-transform:scale(.25);transform:scale(.25);-webkit-transform-origin:top right;transform-origin:top right}.fa-layers-bottom-right{bottom:0;right:0;top:auto;-webkit-transform:scale(.25);transform:scale(.25);-webkit-transform-origin:bottom right;transform-origin:bottom right}.fa-layers-bottom-left{bottom:0;left:0;right:auto;top:auto;-webkit-transform:scale(.25);transform:scale(.25);-webkit-transform-origin:bottom left;transform-origin:bottom left}.fa-layers-top-right{right:0;top:0;-webkit-transform:scale(.25);transform:scale(.25);-webkit-transform-origin:top right;transform-origin:top right}.fa-layers-top-left{left:0;right:auto;top:0;-webkit-transform:scale(.25);transform:scale(.25);-webkit-transform-origin:top left;transform-origin:top left}.fa-lg{font-size:1.3333333333em;line-height:.75em;vertical-align:-.0667em}.fa-xs{font-size:.75em}.fa-sm{font-size:.875em}.fa-1x{font-size:1em}.fa-2x{font-size:2em}.fa-3x{font-size:3em}.fa-4x{font-size:4em}.fa-5x{font-size:5em}.fa-6x{font-size:6em}.fa-7x{font-size:7em}.fa-8x{font-size:8em}.fa-9x{font-size:9em}.fa-10x{font-size:10em}.fa-fw{text-align:center;width:1.25em}.fa-ul{list-style-type:none;margin-left:2.5em;padding-left:0}.fa-ul>li{position:relative}.fa-li{left:-2em;position:absolute;text-align:center;width:2em;line-height:inherit}.fa-border{border:solid .08em #eee;border-radius:.1em;padding:.2em .25em .15em}.fa-pull-left{float:left}.fa-pull-right{float:right}.fa.fa-pull-left,.fab.fa-pull-left,.fal.fa-pull-left,.far.fa-pull-left,.fas.fa-pull-left{margin-right:.3em}.fa.fa-pull-right,.fab.fa-pull-right,.fal.fa-pull-right,.far.fa-pull-right,.fas.fa-pull-right{margin-left:.3em}.fa-spin{-webkit-animation:fa-spin 2s infinite linear;animation:fa-spin 2s infinite linear}.fa-pulse{-webkit-animation:fa-spin 1s infinite steps(8);animation:fa-spin 1s infinite steps(8)}@-webkit-keyframes fa-spin{0%{-webkit-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);transform:rotate(360deg)}}@keyframes fa-spin{0%{-webkit-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);transform:rotate(360deg)}}.fa-rotate-90{-webkit-transform:rotate(90deg);transform:rotate(90deg)}.fa-rotate-180{-webkit-transform:rotate(180deg);transform:rotate(180deg)}.fa-rotate-270{-webkit-transform:rotate(270deg);transform:rotate(270deg)}.fa-flip-horizontal{-webkit-transform:scale(-1,1);transform:scale(-1,1)}.fa-flip-vertical{-webkit-transform:scale(1,-1);transform:scale(1,-1)}.fa-flip-both,.fa-flip-horizontal.fa-flip-vertical{-webkit-transform:scale(-1,-1);transform:scale(-1,-1)}:root .fa-flip-both,:root .fa-flip-horizontal,:root .fa-flip-vertical,:root .fa-rotate-180,:root .fa-rotate-270,:root .fa-rotate-90{-webkit-filter:none;filter:none}.fa-stack{display:inline-block;height:2em;position:relative;width:2.5em}.fa-stack-1x,.fa-stack-2x{bottom:0;left:0;margin:auto;position:absolute;right:0;top:0}.svg-inline--fa.fa-stack-1x{height:1em;width:1.25em}.svg-inline--fa.fa-stack-2x{height:2em;width:2.5em}.fa-inverse{color:#fff}.sr-only{border:0;clip:rect(0,0,0,0);height:1px;margin:-1px;overflow:hidden;padding:0;position:absolute;width:1px}.sr-only-focusable:active,.sr-only-focusable:focus{clip:auto;height:auto;margin:0;overflow:visible;position:static;width:auto}.svg-inline--fa .fa-primary{fill:var(--fa-primary-color,currentColor);opacity:1;opacity:var(--fa-primary-opacity,1)}.svg-inline--fa .fa-secondary{fill:var(--fa-secondary-color,currentColor);opacity:.4;opacity:var(--fa-secondary-opacity,.4)}.svg-inline--fa.fa-swap-opacity .fa-primary{opacity:.4;opacity:var(--fa-secondary-opacity,.4)}.svg-inline--fa.fa-swap-opacity .fa-secondary{opacity:1;opacity:var(--fa-primary-opacity,1)}.svg-inline--fa mask .fa-primary,.svg-inline--fa mask .fa-secondary{fill:#000}.fad.fa-inverse{color:#fff}</style><link rel="canonical" href="https://developers.bri.co.id/id/docs/briva-push-notification">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="Tingkatkan layanan dan kemudahan transaksi bisnis digital Anda dengan API Bank BRI. Klik disini dan dapatkan kemudahannya!">
+<meta name="keywords" content="BRIVA Push Notification - BRIAPI">
+<meta name="Generator" content="Drupal 9 (https://www.drupal.org)">
+<meta name="MobileOptimized" content="width">
+<meta name="HandheldFriendly" content="true">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="https://developers.bri.co.id/sites/default/files/logo_bri_0.png" type="image/png">
+<link rel="alternate" hreflang="en" href="http://developers.bri.co.id/en/docs/briva-push-notification">
+<link rel="alternate" hreflang="id" href="http://developers.bri.co.id/id/docs/briva-push-notification">
+
+    <title>Dokumentasi BRIVA Push Notification - BRIAPI</title>
+    <link rel="stylesheet" media="all" href="./Dokumentasi BRIVA Push Notification - BRIAPI_files/css_jdetseWBRNc5Gq6p3NMtOxjFrvSM8UwV6dEpFytaORA.css">
+<link rel="stylesheet" media="screen" href="./Dokumentasi BRIVA Push Notification - BRIAPI_files/css_A4fAF-tSxQQaqdlU6gtvXxawnLnm1r9h90dUSEe-4eY.css">
+<link rel="stylesheet" media="all" href="./Dokumentasi BRIVA Push Notification - BRIAPI_files/css_LUI98d0-40DicsMfA6ZLRFdlG_GHGRSMLEoiS1BnKvc.css">
+<link rel="stylesheet" media="all" href="./Dokumentasi BRIVA Push Notification - BRIAPI_files/css">
+<link rel="stylesheet" media="all" href="./Dokumentasi BRIVA Push Notification - BRIAPI_files/css_uV8WTjlbagE-gkk7ugno7GLzZ_AaNqAAMFI6UjfPnDA.css">
+<link rel="stylesheet" media="all" href="./Dokumentasi BRIVA Push Notification - BRIAPI_files/css_ZmVWb3bzKUMkWTqZY-90nUuyTFAVRqsx-2S4uo9yyG4.css">
+<link rel="stylesheet" media="all" href="./Dokumentasi BRIVA Push Notification - BRIAPI_files/briapi_v20-aa2b6629c79caed29d4d170ab12f53d3.css">
+<link rel="stylesheet" media="all" href="./Dokumentasi BRIVA Push Notification - BRIAPI_files/css_Vhle-cjAhicj50Y5mp9X9Q2wiiUNsae-MPVFL69XBow.css">
+<link rel="stylesheet" media="all" href="./Dokumentasi BRIVA Push Notification - BRIAPI_files/documentation_video-4f51e0f3650e2eb5116be5951d21b494.css">
+<link rel="stylesheet" media="all" href="./Dokumentasi BRIVA Push Notification - BRIAPI_files/email_subscription-af058dbf33098d01f822b20b6c36482e.css">
+<link rel="stylesheet" media="all" href="./Dokumentasi BRIVA Push Notification - BRIAPI_files/css_ygzoMwfKnK_8WeEr_BGb4jSZ3e1BdhlJg9QkpkjyMko.css">
+
+    <script src="./Dokumentasi BRIVA Push Notification - BRIAPI_files/js_NowKHSYf6WoKoHh68ahfaNxSX5I9zkNITKRDrsEedio.js.download"></script>
+<script src="./Dokumentasi BRIVA Push Notification - BRIAPI_files/all.min.js.download" defer="" crossorigin="anonymous"></script>
+<script src="./Dokumentasi BRIVA Push Notification - BRIAPI_files/js_POhohqZ66gVGlkEEhxC1AXysqw-EJ4N8SKyXz81Z0G0.js.download"></script>
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <style type="text/css">
+			    .briapi-devstudio-right-flexbox {
+			      flex-direction: column;
+			      margin-right: 25px;
+			      margin-left: 25px;
+			    }
+			    .webform-flex {
+			      margin-top: 20px;
+			      font-weight: normal;
+			    }
+			  </style></head>
+  <body class="path--entity-node-canonical user-logged-in path-node page-node-type-documentation" data-aos-easing="ease" data-aos-duration="400" data-aos-delay="0" data-once="tour form-single-submit">
+    <a href="https://developers.bri.co.id/id/docs/briva-push-notification#main-content" class="visually-hidden focusable skip-link btn btn-primary d-flex">Lompat ke isi utama</a>
+  
+    <div class="dialog-off-canvas-main-canvas" data-off-canvas-main-canvas="">
+    <header aria-label="Site header" class="header" id="header" role="banner">
+
+  <nav class="navbar fixed navbar-expand-lg">
+    <div class="container">
+        
+  <div data-block-plugin-id="system_branding_block" class="block block--briapi-v20-sitebranding">
+
+  
+    
+
+    
+  <a href="https://developers.bri.co.id/id" class="navbar-brand d-flex align-items-center " aria-label="">
+            <img src="./Dokumentasi BRIVA Push Notification - BRIAPI_files/logo.svg" width="30" height="auto" alt="BRIAPI logo" class="mr-2">
+
+        
+  </a>
+
+
+  </div>
+
+ 
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+        <svg class="svg-inline--fa fa-bars fa-w-14" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="bars" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><path fill="currentColor" d="M16 132h416c8.837 0 16-7.163 16-16V76c0-8.837-7.163-16-16-16H16C7.163 60 0 67.163 0 76v40c0 8.837 7.163 16 16 16zm0 160h416c8.837 0 16-7.163 16-16v-40c0-8.837-7.163-16-16-16H16c-8.837 0-16 7.163-16 16v40c0 8.837 7.163 16 16 16zm0 160h416c8.837 0 16-7.163 16-16v-40c0-8.837-7.163-16-16-16H16c-8.837 0-16 7.163-16 16v40c0 8.837 7.163 16 16 16z"></path></svg><!-- <i class="fas fa-bars"></i> Font Awesome fontawesome.com -->
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNavAltMarkup" style="top: 65px;">
+        <div class="mr-auto">
+          <div class="navbar-nav">
+              
+  <div data-block-plugin-id="we_megamenu_block:navigasi-utama" class="block block--navigasiutama-2">
+
+  
+    
+
+      <div class="region-we-mega-menu">
+	<a class="navbar-toggle collapsed">
+	    <span class="icon-bar"></span>
+	    <span class="icon-bar"></span>
+	    <span class="icon-bar"></span>
+	</a>
+	<nav class="navigasi-utama navbar navbar-default navbar-we-mega-menu mobile-collapse hover-action" data-menu-name="navigasi-utama" data-block-theme="briapi_v20" data-style="Default" data-animation="None" data-delay="" data-duration="" data-autoarrow="" data-alwayshowsubmenu="" data-action="hover" data-mobile-collapse="0">
+	  <div class="container-fluid">
+	    <ul class="we-mega-menu-ul nav nav-tabs">
+  <li class="we-mega-menu-li dropdown-menu" data-level="0" data-element-type="we-mega-menu-li" description="" data-id="356acaf8-15fa-485f-8ba9-09a9ddfd649e" data-submenu="1" hide-sub-when-collapse="" data-group="0" data-class="" data-icon="" data-caption="" data-alignsub="" data-target="">
+      <a class="we-mega-menu-li" title="" href="https://developers.bri.co.id/id/product" target="">
+      Produk    </a>
+    <div class="we-mega-menu-submenu documentation-submenu" data-element-type="we-mega-menu-submenu" data-submenu-width="" data-class="documentation-submenu" style="width: px">
+  <div class="we-mega-menu-submenu-inner">
+    <div class="we-mega-menu-row" data-element-type="we-mega-menu-row" data-custom-row="0">
+  <div class="we-mega-menu-col span12" data-element-type="we-mega-menu-col" data-width="12" data-block="" data-blocktitle="0" data-hidewhencollapse="" data-class="">
+  <ul class="nav nav-tabs subul">
+  <li class="we-mega-menu-li" data-level="1" data-element-type="we-mega-menu-li" description="" data-id="9c2f6d8a-f88f-4f68-bace-43927cddc2c1" data-submenu="0" hide-sub-when-collapse="" data-group="0" data-class="" data-icon="" data-caption="" data-alignsub="" data-target="">
+      <a class="we-mega-menu-li" title="" href="https://developers.bri.co.id/id/product" target="">
+      BRIAPI    </a>
+    
+</li><li class="we-mega-menu-li" data-level="1" data-element-type="we-mega-menu-li" description="" data-id="f23b5469-5948-4faf-8d68-f4d4ed3de9d4" data-submenu="0" hide-sub-when-collapse="" data-group="0" data-class="" data-icon="" data-caption="" data-alignsub="" data-target="">
+      <a class="we-mega-menu-li" title="" href="https://developers.bri.co.id/id/docs/banking-services-baas" target="">
+      BaaS    </a>
+    
+</li>
+</ul>
+</div>
+
+</div>
+
+  </div>
+</div>
+</li><li class="we-mega-menu-li dropdown-menu" data-level="0" data-element-type="we-mega-menu-li" description="" data-id="442ca5fa-d1a8-4284-acdf-dcae824444b8" data-submenu="1" hide-sub-when-collapse="" data-group="0" data-class="" data-icon="" data-caption="" data-alignsub="" data-target="">
+      <a class="we-mega-menu-li" title="" href="https://developers.bri.co.id/id/docs/authentication" target="">
+      Dokumentasi    </a>
+    <div class="we-mega-menu-submenu documentation-submenu" data-element-type="we-mega-menu-submenu" data-submenu-width="NaN" data-class="documentation-submenu" style="width: NaNpx">
+  <div class="we-mega-menu-submenu-inner">
+    <div class="we-mega-menu-row" data-element-type="we-mega-menu-row" data-custom-row="0">
+  <div class="we-mega-menu-col span12" data-element-type="we-mega-menu-col" data-width="12" data-block="" data-blocktitle="0" data-hidewhencollapse="" data-class="">
+  <ul class="nav nav-tabs subul">
+  <li class="we-mega-menu-li" data-level="1" data-element-type="we-mega-menu-li" description="" data-id="7e9d6a83-bf56-49e8-8b18-48ca3fc10cea" data-submenu="0" hide-sub-when-collapse="" data-group="0" data-class="" data-icon="" data-caption="" data-alignsub="" data-target="">
+      <a class="we-mega-menu-li" title="" href="https://developers.bri.co.id/id/docs/authentication" target="">
+      Non SNAP    </a>
+    
+</li><li class="we-mega-menu-li" data-level="1" data-element-type="we-mega-menu-li" description="" data-id="459e5d83-1281-4aec-80ce-7441c960a971" data-submenu="0" hide-sub-when-collapse="" data-group="0" data-class="" data-icon="" data-caption="" data-alignsub="" data-target="">
+      <a class="we-mega-menu-li" title="" href="https://developers.bri.co.id/id/snap-bi/create-snap-key" target="">
+      SNAP    </a>
+    
+</li>
+</ul>
+</div>
+
+</div>
+
+  </div>
+</div>
+</li><li class="we-mega-menu-li" data-level="0" data-element-type="we-mega-menu-li" description="" data-id="0b2c1479-c5f2-4737-8469-fcc06f8a1295" data-submenu="0" hide-sub-when-collapse="" data-group="0" data-class="" data-icon="" data-caption="" data-alignsub="" data-target="">
+      <a class="we-mega-menu-li" title="" href="https://developers.bri.co.id/id/id/user/apps" target="">
+      Aplikasi Saya    </a>
+    
+</li><li class="we-mega-menu-li dropdown-menu" data-level="0" data-element-type="we-mega-menu-li" description="" data-id="d5a32f6b-33fd-4a77-b07d-510e30e78315" data-submenu="1" hide-sub-when-collapse="" data-group="0" data-class="" data-icon="" data-caption="" data-alignsub="" data-target="">
+      <a href="https://developers.bri.co.id/id/docs/briva-push-notification#" data-drupal-link-system-path="&lt;front&gt;" class="we-megamenu-nolink">
+      Komunitas</a>
+    <div class="we-mega-menu-submenu documentation-submenu" data-element-type="we-mega-menu-submenu" data-submenu-width="" data-class="documentation-submenu" style="width: px">
+  <div class="we-mega-menu-submenu-inner">
+    <div class="we-mega-menu-row" data-element-type="we-mega-menu-row" data-custom-row="0">
+  <div class="we-mega-menu-col span12" data-element-type="we-mega-menu-col" data-width="12" data-block="" data-blocktitle="0" data-hidewhencollapse="" data-class="">
+  <ul class="nav nav-tabs subul">
+  <li class="we-mega-menu-li" data-level="1" data-element-type="we-mega-menu-li" description="" data-id="5845db9d-e2f7-4e7c-a4a8-18df4e038ee6" data-submenu="0" hide-sub-when-collapse="" data-group="0" data-class="" data-icon="" data-caption="" data-alignsub="" data-target="">
+      <a class="we-mega-menu-li" title="" href="https://developers.bri.co.id/id/news" target="">
+      Berita    </a>
+    
+</li><li class="we-mega-menu-li" data-level="1" data-element-type="we-mega-menu-li" description="" data-id="dc176eae-af99-4d8a-a256-c8ac1bf436bd" data-submenu="0" hide-sub-when-collapse="" data-group="0" data-class="" data-icon="" data-caption="" data-alignsub="" data-target="">
+      <a class="we-mega-menu-li" title="" href="https://developers.bri.co.id/id/use-cases" target="">
+      Studi Kasus    </a>
+    
+</li><li class="we-mega-menu-li" data-level="1" data-element-type="we-mega-menu-li" description="" data-id="1491eaad-a7dc-43f2-bc34-d0442c94f297" data-submenu="0" hide-sub-when-collapse="" data-group="0" data-class="" data-icon="" data-caption="" data-alignsub="" data-target="">
+      <a class="we-mega-menu-li" title="" href="https://developers.bri.co.id/id/faq" target="">
+      Q&amp;A    </a>
+    
+</li>
+</ul>
+</div>
+
+</div>
+
+  </div>
+</div>
+</li><li class="we-mega-menu-li" data-level="0" data-element-type="we-mega-menu-li" description="" data-id="c9b4b038-23f4-418f-8cc5-a0894d75a3df" data-submenu="0" hide-sub-when-collapse="" data-group="0" data-class="" data-icon="" data-caption="" data-alignsub="" data-target="">
+      <a class="we-mega-menu-li" title="" href="https://developers.bri.co.id/id/tentang-kami" target="">
+      Tentang Kami    </a>
+    
+</li><li class="we-mega-menu-li" data-level="0" data-element-type="we-mega-menu-li" description="" data-id="21d7f5fc-3098-455f-a2c4-03627c286a98" data-submenu="0" hide-sub-when-collapse="" data-group="0" data-class="" data-icon="" data-caption="" data-alignsub="" data-target="">
+      <a class="we-mega-menu-li" title="" href="https://developers.bri.co.id/id/briapi-devstudio-whitelist-user-form" target="">
+      Dev Studio    </a>
+    
+</li><li class="we-mega-menu-li" data-level="0" data-element-type="we-mega-menu-li" description="" data-id="7c7336d5-684a-47d3-8939-9a68e87c2efc" data-submenu="0" hide-sub-when-collapse="" data-group="0" data-class="" data-icon="" data-caption="" data-alignsub="" data-target="">
+      <a class="we-mega-menu-li" title="" href="https://developers.bri.co.id/id/pricing" target="">
+      Harga    </a>
+    
+</li><li class="we-mega-menu-li" data-level="0" data-element-type="we-mega-menu-li" description="" data-id="711a4463-1369-4b30-b54c-51d296436283" data-submenu="0" hide-sub-when-collapse="" data-group="0" data-class="" data-icon="" data-caption="" data-alignsub="" data-target="">
+      <a class="we-mega-menu-li" title="" href="https://developers.bri.co.id/id/onboarding" target="">
+      Onboarding    </a>
+    
+</li>
+</ul>
+	  </div>
+	</nav>
+</div>
+  
+  </div>
+
+
+          </div>
+        </div>
+
+        <div>
+          <div class="user-account-menu">
+            
+            
+              
+  <div class="views-element-container block block--views-block--current-user-menu-block-1" data-block-plugin-id="views_block:current_user_menu-block_1">
+
+  
+    
+
+      <div><div class="view view-current-user-menu view-current-user-menu--block-1 view-id-current_user_menu view-display-id-block_1 js-view-dom-id-930e8fecc886073dde93ed11524aebae6c88e95b1345a1aac65a1b100632c8e4">
+  
+    
+      
+      <div class="view-content">
+          <div class="views-row"><div class="views-field views-field-nothing"><span class="field-content">
+
+<div class="current-user-menu">
+    <img src="./Dokumentasi BRIVA Push Notification - BRIAPI_files/Avatar_1.png" class="img-responsive user-login-image" alt="bri-api internal">
+    <ul class="dropdown-custom">
+    <li>
+        <a href="https://developers.bri.co.id/id/user/26065"><svg class="svg-inline--fa fa-user fa-w-14" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="user" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><path fill="currentColor" d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"></path></svg><!-- <i class="fas fa-user"></i> Font Awesome fontawesome.com --> View Profile</a>
+
+    </li>
+    <li>
+        <a href="https://developers.bri.co.id/id/user/edit"><svg class="svg-inline--fa fa-edit fa-w-18" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="edit" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" data-fa-i2svg=""><path fill="currentColor" d="M402.6 83.2l90.2 90.2c3.8 3.8 3.8 10 0 13.8L274.4 405.6l-92.8 10.3c-12.4 1.4-22.9-9.1-21.5-21.5l10.3-92.8L388.8 83.2c3.8-3.8 10-3.8 13.8 0zm162-22.9l-48.8-48.8c-15.2-15.2-39.9-15.2-55.2 0l-35.4 35.4c-3.8 3.8-3.8 10 0 13.8l90.2 90.2c3.8 3.8 10 3.8 13.8 0l35.4-35.4c15.2-15.3 15.2-40 0-55.2zM384 346.2V448H64V128h229.8c3.2 0 6.2-1.3 8.5-3.5l40-40c7.6-7.6 2.2-20.5-8.5-20.5H48C21.5 64 0 85.5 0 112v352c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V306.2c0-10.7-12.9-16-20.5-8.5l-40 40c-2.2 2.3-3.5 5.3-3.5 8.5z"></path></svg><!-- <i class="fas fa-edit"></i> Font Awesome fontawesome.com --> Edit Profile</a>
+    </li>
+
+
+   
+
+
+
+    <li><a href="https://developers.bri.co.id/id/user/logout" class="logout-link"><svg class="svg-inline--fa fa-power-off fa-w-16" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="power-off" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M400 54.1c63 45 104 118.6 104 201.9 0 136.8-110.8 247.7-247.5 248C120 504.3 8.2 393 8 256.4 7.9 173.1 48.9 99.3 111.8 54.2c11.7-8.3 28-4.8 35 7.7L162.6 90c5.9 10.5 3.1 23.8-6.6 31-41.5 30.8-68 79.6-68 134.9-.1 92.3 74.5 168.1 168 168.1 91.6 0 168.6-74.2 168-169.1-.3-51.8-24.7-101.8-68.1-134-9.7-7.2-12.4-20.5-6.5-30.9l15.8-28.1c7-12.4 23.2-16.1 34.8-7.8zM296 264V24c0-13.3-10.7-24-24-24h-32c-13.3 0-24 10.7-24 24v240c0 13.3 10.7 24 24 24h32c13.3 0 24-10.7 24-24z"></path></svg><!-- <i class="fas fa-power-off "></i> Font Awesome fontawesome.com --> Logout</a></li>
+    </ul>
+    </div>
+</span></div></div>
+
+    </div>
+  
+          </div>
+</div>
+
+  
+  </div>
+
+
+          </div>
+        </div>
+        <div class="language-menu">
+            
+  <div data-block-plugin-id="language_dropdown_block:language_interface" class="block block--briapi-v20-languagedropdownswitcher">
+
+  
+    
+
+      <form class="lang-dropdown-form lang_dropdown_form clearfix language_interface" id="lang_dropdown_form_lang-dropdown-form" data-drupal-selector="lang-dropdown-form-2" action="https://developers.bri.co.id/id/docs/briva-push-notification" method="post" accept-charset="UTF-8" data-once="form-updated" data-drupal-form-fields="edit-lang-dropdown-select">
+  <div class="js-form-item form-item js-form-type-select form-type-select form-item-lang-dropdown-select js-form-item-lang-dropdown-select form-no-label form-group">
+      <label for="edit-lang-dropdown-select" class="visually-hidden">
+    Select your language
+      </label>
+        <div class="ddOutOfVision" id="edit-lang-dropdown-select_msddHolder" style="height: 0px; overflow: hidden; position: absolute;"><select style="width:42px" class="lang-dropdown-select-element form-select custom-select" data-lang-dropdown-id="lang-dropdown-form" data-drupal-selector="edit-lang-dropdown-select" id="edit-lang-dropdown-select" name="lang_dropdown_select" tabindex="-1"><option value="en" data-image="/sites/default/files/inline-images/en.png">English</option><option value="id" selected="selected" data-image="/sites/default/files/inline-images/id.png">Indonesian</option></select></div><div class="ldsSkinNoLabel ddcommon" id="edit-lang-dropdown-select_msdd" tabindex="0" style="width: 42px;"><div class="ddTitle"><span class="divider"></span><span class="ddArrow arrowoff"></span><span class="ddTitleText " id="edit-lang-dropdown-select_title"><img src="./Dokumentasi BRIVA Push Notification - BRIAPI_files/id.png" class="fnone" alt="languange-switcher"><span class="ddlabel">Indonesian</span><span class="description" style="display: none;"></span></span></div><input id="edit-lang-dropdown-select_titleText" type="text" autocomplete="off" class="text shadow " style="display: none;"><div class="ddChild ddchild_ border shadow" id="edit-lang-dropdown-select_child" style="z-index: 9999; display: none; position: absolute; visibility: visible; height: 51px;"><ul><li class="enabled _msddli_"><img src="./Dokumentasi BRIVA Push Notification - BRIAPI_files/en.png" class="fnone"><span class="ddlabel">English</span><div class="clear"></div></li><li class="enabled _msddli_ selected"><img src="./Dokumentasi BRIVA Push Notification - BRIAPI_files/id.png" class="fnone"><span class="ddlabel">Indonesian</span><div class="clear"></div></li></ul></div></div>
+        </div>
+  
+<input data-drupal-selector="edit-en" type="hidden" name="en" value="/en/docs/briva-push-notification" class="form-control">
+  
+<input data-drupal-selector="edit-id" type="hidden" name="id" value="/id/docs/briva-push-notification" class="form-control">
+<noscript><div>  <input data-drupal-selector="edit-submit" type="submit" id="edit-submit" name="op" value="Cari" class="button js-form-submit form-submit btn btn-primary" />
+
+
+</div></noscript>  
+<input autocomplete="off" data-drupal-selector="form-p18wswu1wiqli-nav712ei2pab1oicn4rkpyyz7bwkc" type="hidden" name="form_build_id" value="form-p18WSwU1Wiqli-nAv712ei2paB1oiCn4rkPYyz7bwkc" class="form-control">
+  
+<input data-drupal-selector="edit-lang-dropdown-form-form-token" type="hidden" name="form_token" value="ziZmhyufqtzDLs9-h72V7zU7MHs-vhZKQ-njkrnI3-w" class="form-control">
+  
+<input data-drupal-selector="edit-lang-dropdown-form" type="hidden" name="form_id" value="lang_dropdown_form" class="form-control">
+
+</form>
+
+  
+  </div>
+
+  <div data-block-plugin-id="block_content:bb84f3b0-c478-4ff8-afc2-44fc5ff5366e" class="block block--basic block--darkmodeswitch">
+
+  
+    
+
+      
+
+            <div class="field field--hidden basic__body"><label class="switch" for="switch-mode" id="switch-label"><input aria-labelledby="switch-label" id="switch-mode" type="checkbox"><span class="slider round"></span> </label>
+</div>
+      
+  
+  </div>
+
+
+        </div>
+      </div>
+    </div>
+  </nav>
+  
+</header>
+<div class="main-container row">
+   
+            
+      <div class="sidebar col-md-3">
+        <nav class="collapse bd-links" id="bd-docs-nav" aria-label="Docs navigation">
+        
+          
+  <div class="views-element-container block block--views-block--documentation-sidebar-menu-block-2" data-block-plugin-id="views_block:documentation_sidebar_menu-block_2">
+
+  
+    
+
+      <div><div class="view view-documentation-sidebar-menu view-documentation-sidebar-menu--block-2 view-id-documentation_sidebar_menu view-display-id-block_2 js-view-dom-id-bf89fc6baaefecffab7006f3091873b744c72b59317f860754517c046cba8615">
+  
+    
+      
+      <div class="view-content">
+          <div class="views-row"><div class="views-field views-field-nothing"><span class="field-content"><a href="https://developers.bri.co.id/en/docs/authentication" class="text-all-docs"> <svg class="svg-inline--fa fa-angle-left fa-w-8" aria-hidden="true" focusable="false" data-prefix="fa" data-icon="angle-left" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512" data-fa-i2svg=""><path fill="currentColor" d="M31.7 239l136-136c9.4-9.4 24.6-9.4 33.9 0l22.6 22.6c9.4 9.4 9.4 24.6 0 33.9L127.9 256l96.4 96.4c9.4 9.4 9.4 24.6 0 33.9L201.7 409c-9.4 9.4-24.6 9.4-33.9 0l-136-136c-9.5-9.4-9.5-24.6-.1-34z"></path></svg><!-- <i class="fa fa-angle-left "></i> Font Awesome fontawesome.com -->  All Docs</a>
+
+<h5 class="doc-title">BRIVA Push Notification</h5>
+
+<ul class="treeview-menu briva-push-notification" id="sidebar-menu">
+            <li class="menu-item"><a href="https://developers.bri.co.id/id/docs/briva-push-notification#50464">
+
+
+  <div class="paragraph text text--sidebar documentation-paragraph">
+    
+    
+            
+
+            <div class="field field--hidden text__field-title">API Information</div>
+      
+
+      
+
+
+  </div>
+</a></li>
+<li class="menu-item"><a href="https://developers.bri.co.id/id/docs/briva-push-notification#50465">
+
+
+  <div class="paragraph text text--sidebar documentation-paragraph">
+    
+    
+            
+
+            <div class="field field--hidden text__field-title">Version Control</div>
+      
+
+      
+
+
+  </div>
+</a></li>
+<li class="menu-item active"><a href="https://developers.bri.co.id/id/docs/briva-push-notification#50466">
+
+
+  <div class="paragraph text text--sidebar documentation-paragraph">
+    
+    
+            
+
+            <div class="field field--hidden text__field-title">Product Description</div>
+      
+
+      
+
+
+  </div>
+</a></li>
+<li class="menu-item"><a href="https://developers.bri.co.id/id/docs/briva-push-notification#50161">
+
+
+  <div class="paragraph text text--sidebar documentation-paragraph">
+    
+    
+            
+
+            <div class="field field--hidden text__field-title">Notifikasi</div>
+      
+
+      
+
+
+  </div>
+</a></li>
+<li class="menu-item"><a href="https://developers.bri.co.id/id/docs/briva-push-notification#50604">
+
+
+  <div class="paragraph text text--sidebar documentation-paragraph">
+    
+    
+            
+
+            <div class="field field--hidden text__field-title">Rekonsiliasi</div>
+      
+
+      
+
+
+  </div>
+</a></li>
+
+</ul></span></div></div>
+
+    </div>
+  
+          </div>
+</div>
+
+  
+  </div>
+
+
+        </nav>
+      </div>
+      <div class="main-content col-md-9 " style="padding-top: 100px;">
+          
+  <div data-block-plugin-id="block_content:b09f5715-edcc-40a3-b82b-88fbe0ca8acd" class="block block--basic block--sidebartoggle">
+
+  
+    
+
+      
+
+            <div class="field field--hidden basic__body"><p><button class="navbar-toggler sidebar-toggler active d-none" data-toggle="offcanvas" type="button"><svg class="svg-inline--fa fa-bars fa-w-14" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="bars" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><path fill="currentColor" d="M16 132h416c8.837 0 16-7.163 16-16V76c0-8.837-7.163-16-16-16H16C7.163 60 0 67.163 0 76v40c0 8.837 7.163 16 16 16zm0 160h416c8.837 0 16-7.163 16-16v-40c0-8.837-7.163-16-16-16H16c-8.837 0-16 7.163-16 16v40c0 8.837 7.163 16 16 16zm0 160h416c8.837 0 16-7.163 16-16v-40c0-8.837-7.163-16-16-16H16c-8.837 0-16 7.163-16 16v40c0 8.837 7.163 16 16 16z"></path></svg><!-- <i class="fas fa-bars"></i> Font Awesome fontawesome.com --></button></p>
+
+<div class="sidebar-widget-overlay d-none">&nbsp;</div>
+</div>
+      
+  
+  </div>
+<div class="documentation-header">
+    <div class="row">
+        <div class="col-md-8">
+            <h1 class="dokumentasi-title"> 
+<span>BRIVA Push Notification</span>
+ </h1>
+
+        </div>
+        <div class="col-md-4">
+                        <a class="btn btn-primary" href="https://developers.bri.co.id/id/user/apps">Buat API </a>
+                    </div>
+    </div>
+</div>
+
+
+
+            <div class="field field--hidden documentation__body"><div class="fund-transfer-2">
+<h1 style="font-weight: 600;">&nbsp;</h1>
+</div>
+</div>
+      
+
+
+  <div class="paragraph text text--default documentation-paragraph">
+    <div class="row justify-content-md-center">
+  <div class="col-md-12">
+    <div class="paragraph-title" id="50464">
+            <h2>
+
+            <div class="field field--hidden text__field-title">API Information</div>
+      </h2>
+
+      
+    </div>
+    <div class="paragraph-body">
+      
+
+            <div class="field field--hidden text__field-text"><table class="table table-responsive"><tbody><tr><th>
+			<p>Judul</p>
+			</th>
+			<td>
+			<p>API Docs BRIVA Push Notification</p>
+			</td>
+		</tr><tr><th>
+			<p>Versi</p>
+			</th>
+			<td>
+			<p>v1.0</p>
+			</td>
+		</tr><tr><th>
+			<p>URL Sandbox</p>
+			</th>
+			<td>
+			<p>-</p>
+			</td>
+		</tr><tr><th>
+			<p>URL Production</p>
+			</th>
+			<td>
+			<p>-</p>
+			</td>
+		</tr></tbody></table></div>
+      
+      
+    </div>
+  </div>
+</div>
+  </div>
+
+
+
+  <div class="paragraph text text--default documentation-paragraph">
+    <div class="row justify-content-md-center">
+  <div class="col-md-12">
+    <div class="paragraph-title" id="50465">
+            <h2>
+
+            <div class="field field--hidden text__field-title">Version Control</div>
+      </h2>
+
+      
+    </div>
+    <div class="paragraph-body">
+      
+
+            <div class="field field--hidden text__field-text"><table class="table table-responsive"><tbody><tr><th>Versi Dok</th>
+			<th>
+			<p>Versi API</p>
+			</th>
+			<th>
+			<p>Tanggal</p>
+			</th>
+			<th>
+			<p>Link to document</p>
+			</th>
+			<th>
+			<p>Deskripsi</p>
+			</th>
+		</tr><tr><td>v1.0</td>
+			<td>v1.0</td>
+			<td>22 Februari 2022</td>
+			<td>this pages</td>
+			<td>Baseline version.</td>
+		</tr><tr><td>v1.1</td>
+			<td>v1.0</td>
+			<td>27 April 2023</td>
+			<td>this pages</td>
+			<td>Mengubah jumlah length request field "<strong>brivaNo</strong>" menjadi 18 pada endpoint <strong>Notification.</strong></td>
+		</tr></tbody></table></div>
+      
+      
+    </div>
+  </div>
+</div>
+  </div>
+
+
+
+  <div class="paragraph text text--default documentation-paragraph">
+    <div class="row justify-content-md-center">
+  <div class="col-md-12">
+    <div class="paragraph-title" id="50466">
+            <h2>
+
+            <div class="field field--hidden text__field-title">Product Description</div>
+      </h2>
+
+      
+    </div>
+    <div class="paragraph-body">
+      
+
+            <div class="field field--hidden text__field-text"><h3>Product Overview</h3>
+
+<p>Fitur ini akan memberikan notifikasi kepada partner ketika terdapat pembayaran virtual account.</p>
+
+<blockquote>
+<p>Akan ada case dimana waktu transaksi pada field <b>“transactionDateTime”</b> saat notifikasi dan get report pada field <b>“paymentDate”</b> memiliki perbedaan waktu pada transaksinya. Apabila mengalami case tersebut maka hal yang perlu menjadi catatan adalah <i>transactionDateTime pada notifikasi merupakan waktu ketika mengirimkan notifikasi transaksinya dan pada paymentDate di get report adalah waktu ketika transaksi tersebut masuk ke proses pembukuan</i>.</p>
+
+<p>Pengguna layanan diwajibkan melakukan rekonsiliasi setiap hari terutama untuk pengecekkan transaksi yang bersifat anomalll.</p>
+
+<p>Untuk rekonsillasi dapat menggunakan beberapa opsi sebagai berikut :&nbsp;</p>
+
+<p>1. Menggunakan API Get Report Date BRIVA&nbsp;</p>
+
+<p>2. Menggunakan API Get Report Time BRIVA&nbsp;</p>
+
+<p>3. Menggunakan API Info Mutasi v2.0</p>
+
+<p>4. Menggunakan MT940 H+1</p>
+</blockquote>
+
+<h3>Flow API</h3>
+
+<p><img alt="push notif flow api" src="./Dokumentasi BRIVA Push Notification - BRIAPI_files/push-notif.png"></p>
+</div>
+      
+      
+    </div>
+  </div>
+</div>
+  </div>
+
+
+
+  <div class="paragraph text text--default documentation-paragraph">
+    <div class="row justify-content-md-center">
+  <div class="col-md-12">
+    <div class="paragraph-title" id="50161">
+            <h2>
+
+            <div class="field field--hidden text__field-title">Notifikasi</div>
+      </h2>
+
+      
+    </div>
+    <div class="paragraph-body">
+      
+
+            <div class="field field--hidden text__field-text"><h3>Endpoint Description</h3>
+
+<p>Fitur ini akan memberikan notifikasi kepada partner ketika terdapat pembayaran virtual account. Notifikasi ini tidak terdapat proses untuk retry ketika gagal melakukan flagging, sehingga kami sarankan agar tetap melakukan validasi get report untuk transaksi yang telah dibayar tetapi tidak mendapatkan notifikasi Untuk menggunakan fitur ini, partner harus menyediakan url endpoint untuk menerima notifikasi dari BRI, dengan spesifikasi sebagai berikut:</p>
+
+<h3>General Information</h3>
+
+<table class="table table-responsive"><thead><tr><th>HTTP Method</th>
+			<td>POST</td>
+		</tr></thead><tbody><tr><th>Path</th>
+			<td>Provided by Partner</td>
+		</tr><tr><th>Tipe Format</th>
+			<td>JSON</td>
+		</tr><tr><th>Authentication</th>
+			<td>&nbsp;</td>
+		</tr></tbody></table><h3>Header Structure</h3>
+
+<table class="table table-responsive"><thead><tr><th>
+			<p>Key</p>
+			</th>
+			<th>
+			<p>Value</p>
+			</th>
+			<th>
+			<p>Mandatory</p>
+			</th>
+			<th>
+			<p>&nbsp;Length</p>
+			</th>
+			<th>
+			<p>&nbsp; Deskripsi</p>
+			</th>
+			<th>
+			<p>Contoh</p>
+			</th>
+		</tr></thead><tbody><tr><td>
+			<p>BRI-Signature</p>
+			</td>
+			<td>
+			<p>alphanum</p>
+			</td>
+			<td>
+			<p>M&nbsp;(Mandatory)</p>
+			</td>
+			<td>&nbsp;</td>
+			<td>
+			<p>Signature</p>
+
+			<p><a href="https://developers.bri.co.id/id/docs/authentication#signature">https://developers.bri.co.id<br>
+			/docs/authenticationi#signature</a></p>
+			</td>
+			<td>&nbsp;</td>
+		</tr><tr><td>
+			<p>BRI-Timestamp</p>
+			</td>
+			<td>
+			<p>alphanum</p>
+			</td>
+			<td>
+			<p>M&nbsp;(Mandatory)</p>
+			</td>
+			<td>&nbsp;</td>
+			<td>
+			<p>Timestamp</p>
+			</td>
+			<td>&nbsp;</td>
+		</tr></tbody></table><h3>Request Structure</h3>
+
+<table class="table table-responsive"><thead><tr><th>
+			<p>Field</p>
+			</th>
+			<th>
+			<p>Data Type</p>
+			</th>
+			<th>
+			<p>Mandatory</p>
+			</th>
+			<th>
+			<p>&nbsp;Length</p>
+			</th>
+			<th>
+			<p>&nbsp; Deskripsi</p>
+			</th>
+			<th>
+			<p>Contoh</p>
+			</th>
+		</tr></thead><tbody><tr><td>
+			<p>brivaNo</p>
+			</td>
+			<td>
+			<p>String</p>
+			</td>
+			<td>
+			<p>M</p>
+			</td>
+			<td>
+			<p>18</p>
+			</td>
+			<td>
+			<p>VA Number : [CorporateCode]*+[CustomerCode]** *[Corporate Code] : corporate code created by BRI (numeric[5]) **[Customer Code] : customer code created by 3rd parties (Numeric [Max 13])</p>
+			</td>
+			<td>&nbsp;</td>
+		</tr><tr><td>
+			<p>billAmount</p>
+			</td>
+			<td>
+			<p>String</p>
+			</td>
+			<td>
+			<p>M</p>
+			</td>
+			<td>
+			<p>18</p>
+			</td>
+			<td>
+			<p>The amount of the bill</p>
+			</td>
+			<td>&nbsp;</td>
+		</tr><tr><td>
+			<p>transactionDateTime</p>
+			</td>
+			<td>
+			<p>String</p>
+			</td>
+			<td>
+			<p>M</p>
+			</td>
+			<td>
+			<p>10</p>
+			</td>
+			<td>
+			<p>Inquiry request time (Format:yyyyMMddHHmmss)</p>
+			</td>
+			<td>&nbsp;</td>
+		</tr><tr><td>
+			<p>journalSeq</p>
+			</td>
+			<td>
+			<p>String</p>
+			</td>
+			<td>
+			<p>M</p>
+			</td>
+			<td>
+			<p>30</p>
+			</td>
+			<td>
+			<p>Unique ID for each transaction</p>
+			</td>
+			<td>&nbsp;</td>
+		</tr><tr><td>
+			<p>terminalId</p>
+			</td>
+			<td>
+			<p>String</p>
+			</td>
+			<td>
+			<p>M</p>
+			</td>
+			<td>
+			<p>2</p>
+			</td>
+			<td>
+			<p>Channel ID</p>
+			1 : Teller<br>
+			2 : ATM<br>
+			3 : IB<br>
+			4 : SMSB<br>
+			5 : CMS<br>
+			6 : EDC<br>
+			7 : RTGS<br>
+			8 : OTHER<br>
+			9 : API</td>
+			<td>&nbsp;</td>
+		</tr></tbody></table><h2>Response Structure</h2>
+
+<table><thead><tr><th>
+			<p>Field</p>
+			</th>
+			<th>
+			<p>Data Type&nbsp;</p>
+			</th>
+			<th>
+			<p>Mandatory</p>
+			</th>
+			<th>
+			<p>Length</p>
+			</th>
+			<th>
+			<p>&nbsp;Deskripsi</p>
+			</th>
+			<th>
+			<p>Contoh</p>
+			</th>
+		</tr></thead><tbody><tr><td>
+			<p>responseCode</p>
+			</td>
+			<td>
+			<p>String</p>
+			</td>
+			<td>
+			<p>M</p>
+			</td>
+			<td>&nbsp;</td>
+			<td>
+			<p>0000 = Success</p>
+
+			<p>0102 = Invalid Signature</p>
+			</td>
+			<td>&nbsp;</td>
+		</tr><tr><td>
+			<p>responseDescription</p>
+			</td>
+			<td>
+			<p>String</p>
+			</td>
+			<td>
+			<p>M</p>
+			</td>
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
+		</tr></tbody></table><h3>Request &amp; Response Payload Sample</h3>
+
+<p><strong>Request</strong></p>
+
+<pre class="highlight highlight-curl-id3 prettyprint">{
+   "brivaNo":"8888001256798654",
+   "billAmount":"22000",
+   "transactionDateTime":"20201005102753",
+   "journalSeq":"2027912345671234567",
+   “terminalId”:”1”
+}
+</pre>
+
+<div class="pre-container"><button class="copy-button" data-placement="top" data-toggle="tooltip" title="Copy"><i class="icon-copy"></i></button>
+
+<pre class="highlight highlight-curl-id3 prettyprint">curl --location -g --request POST '{url}/api/v1.0/notification' \
+--header 'BRI-Signature: VaJc6t6Bqjewhgia+QvNoTAEBgX9eEhaBYxPAhSulEM=' \
+--header 'BRI-Timestamp: 2021-08-26T09:40:48.818Z' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+ "brivaNo": "8888001256798654",
+ "billAmount": "22000",
+ "transactionDateTime": "20201005102753",
+ "journalSeq": "2027912345671234567",
+“terminalId”:”1”
+}
+</pre>
+</div>
+
+<p><strong>Normal Response</strong></p>
+
+<pre class="highlight prettyprint">{   
+    "responseCode": "0000",
+    "responseDescription": "Success"
+}
+</pre>
+
+<p><strong>Error Response</strong></p>
+
+<pre class="highlight prettyprint">{
+  "responseCode": "0102",
+  "responseDescription": "Invalid Signature"
+}
+</pre>
+
+<p>Briva WS Notif adalah service yang disediakan oleh BRI untuk memberikan notifikasi kepada partner ketika terdapat pembayaran virtual account.</p>
+
+<p>Agar partner mendapatkan notifikasi dari BRI, terdapat beberapa spesifikasi yang harus disesuaikan oleh partner adalah sebagai berikut:</p>
+
+<ol><li>Header Structure Parameter-parameter yang harus disediakan oleh partner pada header adalah sebagai berikut:
+	<ul><li>BRI-Signature Untuk memastikan bahwa data yang dikirimkan adalah asli dan tidak dapat disanggah, dari sisi kami akan mengirimkan signature dan harus diverifikasi oleh partner. Cara membuat signature, partner dapat merefer ke halaman web <a href="https://developers.bri.co.id/docs/documentation#signature">https://developers.bri.co.id/docs/documentation#signature</a>.</li>
+		<li>BRI-Timestamp Waktu saat mengirimkan request API. Format waktu harus mengikuti format ISO8601 <code>(yyyy-MM-ddTHH:mm:ss.SSSZ)</code>.</li>
+		<li>Content-Type Type JSON pada Content-Type dilengkapi dengan application/json.</li>
+	</ul></li>
+</ol><p>&nbsp;</p>
+
+<h3>Signature</h3>
+
+<p>Signature memastikan data yang dikirimkan adalah asli dan tidak bisa disanggah. Signature dihasilkan oleh pemakai layanan dan diverifikasi oleh penerima layanan.</p>
+
+<p>Signature dibentuk dari payload yang sudah ditentukan, dengan mengimplementasikan algoritma SHA256-HMAC dengan <strong>Consumer Key</strong> sebagai kuncinya. Kemudian, akan&nbsp;dilakukan enkripsi dari signature ini dengan menggunakan Base64. Hasil akhirnya akan diletakkan di atribut BRI-Signature di Header.</p>
+
+<h3>Payload</h3>
+
+<p>Payload tergabung dari path, verb, token, timestamp, and body. Contoh payload:</p>
+
+<p><code>path=https://service-vendor.tcd-dev.id/api/briapi/request-inquiry&amp;verb=GET&amp;token=Bearer R04XSUbnm1GXNmDiXx9ysWMpFWBr ×tamp=2019-01-02T13:14:15.678Z&amp;body=</code></p>
+
+<p>&nbsp;</p>
+
+<p>Detailnya akan dijelaskan di bawah ini:</p>
+
+<h3>1. Path</h3>
+
+<p>Nilai dari path diperoleh dari URL partner yang di hit BRI</p>
+
+<p>Contoh:</p>
+
+<p><a href="https://service-vendor.tcd-dev.id/api/briapi/request-inquiry">https://service-vendor.tcd-dev.id/api/briapi/request-inquiry</a></p>
+
+<h3>2. Verb</h3>
+
+<p>HTTP method harus huruf kapital, i.e. GET, POST, PUT, PATCH, and DELETE.</p>
+
+<h3>3. Token</h3>
+
+<p>Token yang digunakan diambil dari Consumer Key pengguna layanan.</p>
+
+<p>Contoh:</p>
+
+<p><code>Bearer R04XSUbnm1GXNmDiXx9ysWMpFWBr</code></p>
+
+<h3>4. Timestamp</h3>
+
+<p>Waktu saat mengirimkan request API. Format waktu harus mengikuti ISO8601 format (yyyy-MMddTHH:mm:ss.SSSZ).</p>
+
+<p>Contoh:</p>
+
+<p><code>2019-01-02T13:14:15.678Z</code></p>
+
+<blockquote>
+<p>Timestamp must be in UTC or GMT +0 timezone</p>
+</blockquote>
+
+<h3>5. Body</h3>
+
+<p>Body saat mengirimkan request API . Contoh:</p>
+
+<p><code>&amp;body={"hello":"world"}</code></p>
+
+<p>Jika tidak ada body requestnya, misalkan menggunakan method GET, biarkan saja kosong. Contoh:</p>
+
+<p><code>&amp;body=</code></p>
+
+<p>Parameter-parameter yang harus disediakan oleh partner pada body request adalah sebagai berikut:</p>
+
+<ul><li>brivaNo, adalah nomor virtual account, String dengan maksimal karakter adalah 14. Ketentuan Nomor VA :<br><code>[CorporateCode]*+[CustomerCode]** *<br>
+	[CorporateCode]</code> : kode perusahaan yang dibuat oleh BRI (numeric [5])<br><code>[CustomerCode]</code> : kode pelanggan yang dibuat oleh 3rd party (numeric [Max 13 karakter])</li>
+	<li>billAmount, adalah jumlah tagihan, String dengan maksimal karakter adalah 18</li>
+	<li>transactionDateTime, adalah waktu saat request inquiry, dengan format: <code>yyyyMMddHHmmss</code></li>
+	<li>journalSeq, adalah ID unik yang dimiliki oleh setiap transaksi, String dengan maksimal karakter adalah 30.</li>
+	<li>terminalId, adalah channel pembayaran yang ada di BRI, String dengan maksimal karakter adalah 1.</li>
+</ul><h3>List of Error/Response Code</h3>
+
+<table class="table table-responsive"><thead><tr><th>HTTP Status</th>
+			<th>Kode</th>
+			<th>Status</th>
+			<th>Respon Deskripsi</th>
+			<th>Deskripsi</th>
+		</tr></thead><tbody><tr><td>200</td>
+			<td>0000</td>
+			<td>Success</td>
+			<td>Success</td>
+			<td>&nbsp;</td>
+		</tr><tr><td>400</td>
+			<td>0102</td>
+			<td>Failed</td>
+			<td>Invalid Signature</td>
+			<td>&nbsp;</td>
+		</tr></tbody></table></div>
+      
+      
+    </div>
+  </div>
+</div>
+  </div>
+
+
+
+  <div class="paragraph text text--default documentation-paragraph">
+    <div class="row justify-content-md-center">
+  <div class="col-md-12">
+    <div class="paragraph-title" id="50604">
+            <h2>
+
+            <div class="field field--hidden text__field-title">Rekonsiliasi</div>
+      </h2>
+
+      
+    </div>
+    <div class="paragraph-body">
+      
+
+            <div class="field field--hidden text__field-text"><p>Pengguna layanan diwajibkan melakukan rekonsiliasi setiap hari terutama untuk pengecekkan transaksi yang bersifat anomali.<br>
+Untuk rekonsiliasi dapat menggunakan beberapa opsi sebagai berikut :</p>
+
+<ol><li>Using Get Report Date BRIVA API</li>
+	<li>Using Get Report Time BRIVA API</li>
+	<li>Using Account Statement v2.0 API</li>
+	<li>Using MT940 after the day of transaction</li>
+</ol></div>
+      
+      
+    </div>
+  </div>
+</div>
+  </div>
+
+
+
+        
+      </div>
+      
+    
+  </div>
+
+  <section class="footer-section">
+	<div class="container-footer-top">
+		<footer class="footer-top">
+			  
+  <div data-block-plugin-id="block_content:142c3dd7-26ca-487c-a056-c72b96143cd5" class="block block--basic block--footer-seconden">
+
+  
+    
+
+      
+
+            <div class="field field--hidden basic__body"><p><span>Butuh Bantuan?</span> Mohon hubungi kami di&nbsp;<a href="mailto:briapi@work.bri.co.id">briapi@work.bri.co.id</a> atau Unit Kerja Pemrakarsa Kerjasama (Kantor Wilayah / Kantor Cabang BRI terdekat).</p>
+</div>
+      
+  
+  </div>
+
+
+		</footer>
+	</div>
+  
+	<footer class="footer footer-bottom">
+					<div class="container ">
+				<div class="row">
+
+					<div class="col-md-2 footer-first">
+						  
+  <div data-block-plugin-id="block_content:4aa4ecd7-0b53-4f6a-953e-6b376c113a66" class="block block--basic block--footer-third-2">
+
+  
+    
+
+      
+
+            <div class="field field--hidden basic__body"><div class="footer-img"><img alt="bri-logo" class="logo-bri aos-init aos-animate" data-aos="fade-down" data-aos-delay="350" data-duration="500" loading="lazy" src="./Dokumentasi BRIVA Push Notification - BRIAPI_files/bri_0.png"><img alt="ISO" class="iso aos-init aos-animate" data-aos="fade-down" data-aos-delay="350" data-duration="500" loading="lazy" src="./Dokumentasi BRIVA Push Notification - BRIAPI_files/iso_27001.png"></div>
+
+<div class="sticky menu-term-condition" style="height: 0px; background: none; position: relative; top: 0px; width: unset;">&nbsp;</div>
+</div>
+      
+  
+  </div>
+
+
+					</div>
+
+					<div class="col-md-3 footer-second">
+						  
+  <div data-block-plugin-id="block_content:3f4231e2-0fd4-4ed8-9611-e91700cf405a" class="block block--basic block--footersecond">
+
+  
+    
+
+      
+
+            <div class="field field--hidden basic__body"><div class="address-footer">
+<p>Address</p>
+
+<p>Jl. Jend. Sudirman No.Kav 44-46, RT.14/RW.1, 1, Bend. Hilir,<br>
+Tanah Abang, Kota Jakarta Pusat, Daerah Khusus Ibukota<br>
+Jakarta 10210</p>
+</div>
+
+<div class="social-media"><a href="https://developers.bri.co.id/en/privacy-policy">Privacy Policy</a> |&nbsp;<a href="https://developers.bri.co.id/en/terms-and-condition">Terms and Condition</a></div>
+
+<p>&nbsp;</p>
+</div>
+      
+  
+  </div>
+
+
+					</div>
+
+					<div class="col-md-2 footer-bottom">
+						
+					</div>
+					<div class="col-md-5 footer-fourth">
+						  
+  <div data-block-plugin-id="block_content:d1667003-3a3c-4a4a-b693-785add6ecc29" class="block block--basic block--addressfooter">
+
+  
+    
+
+      
+
+            <div class="field field--hidden basic__body"><div class="help-desk">
+<p>Need help?</p>
+
+<p>Contact the Cooperation Initiating Work Unit (Regional Office / Nearest BRI Branch Office) or</p>
+<a class="btn btn-primary use-ajax contact-form" data-dialog-options="{&quot;dialogClass&quot;:&quot;contact-popup&quot;}" data-dialog-type="modal" href="https://developers.bri.co.id/en/form/contact-us" data-once="ajax"><img alt="helpdesk-icon" src="./Dokumentasi BRIVA Push Notification - BRIAPI_files/help-desk-icon.png"> Contact Helpdesk</a></div>
+</div>
+      
+  
+  </div>
+
+
+					</div>
+
+				</div>
+				<div class="row">
+					<div class="col-md footer-fourth">
+						
+					</div>
+				</div>
+			</div>
+
+		
+	</footer>
+</section>
+  
+  </div>
+
+  <div class="briapi-fcb right bottom">
+  <button id="open-chat" type="button" onclick="openForm()">
+    <img src="./Dokumentasi BRIVA Push Notification - BRIAPI_files/fcb-open-chat.png" alt="Contact BRIAPI helpdesk" class="web fcb-open-button" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="whatsapp">
+  </button>
+
+  <button id="close-chat" style="display:none;" onclick="closeForm()">
+    <img src="./Dokumentasi BRIVA Push Notification - BRIAPI_files/fcb-close.png" alt="Contact BRIAPI helpdesk" class="web fcb-close-button" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="whatsapp">
+  </button>
+  </div>
+
+  <div class="popup-contact" id="popup-contact">
+    <div class="popup-contact-wrapper" id="popup-contact-wrapper">
+      <h4>Bagaimana Anda ingin menghubungi kami?</h4>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card" onclick="OpenChatAdmin()">
+            <div class="row">
+              <div class="col-md-3 col-sm-3 col-xs-9">
+                <img src="./Dokumentasi BRIVA Push Notification - BRIAPI_files/admin-icon.png" alt="Contact BRIAPI helpdesk" class="web fcb-close-button" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="whatsapp">
+              </div>
+              <div class="col-md-9 col-sm-9 col-xs-9 card-body">
+                <p class="card-title">Admin</p>
+                <p class="card-description">Ajukan pertanyaan atau laporkan permasalahan ke Admin BRIAPI melalui email.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-12">
+          <div class="card" id="open-sabrina" onclick="OpenSabrina()">
+            <div class="row">
+              <div class="col-md-3 col-sm-3 col-xs-3">
+                <img src="./Dokumentasi BRIVA Push Notification - BRIAPI_files/sabrina-icon.png" alt="Contact BRIAPI helpdesk" class="web fcb-close-button" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="whatsapp">
+              </div>
+              <div class="col-md-9 col-sm-9 col-xs-9 card-body">
+                <p class="card-title">Sabrina</p>
+                <p class="card-description">Dapatkan informasi produk dari asisten virtual BRI melalui WhatsApp.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="chat-background" id="chat-background">
+    <div class="chat-wrapper" id="chat-wrapper">
+      <div class="chat-popup" id="chat-popup">
+        <span id="webform-submission-floating-contact-form-node-50105-form-ajax-content"></span><div id="webform-submission-floating-contact-form-node-50105-form-ajax" class="webform-ajax-form-wrapper" data-effect="fade" data-progress-type="throbber"><form class="webform-submission-form webform-submission-add-form webform-submission-floating-contact-form-form webform-submission-floating-contact-form-add-form webform-submission-floating-contact-form-node-50105-form webform-submission-floating-contact-form-node-50105-add-form js-webform-details-toggle webform-details-toggle" data-drupal-selector="webform-submission-floating-contact-form-node-50105-add-form" action="https://developers.bri.co.id/id/docs/briva-push-notification" method="post" id="webform-submission-floating-contact-form-node-50105-add-form" accept-charset="UTF-8" data-once="form-updated" data-drupal-form-fields="edit-name,edit-email,edit-company,edit-company-description,edit-has-account-yes,edit-has-account-no,edit-branch-name,edit-product,edit-message,edit-captcha-response,edit-actions-submit">
+  
+  <label class="h2" data-drupal-selector="edit-title" for="edit-title">
+    Tanya Kami
+      </label><div class="js-form-item form-item js-form-type-textfield form-type-textfield form-item-name js-form-item-name form-group">
+      <label for="edit-name" class="js-form-required form-required">
+    Nama
+          <svg class="svg-inline--fa fa-asterisk fa-w-16 text-danger form-required__indicator" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="asterisk" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M478.21 334.093L336 256l142.21-78.093c11.795-6.477 15.961-21.384 9.232-33.037l-19.48-33.741c-6.728-11.653-21.72-15.499-33.227-8.523L296 186.718l3.475-162.204C299.763 11.061 288.937 0 275.48 0h-38.96c-13.456 0-24.283 11.061-23.994 24.514L216 186.718 77.265 102.607c-11.506-6.976-26.499-3.13-33.227 8.523l-19.48 33.741c-6.728 11.653-2.562 26.56 9.233 33.037L176 256 33.79 334.093c-11.795 6.477-15.961 21.384-9.232 33.037l19.48 33.741c6.728 11.653 21.721 15.499 33.227 8.523L216 325.282l-3.475 162.204C212.237 500.939 223.064 512 236.52 512h38.961c13.456 0 24.283-11.061 23.995-24.514L296 325.282l138.735 84.111c11.506 6.976 26.499 3.13 33.227-8.523l19.48-33.741c6.728-11.653 2.563-26.559-9.232-33.036z"></path></svg><!-- <i class="fas fa-asterisk text-danger form-required__indicator"></i> Font Awesome fontawesome.com -->
+      </label>
+          
+<input data-drupal-selector="edit-name" type="text" id="edit-name" name="name" value="" size="60" maxlength="255" placeholder="Masukkan nama lengkap Anda" class="required form-control" required="required" aria-required="true">
+
+        </div>
+<div class="js-form-item form-item js-form-type-email form-type-email form-item-email js-form-item-email form-group">
+      <label for="edit-email" class="js-form-required form-required">
+    Email
+          <svg class="svg-inline--fa fa-asterisk fa-w-16 text-danger form-required__indicator" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="asterisk" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M478.21 334.093L336 256l142.21-78.093c11.795-6.477 15.961-21.384 9.232-33.037l-19.48-33.741c-6.728-11.653-21.72-15.499-33.227-8.523L296 186.718l3.475-162.204C299.763 11.061 288.937 0 275.48 0h-38.96c-13.456 0-24.283 11.061-23.994 24.514L216 186.718 77.265 102.607c-11.506-6.976-26.499-3.13-33.227 8.523l-19.48 33.741c-6.728 11.653-2.562 26.56 9.233 33.037L176 256 33.79 334.093c-11.795 6.477-15.961 21.384-9.232 33.037l19.48 33.741c6.728 11.653 21.721 15.499 33.227 8.523L216 325.282l-3.475 162.204C212.237 500.939 223.064 512 236.52 512h38.961c13.456 0 24.283-11.061 23.995-24.514L296 325.282l138.735 84.111c11.506 6.976 26.499 3.13 33.227-8.523l19.48-33.741c6.728-11.653 2.563-26.559-9.232-33.036z"></path></svg><!-- <i class="fas fa-asterisk text-danger form-required__indicator"></i> Font Awesome fontawesome.com -->
+      </label>
+          
+<input data-drupal-selector="edit-email" type="email" id="edit-email" name="email" value="" size="60" maxlength="254" placeholder="Masukkan alamat email Anda" class="form-email required form-control" required="required" aria-required="true">
+
+        </div>
+<div class="js-form-item form-item js-form-type-textfield form-type-textfield form-item-company js-form-item-company form-group">
+      <label for="edit-company" class="js-form-required form-required">
+    Perusahaan
+          <svg class="svg-inline--fa fa-asterisk fa-w-16 text-danger form-required__indicator" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="asterisk" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M478.21 334.093L336 256l142.21-78.093c11.795-6.477 15.961-21.384 9.232-33.037l-19.48-33.741c-6.728-11.653-21.72-15.499-33.227-8.523L296 186.718l3.475-162.204C299.763 11.061 288.937 0 275.48 0h-38.96c-13.456 0-24.283 11.061-23.994 24.514L216 186.718 77.265 102.607c-11.506-6.976-26.499-3.13-33.227 8.523l-19.48 33.741c-6.728 11.653-2.562 26.56 9.233 33.037L176 256 33.79 334.093c-11.795 6.477-15.961 21.384-9.232 33.037l19.48 33.741c6.728 11.653 21.721 15.499 33.227 8.523L216 325.282l-3.475 162.204C212.237 500.939 223.064 512 236.52 512h38.961c13.456 0 24.283-11.061 23.995-24.514L296 325.282l138.735 84.111c11.506 6.976 26.499 3.13 33.227-8.523l19.48-33.741c6.728-11.653 2.563-26.559-9.232-33.036z"></path></svg><!-- <i class="fas fa-asterisk text-danger form-required__indicator"></i> Font Awesome fontawesome.com -->
+      </label>
+          
+<input data-drupal-selector="edit-company" type="text" id="edit-company" name="company" value="" size="60" maxlength="255" placeholder="Masukkan nama perusahaan Anda" class="required form-control" required="required" aria-required="true">
+
+        </div>
+<div class="js-form-item form-item js-form-type-textfield form-type-textfield form-item-company-description js-form-item-company-description form-group">
+      <label for="edit-company-description" class="js-form-required form-required">
+    Deskripsi Perusahaan
+          <svg class="svg-inline--fa fa-asterisk fa-w-16 text-danger form-required__indicator" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="asterisk" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M478.21 334.093L336 256l142.21-78.093c11.795-6.477 15.961-21.384 9.232-33.037l-19.48-33.741c-6.728-11.653-21.72-15.499-33.227-8.523L296 186.718l3.475-162.204C299.763 11.061 288.937 0 275.48 0h-38.96c-13.456 0-24.283 11.061-23.994 24.514L216 186.718 77.265 102.607c-11.506-6.976-26.499-3.13-33.227 8.523l-19.48 33.741c-6.728 11.653-2.562 26.56 9.233 33.037L176 256 33.79 334.093c-11.795 6.477-15.961 21.384-9.232 33.037l19.48 33.741c6.728 11.653 21.721 15.499 33.227 8.523L216 325.282l-3.475 162.204C212.237 500.939 223.064 512 236.52 512h38.961c13.456 0 24.283-11.061 23.995-24.514L296 325.282l138.735 84.111c11.506 6.976 26.499 3.13 33.227-8.523l19.48-33.741c6.728-11.653 2.563-26.559-9.232-33.036z"></path></svg><!-- <i class="fas fa-asterisk text-danger form-required__indicator"></i> Font Awesome fontawesome.com -->
+      </label>
+          
+<input data-drupal-selector="edit-company-description" type="text" id="edit-company-description" name="company_description" value="" size="60" maxlength="255" placeholder="Ceritakan singkat tentang perusahaan Anda (contoh: bidang industri, dll)" class="required form-control" required="required" aria-required="true">
+
+        </div>
+<fieldset data-drupal-selector="edit-has-account" id="edit-has-account--wrapper" class="radios--wrapper fieldgroup form-composite webform-composite-visible-title required js-webform-type-radios webform-type-radios js-form-item form-item js-form-wrapper form-wrapper border mb-3" role="radiogroup" aria-labelledby="edit-has-account--wrapper-legend">
+      <legend id="edit-has-account--wrapper-legend" class="float-left py-2 px-4 mb-0 border-bottom">
+            <span class="fieldset-legend js-form-required form-required">
+        Memiliki Nomor Rekening BRI?
+      </span>
+
+      <button class="btn-link">
+        <svg class="svg-inline--fa fa-chevron-down fa-w-14 d-md-none" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="chevron-down" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><path fill="currentColor" d="M207.029 381.476L12.686 187.132c-9.373-9.373-9.373-24.569 0-33.941l22.667-22.667c9.357-9.357 24.522-9.375 33.901-.04L224 284.505l154.745-154.021c9.379-9.335 24.544-9.317 33.901.04l22.667 22.667c9.373 9.373 9.373 24.569 0 33.941L240.971 381.476c-9.373 9.372-24.569 9.372-33.942 0z"></path></svg><!-- <i class="fas fa-chevron-down d-md-none"></i> Font Awesome fontawesome.com -->
+      </button>
+  </legend>
+  <div class="p-4 fieldset-wrapper">
+            <div id="edit-has-account" class="js-webform-radios webform-options-display-two-columns form-radios"><div class="js-form-item form-item js-form-type-radio form-item-has-account js-form-item-has-account form-check">
+  <input data-drupal-selector="edit-has-account-yes" type="radio" id="edit-has-account-yes" name="has_account" value="Yes" class="form-radio form-check-input" required="required">
+
+
+  <svg class="svg-inline--fa fa-dot-circle fa-w-16" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="dot-circle" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M256 8C119.033 8 8 119.033 8 256s111.033 248 248 248 248-111.033 248-248S392.967 8 256 8zm80 248c0 44.112-35.888 80-80 80s-80-35.888-80-80 35.888-80 80-80 80 35.888 80 80z"></path></svg><!-- <i class="fas fa-dot-circle"></i> Font Awesome fontawesome.com -->
+  <svg class="svg-inline--fa fa-circle fa-w-16" aria-hidden="true" focusable="false" data-prefix="far" data-icon="circle" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200z"></path></svg><!-- <i class="far fa-circle"></i> Font Awesome fontawesome.com -->
+
+  <label class="form-check-label option" for="edit-has-account-yes">
+    Ya
+      </label>
+
+  
+  </div>
+<div class="js-form-item form-item js-form-type-radio form-item-has-account js-form-item-has-account form-check">
+  <input data-drupal-selector="edit-has-account-no" type="radio" id="edit-has-account-no" name="has_account" value="No" class="form-radio form-check-input" required="required">
+
+
+  <svg class="svg-inline--fa fa-dot-circle fa-w-16" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="dot-circle" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M256 8C119.033 8 8 119.033 8 256s111.033 248 248 248 248-111.033 248-248S392.967 8 256 8zm80 248c0 44.112-35.888 80-80 80s-80-35.888-80-80 35.888-80 80-80 80 35.888 80 80z"></path></svg><!-- <i class="fas fa-dot-circle"></i> Font Awesome fontawesome.com -->
+  <svg class="svg-inline--fa fa-circle fa-w-16" aria-hidden="true" focusable="false" data-prefix="far" data-icon="circle" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200z"></path></svg><!-- <i class="far fa-circle"></i> Font Awesome fontawesome.com -->
+
+  <label class="form-check-label option" for="edit-has-account-no">
+    Tidak
+      </label>
+
+  
+  </div>
+</div>
+
+          </div>
+</fieldset>
+<div class="js-webform-states-hidden js-form-item form-item js-form-type-textfield form-type-textfield form-item-branch-name js-form-item-branch-name form-group" style="display: none;">
+      <label for="edit-branch-name">
+    Daerah Pembukaan Rekening
+      </label>
+          
+<input data-drupal-selector="edit-branch-name" type="text" id="edit-branch-name" name="branch_name" value="" size="60" maxlength="255" placeholder="Tuliskan daerah/kantor cabang pembukaan rekening perusahaan Anda" class="form-control" data-drupal-states="{&quot;visible&quot;:{&quot;.webform-submission-floating-contact-form-node-50105-add-form :input[name=\u0022has_account\u0022]&quot;:{&quot;value&quot;:&quot;Yes&quot;}}}">
+
+        </div>
+<div class="js-form-item form-item js-form-type-textfield form-type-textfield form-item-product js-form-item-product form-group">
+      <label for="edit-product" class="js-form-required form-required">
+    Produk
+          <svg class="svg-inline--fa fa-asterisk fa-w-16 text-danger form-required__indicator" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="asterisk" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M478.21 334.093L336 256l142.21-78.093c11.795-6.477 15.961-21.384 9.232-33.037l-19.48-33.741c-6.728-11.653-21.72-15.499-33.227-8.523L296 186.718l3.475-162.204C299.763 11.061 288.937 0 275.48 0h-38.96c-13.456 0-24.283 11.061-23.994 24.514L216 186.718 77.265 102.607c-11.506-6.976-26.499-3.13-33.227 8.523l-19.48 33.741c-6.728 11.653-2.562 26.56 9.233 33.037L176 256 33.79 334.093c-11.795 6.477-15.961 21.384-9.232 33.037l19.48 33.741c6.728 11.653 21.721 15.499 33.227 8.523L216 325.282l-3.475 162.204C212.237 500.939 223.064 512 236.52 512h38.961c13.456 0 24.283-11.061 23.995-24.514L296 325.282l138.735 84.111c11.506 6.976 26.499 3.13 33.227-8.523l19.48-33.741c6.728-11.653 2.563-26.559-9.232-33.036z"></path></svg><!-- <i class="fas fa-asterisk text-danger form-required__indicator"></i> Font Awesome fontawesome.com -->
+      </label>
+          
+<input data-drupal-selector="edit-product" type="text" id="edit-product" name="product" value="" size="60" maxlength="255" placeholder="Sebutkan produk-produk yang Anda butuhkan" class="required form-control" required="required" aria-required="true">
+
+        </div>
+<div class="js-form-item form-item js-form-type-textarea form-type-textarea form-item-message js-form-item-message form-group">
+      <label for="edit-message" class="js-form-required form-required">
+    Apa yang dapat Kami Bantu?
+          <svg class="svg-inline--fa fa-asterisk fa-w-16 text-danger form-required__indicator" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="asterisk" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M478.21 334.093L336 256l142.21-78.093c11.795-6.477 15.961-21.384 9.232-33.037l-19.48-33.741c-6.728-11.653-21.72-15.499-33.227-8.523L296 186.718l3.475-162.204C299.763 11.061 288.937 0 275.48 0h-38.96c-13.456 0-24.283 11.061-23.994 24.514L216 186.718 77.265 102.607c-11.506-6.976-26.499-3.13-33.227 8.523l-19.48 33.741c-6.728 11.653-2.562 26.56 9.233 33.037L176 256 33.79 334.093c-11.795 6.477-15.961 21.384-9.232 33.037l19.48 33.741c6.728 11.653 21.721 15.499 33.227 8.523L216 325.282l-3.475 162.204C212.237 500.939 223.064 512 236.52 512h38.961c13.456 0 24.283-11.061 23.995-24.514L296 325.282l138.735 84.111c11.506 6.976 26.499 3.13 33.227-8.523l19.48-33.741c6.728-11.653 2.563-26.559-9.232-33.036z"></path></svg><!-- <i class="fas fa-asterisk text-danger form-required__indicator"></i> Font Awesome fontawesome.com -->
+      </label>
+        <textarea data-drupal-selector="edit-message" id="edit-message" name="message" rows="2" cols="60" placeholder="Beri tahu kami, apa yang Anda butuhkan." class="form-textarea required form-control" required="required" aria-required="true"></textarea>
+
+        </div>
+    <div data-drupal-selector="edit-captcha" class="captcha">  
+<input data-drupal-selector="edit-captcha-sid" type="hidden" name="captcha_sid" value="2562639" class="form-control">
+  
+<input data-drupal-selector="edit-captcha-token" type="hidden" name="captcha_token" value="kh-tnWp0jQRF6asYrpRYUGNkywD1jDDSuiRz6LJrumY" class="form-control">
+<div class="js-form-item form-item js-form-type-textfield form-type-textfield form-item-captcha-response js-form-item-captcha-response form-group">
+      <label for="edit-captcha-response" class="js-form-required form-required">
+    Pertanyaan matematika
+          <svg class="svg-inline--fa fa-asterisk fa-w-16 text-danger form-required__indicator" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="asterisk" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M478.21 334.093L336 256l142.21-78.093c11.795-6.477 15.961-21.384 9.232-33.037l-19.48-33.741c-6.728-11.653-21.72-15.499-33.227-8.523L296 186.718l3.475-162.204C299.763 11.061 288.937 0 275.48 0h-38.96c-13.456 0-24.283 11.061-23.994 24.514L216 186.718 77.265 102.607c-11.506-6.976-26.499-3.13-33.227 8.523l-19.48 33.741c-6.728 11.653-2.562 26.56 9.233 33.037L176 256 33.79 334.093c-11.795 6.477-15.961 21.384-9.232 33.037l19.48 33.741c6.728 11.653 21.721 15.499 33.227 8.523L216 325.282l-3.475 162.204C212.237 500.939 223.064 512 236.52 512h38.961c13.456 0 24.283-11.061 23.995-24.514L296 325.282l138.735 84.111c11.506 6.976 26.499 3.13 33.227-8.523l19.48-33.741c6.728-11.653 2.563-26.559-9.232-33.036z"></path></svg><!-- <i class="fas fa-asterisk text-danger form-required__indicator"></i> Font Awesome fontawesome.com -->
+      </label>
+        <span class="field-prefix">2 + 4 =</span>
+        
+<input autocomplete="off" data-drupal-selector="edit-captcha-response" aria-describedby="edit-captcha-response--description" type="text" id="edit-captcha-response" name="captcha_response" value="" size="4" maxlength="2" class="required form-control" required="required" aria-required="true">
+
+            <small id="edit-captcha-response--description" class="description form-text text-muted">
+      Pecahkan soal matematika sederhana berikut. Cth. untuk 1+3, masukkan 4.
+    </small>
+  </div>
+</div>
+<div data-drupal-selector="edit-actions" class="form-actions webform-actions js-form-wrapper form-wrapper" id="edit-actions">  <input class="webform-button--submit fcb-submit button button--primary js-form-submit form-submit btn btn-primary" data-drupal-selector="edit-actions-submit" data-disable-refocus="true" type="submit" id="edit-actions-submit" name="op" value="Lanjutkan" data-once="drupal-ajax">
+
+
+
+</div>
+  
+<input autocomplete="off" data-drupal-selector="form-jfny5pt10pxkpmgz8zynlwhn2vpkyjog7sdvj8imjm0" type="hidden" name="form_build_id" value="form-jfNy5pT10PXKPmgz8Zynlwhn2VPkyJOg7sdvj8imjm0" class="form-control">
+  
+<input data-drupal-selector="edit-webform-submission-floating-contact-form-node-50105-add-form-form-token" type="hidden" name="form_token" value="3TBijSBCYYxf0Ujk76S4XBoZ-owqe6ejaSw-jVzXQBk" class="form-control">
+  
+<input data-drupal-selector="edit-webform-submission-floating-contact-form-node-50105-add-form" type="hidden" name="form_id" value="webform_submission_floating_contact_form_node_50105_add_form" class="form-control">
+
+
+  
+</form>
+</div>
+      </div>
+    </div>
+  </div>
+  <script type="application/json" data-drupal-selector="drupal-settings-json">{"path":{"baseUrl":"\/","scriptPath":null,"pathPrefix":"id\/","currentPath":"node\/50105","currentPathIsAdmin":false,"isFront":false,"currentLanguage":"id"},"ajaxPageState":{"libraries":"apigee_kickstart\/font.roboto,apigee_kickstart\/style,asset_injector\/css\/apigee_switcher,asset_injector\/css\/briapi_v20,asset_injector\/css\/dark_mode,asset_injector\/css\/detail_product,asset_injector\/css\/documentation_video,asset_injector\/css\/email_subscription,asset_injector\/css\/navbar,asset_injector\/css\/sample_code,asset_injector\/css\/two_factor_authentication,asset_injector\/css\/user_feedback_style,asset_injector\/js\/additional_script_js,asset_injector\/js\/briapi_devstudio_form_request_js,asset_injector\/js\/image_picker,asset_injector\/js\/producy,asset_injector\/js\/redirect_link_to_endpoint,asset_injector\/js\/responsive_js,asset_injector\/js\/script,asset_injector\/js\/user_feedback,briapi_checking_devstudio_request\/custom_library,briapi_fcb\/main,briapi_v20\/global-styling,captcha\/base,core\/drupal.active-link,core\/drupal.ajax,core\/internal.jquery.form,fontawesome\/fontawesome.svg,google_analytics\/google_analytics,juniper\/june,lang_dropdown\/lang-dropdown-form,lang_dropdown\/ldsSkinNoLabel,lang_dropdown\/ms-dropdown,paragraphs\/drupal.paragraphs.unpublished,radix\/bootstrap,radix\/style,simple_popup_blocks\/simple_popup_blocks,system\/base,tour\/tour,views\/views.module,we_megamenu\/form.we-mega-menu-frontend,webform\/webform.ajax,webform\/webform.composite,webform\/webform.element.details.save,webform\/webform.element.details.toggle,webform\/webform.element.message,webform\/webform.element.options,webform\/webform.form","theme":"briapi_v20","theme_token":null},"ajaxTrustedUrl":{"form_action_p_pvdeGsVG5zNF_XLGPTvYSKCf43t8qZYSwcfZl2uzM":true,"\/id\/docs\/briva-push-notification?ajax_form=1":true},"tourShepherdConfig":{"defaultStepOptions":{"classes":"drupal-tour","cancelIcon":{"enabled":true,"label":"Tutup"},"modalOverlayOpeningPadding":3,"scrollTo":{"behavior":"smooth","block":"center"},"popperOptions":{"modifiers":[{"name":"offset","options":{"offset":[-10,20]}},{"name":"arrow","options":{"padding":12}},{"name":"focusAfterRender","enabled":false}]}},"useModalOverlay":true},"_tour_internal":[{"id":"step-1-of-6","selector":".we-mega-menu-li[data-id=\u00220b2c1479-c5f2-4737-8469-fcc06f8a1295\u0022]","module":"Home Page | User Getting Started","type":"text","counter":"1 of 1","attachTo":{"element":".we-mega-menu-li[data-id=\u00220b2c1479-c5f2-4737-8469-fcc06f8a1295\u0022]","on":"bottom-start"},"classes":"tip-module-home-page--user-getting-started tip-type-text tip-step-1-of-6","body":"\u003Cp class=\u0022tour-tip-body\u0022\u003EBody:\u003Cstrong\u003E\u003Cspan class=\u0022shepherd-text-header\u0022\u003EPilih Menu Aplikasi Saya\u003C\/span\u003E\u003C\/strong\u003E\r\nPilih dan buka menu Aplikasi Saya untuk memulai membuat aplikasi pertama Anda.\u003C\/p\u003E\n","title":"Tahap 1 dari 6","cancelText":"End tour"}],"ajax":{"edit-actions-submit":{"callback":"::submitAjaxForm","event":"click","effect":"fade","speed":500,"progress":{"type":"throbber","message":""},"disable-refocus":true,"url":"\/id\/docs\/briva-push-notification?ajax_form=1","dialogType":"ajax","submit":{"_triggering_element_name":"op","_triggering_element_value":"Lanjutkan"}}},"google_analytics":{"account":"UA-139609695-1","trackOutbound":true,"trackMailto":true,"trackTel":true,"trackDownload":true,"trackDownloadExtensions":"7z|aac|arc|arj|asf|asx|avi|bin|csv|doc(x|m)?|dot(x|m)?|exe|flv|gif|gz|gzip|hqx|jar|jpe?g|js|mp(2|3|4|e?g)|mov(ie)?|msi|msp|pdf|phps|png|ppt(x|m)?|pot(x|m)?|pps(x|m)?|ppam|sld(x|m)?|thmx|qtm?|ra(m|r)?|sea|sit|tar|tgz|torrent|txt|wav|wma|wmv|wpd|xls(x|m|b)?|xlt(x|m)|xlam|xml|z|zip"},"simple_popup_blocks":{"settings":[{"identifier":"briapi-tfa-briapi-tfa-verify-login","uid":"briapi_tfa_briapi_tfa_verify_login","type":"1","css_selector":"0","layout":"4","visit_counts":"0","overlay":"1","trigger_method":"0","trigger_selector":"#custom-css-id","enable_escape":"0","delay":"0","minimize":"0","close":"0","use_time_frequency":"0","time_frequency":"3600","show_minimized_button":"0","width":"600","cookie_expiry":"1","status":"1","trigger_width":""}]},"briapiCheckingDevstudioRequest":{"endpointUrl":"\/id\/briapi\/checking_user_exist","sessionId":"NLMug2njiXVm6C3aE7IYUnyGhhmKergh07bq4D4Kxn2ajRjJ"},"briapi_user_feedback":{"loginCount":"6","intervalReached":false,"loginCountConfig":"5","isSkip":"2","lastSubmit":"2024-09-17T08:55:58"},"field_is_getting_started":"3","briapi_fcb":{"sabrinaText":"Hello Sabrina, I want to ask about BRIAPI","sabrinaNo":"+62 812-1214-017"},"lang_dropdown":{"lang-dropdown-form":{"key":"lang-dropdown-form","languageicons":{"en":"\/sites\/default\/files\/inline-images\/en.png","id":"\/sites\/default\/files\/inline-images\/id.png"},"widget":"msdropdown","visibleRows":5,"roundedCorner":false,"animStyle":"slideDown","event":"click","mainCSS":"ldsSkinNoLabel"}},"pluralDelimiter":"\u0003","user":{"uid":"26065","permissionsHash":"1daf4fd927cbe739a2c430776dca470dab6c7e3ede0aa6b50d79c87116da5abe"}}</script>
+<script src="./Dokumentasi BRIVA Push Notification - BRIAPI_files/js_S53DGcPdj_6dJi4C7thbhalyBXIP1bl3uDPAYfCqbYg.js.download"></script>
+
+
+
+<div id="drupal-live-announce" class="visually-hidden" aria-live="polite" aria-busy="false"></div><div id="drupal-modal" class="ui-front" style="display: none;"></div><div tabindex="-1" role="dialog" class="ui-dialog ui-corner-all ui-widget ui-widget-content ui-front logout-modal ui-draggable" aria-describedby="dialog" aria-labelledby="ui-id-1" style="display: none;"><div class="ui-dialog-titlebar ui-corner-all ui-widget-header ui-helper-clearfix ui-draggable-handle"><span id="ui-id-1" class="ui-dialog-title">&nbsp;</span><button type="button" class="ui-button ui-corner-all ui-widget ui-button-icon-only ui-dialog-titlebar-close" title="Close"><span class="ui-button-icon ui-icon ui-icon-closethick"></span><span class="ui-button-icon-space"> </span>Close</button></div><div id="dialog" class="ui-dialog-content ui-widget-content">
+<img src="./Dokumentasi BRIVA Push Notification - BRIAPI_files/modal-icon.png" class="modal-icon">
+Apakah Anda yakin untuk Log Out?
+
+</div></div></body></html>

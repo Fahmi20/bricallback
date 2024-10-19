@@ -1,0 +1,60 @@
+.main-content {
+  min-height: 500px
+}
+
+#simplenews-confirm-removal {
+  border: 1px solid black;
+  width: 700px;
+  height: 200px;
+  padding: 10px;
+  border-radius: 20px;
+  margin: auto;
+  margin-top: 80px !important;
+  padding-bottom: 20px;
+}
+
+#edit-simplenews {
+  background-color: transparent !important;
+  border: none !important;
+}
+
+#edit-simplenews summary {
+  display: none !important;
+}
+
+#edit-simplenews fieldset {
+  border: none !important;
+}
+
+#edit-simplenews legend {
+  border-bottom: 0 !important;
+  display: none !important;
+}
+
+#edit-simplenews .fieldset-legend,
+#edit-simplenews small {
+  display: none !important;
+}
+
+#edit-simplenews .fieldset-wrapper,
+#edit-simplenews .card-body {
+  padding: 0 !important;
+}
+
+#edit-subscriptions-wrapper {
+  margin-top: 90px;
+}
+
+#simplenews-confirm-removal {
+  border: 1px solid black;
+  width: 700px;
+  height: 200px;
+  padding: 10px;
+  border-radius: 20px;
+  margin: auto;
+  padding-bottom: 20px;
+}
+
+#edit-submit {
+  border-radius: 20px;
+}
