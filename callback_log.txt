@@ -1,0 +1,18 @@
+2024-10-23 09:29:46 - 
+                {
+                        "responseCode": "4010001",
+                        "responseMessage": "Invalid Token (B2B)"
+                    }
+            
+2024-10-23 09:30:07 - 
+                {
+                        "responseCode": "4010001",
+                        "responseMessage": "Invalid Token (B2B)"
+                    }
+            
+2024-10-23 09:31:27 - 
+                {
+                        "responseCode": "4010001",
+                        "responseMessage": "Invalid Token (B2B)"
+                    }
+            
