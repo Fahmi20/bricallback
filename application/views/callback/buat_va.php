@@ -56,7 +56,7 @@
                 <div class="form-group">
                         <label for="customerNo">Nomor Customer</label>
                         <input type="text" id="customerNo" name="customerNo" class="form-control"
-                           minlength="6" maxlength="8" required title="Nomor Customer Max 8 Digit" required>
+                           minlength="6" maxlength="8" required title="Nomor Customer Max 8 Digit">
                     </div>
                     <div class="form-group">
                         <label for="virtualAccountName">Virtual Account Name</label>
