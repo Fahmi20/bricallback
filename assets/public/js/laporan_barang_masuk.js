@@ -1,126 +1,132 @@
-$(function () {  
-    var show = document.getElementById("barang_masuk")
-    show.style.display = "none";
+$(function () {
+	var show = document.getElementById("transaksi_masuk");
+	show.style.display = "none";
 
-    var doc_print = document.getElementById("doc_print")
-    doc_print.style.display = "none";
+	const Toast = Swal.mixin({
+		toast: true,
+		position: "top-end",
+		showConfirmButton: false,
+		timer: 3000,
+		timerProgressBar: true,
+	});
 
-    const Toast = Swal.mixin({
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-    });
+	// Inisialisasi Datepicker
+	$("#startDate")
+		.datepicker({
+			format: "yyyy-mm-dd", // Format datepicker yyyy-mm-dd
+			autoclose: true,
+		})
+		.datepicker("setDate", new Date()); // Set default hari ini
 
-    if($('#datePickerStart').length) {
-        $('#datePickerStart').datepicker({
-            format: "dd-mm-yyyy",
-            todayHighlight: true,
-            autoclose: true
-        });
-        $('#datePickerStart').datepicker('setDate');
-    }
+	$("#search").click(function () {
+		var startDate = $("#startDate").val(); // Ambil tanggal input
+		console.log("startDate:", startDate); // Debugging log
 
-    if($('#datePickerEnd').length) {
-        $('#datePickerEnd').datepicker({
-            format: "dd-mm-yyyy",
-            todayHighlight: true,
-            autoclose: true
-        });
-        $('#datePickerEnd').datepicker('setDate');
-    }
+		if (!startDate) {
+			Toast.fire({
+				icon: "error",
+				title: "Semua field harus diisi",
+			});
+			return;
+		}
 
-    $('#search').click(function () { 
-        var start_date = $('#start_date').val()
-        var end_date = $('#end_date').val()
+		// Validasi apakah startDate berada dalam 60 hari terakhir atau lebih awal
+		if (!isValidDateInLast60Days(startDate)) {
+			Toast.fire({
+				icon: "error",
+				title: "Start Date harus dalam 60 hari terakhir atau lebih awal",
+			});
+			return;
+		}
 
-        show.style.display = "none";
-        $("#table_barang_masuk").empty().append()
-        $("#print_table_barang_masuk").empty().append()
-        
-        if(start_date){
-            if(end_date){
-                $.ajax({
-                    url: '../Backend/search_laporan_barang_masuk',
-                    type: 'GET',
-                    dataType: 'JSON',
-                    data: {
-                        start_date: start_date,
-                        end_date: end_date,
-                    },
+		// AJAX request ke backend
+		show.style.display = "none";
+		$("#table_transaksi_masuk").empty();
 
-                    success: function (x) {  
-                        console.log(x)
-                        if(x.barang_masuk.length > 0 ) {
-                            var no = 1
-                            $.each(x.barang_masuk, function (k, v) {  
-                                var barang_masuk = `
-                                    <tr>
-                                        <td style="text-align:center">${no}</td>
-                                        <td style="text-align:center">${getFormattedDate(v.tgl_datang)}</td>
-                                        <td style="text-align:center">${v.batch_number}</td>
-                                        <td style="text-align:center">${v.nama_barang}</td>
-                                        <td style="text-align:center">${v.qty_masuk}</td>
-                                        <td style="text-align:center">${v.satuan}</td>
-                                        <td style="text-align:center">${getFormattedDate(v.exp)}</td>
-                                    </tr>
-                                `
-                                $('#table_barang_masuk').append(barang_masuk).html()
-                                $('#print_table_barang_masuk').append(barang_masuk).html()
-                                no++
-                            })
-                            show.style.display = "block";
-                        } else {
-                            var barang_masuk = `
-                                <tr>
-                                    <td colspan="7" style="text-align:center">Data Barang Masuk Tidak Ada</td>
-                                </tr>
-                            `
-                            $('#table_barang_masuk').html(barang_masuk)
-                            $('#print_table_barang_masuk').html(barang_masuk)
-                            show.style.display = "block";
-                        }
-                    }
-                })
-            } else {
-                Toast.fire({
-                    icon: 'error',
-                    title: 'Field End Date Harap di isi'
-                })
-            }
-        } else {
-            Toast.fire({
-                icon: 'error',
-                title: 'Field Start Date Harap di isi'
-            })
-        }
-    })
+		$.ajax({
+			url: "../Backend/get_report_va_controller",
+			type: "POST",
+			dataType: "JSON",
+			data: {
+				startDate: startDate, // Kirim tanggal dalam format yyyy-mm-dd
+			},
+			success: function (response) {
+				console.log(response);
 
-    $('#print').click(function () {  
-        doc_print.style.display = "block";
-        var divToPrint = document.getElementById('doc_print');
+				if (
+					response.responseCode === "2003500" &&
+					response.virtualAccountData.length > 0
+				) {
+					var no = 1;
+					$.each(response.virtualAccountData, function (index, item) {
+						var row = `
+                            <tr>
+                                <td style="text-align:center">${no}</td>
+                                <td style="text-align:center">${item.partnerServiceId.trim()}</td>
+                                <td style="text-align:center">${item.customerNo}</td>
+                                <td style="text-align:center">${item.virtualAccountNo.trim()}</td>
+                                <td style="text-align:center">${item.trxId}</td>
+                                <td style="text-align:center">${item.totalAmount.value} ${item.totalAmount.currency}</td>
+                                <td style="text-align:center">${getFormattedDate(item.trxDateTime, "dd-mm-yyyy")}</td>
+                                <td style="text-align:center">${item.virtualAccountName}</td>
+                                <td style="text-align:center">${item.additionalInfo.channel}</td>
+                                <td style="text-align:center">${item.additionalInfo.description}</td>
+                                <td style="text-align:center">${item.additionalInfo.sourceAccountVa}</td>
+                                <td style="text-align:center">${item.additionalInfo.tellerId}</td>
+                            </tr>
+                        `;
+						$("#table_transaksi_masuk").append(row);
+						no++;
+					});
+					show.style.display = "block";
+				} else {
+					var emptyRow = `
+                        <tr>
+                            <td colspan="12" style="text-align:center">Data Transaksi Tidak Ditemukan</td>
+                        </tr>
+                    `;
+					$("#table_transaksi_masuk").html(emptyRow);
+					show.style.display = "block";
+				}
+			},
+			error: function () {
+				Toast.fire({
+					icon: "error",
+					title: "Gagal mengambil data",
+				});
+				var errorRow = `
+                    <tr>
+                        <td colspan="12" style="text-align:center">Error retrieving data</td>
+                    </tr>
+                `;
+				$("#table_transaksi_masuk").html(errorRow);
+				show.style.display = "block";
+			},
+		});
+	});
+});
 
-        var newWin = window.open('', 'Print-Window');
+// Fungsi untuk format tanggal dalam berbagai format
+function getFormattedDate(date, format = "yyyy-mm-dd") {
+	var dateObj = new Date(date);
+	let year = dateObj.getFullYear();
+	let month = (1 + dateObj.getMonth()).toString().padStart(2, "0");
+	let day = dateObj.getDate().toString().padStart(2, "0");
 
-        newWin.document.open();
+	if (format === "dd-mm-yyyy") {
+		return day + "-" + month + "-" + year;
+	} else if (format === "yyyy-mm-dd") {
+		return year + "-" + month + "-" + day;
+	}
+	return date;
+}
 
-        newWin.document.write('<html><body onload="window.print()">' + divToPrint.innerHTML + '</body></html>');
+// Fungsi untuk mengecek apakah tanggal berada dalam 60 hari terakhir
+function isValidDateInLast60Days(dateString) {
+	var selectedDate = new Date(dateString);
+	var today = new Date();
+	var past60Days = new Date();
+	past60Days.setDate(today.getDate() - 60); // Set tanggal 60 hari ke belakang
 
-        newWin.document.close();
-
-        setTimeout(function() {
-            newWin.close();
-            doc_print.style.display = "none";
-        }, 10);
-    })
-})
-
-function getFormattedDate(date) {
-    var date = new Date(date);
-    let year = date.getFullYear();
-    let month = (1 + date.getMonth()).toString().padStart(2, '0');
-    let day = date.getDate().toString().padStart(2, '0');
-
-    return day + '-' + month + '-' + year;
+	return selectedDate <= today && selectedDate >= past60Days;
 }

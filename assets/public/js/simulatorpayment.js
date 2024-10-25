@@ -34,6 +34,7 @@ $(document).ready(function () {
 					$("#customer_name").text(data.virtualAccountName);
 					$("#total_amount").text("Rp. " + data.totalAmount);
 					$("#trxId").val(data.trxId);
+					$("#additionalInfo").val(data.additionalInfo);
 
 					// Sembunyikan form dan tampilkan detail informasi
 					$("#form_inquiry").hide();
@@ -304,7 +305,7 @@ $(document).ready(function () {
 					totalAmount: remainingAmount,
 					expiredDateInput: formattedExpiredDate,
 					trxId: $("#trxId").val(),
-					additionalInfo: $("#trxId").val(),
+					additionalInfo: $("#additionalInfo").val(),
 				},
 				success: function (response) {
 					console.log("VA updated:", response);

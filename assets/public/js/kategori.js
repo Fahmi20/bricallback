@@ -38,18 +38,35 @@ $(document).ready(function () {
 				render: function (data, type, row) {
 					return `<div style="text-align:center;">${row.virtualAccountNo}</div>`;
 				},
-			},
-			{
-				data: null,
+			},{
+				data: "paidStatus",
 				render: function (data, type, row) {
-					const elementId = 'paidStatus-${row.virtualAccountNo}';
-					setTimeout(() => {
-						getPaidStatus(row.virtualAccountNo, '#${elementId}');
-					}, 0); // Memastikan status dipanggil setelah elemen ter-render
-	
-					return '<div id="${elementId}" style="text-align:center;">Loading...</div>';
-				},
-			},
+					let statusText, statusColor, statusIcon;
+			
+					// Mengatur ikon dan warna berdasarkan status pembayaran
+					if (row.paidStatus === "Y") {
+						statusText = "Paid";
+						statusColor = "green";
+						statusIcon = "✔️"; // Ikon centang
+					} else if (row.paidStatus === "N") {
+						statusText = "Pending";
+						statusColor = "orange";
+						statusIcon = "⏳"; // Ikon jam pasir
+					} else {
+						statusText = "No Data";
+						statusColor = "red";
+						statusIcon = "❌"; // Ikon silang
+					}
+			
+					// Mengembalikan elemen dengan gaya dan ikon yang menarik
+					return `
+						<div style="text-align:center; font-weight:bold; color: ${statusColor};">
+							${statusIcon} ${statusText}
+						</div>
+					`;
+				}
+			}
+			,
 			{
 				data: "virtualAccountName",
 				render: function (data, type, row) {
@@ -97,37 +114,6 @@ $(document).ready(function () {
 			},
 		],
 	});
-	
-	function getPaidStatus(virtualAccountNo, targetElement) {
-		$.ajax({
-			url: "../Backend/get_virtual_account_data_simulator", // URL controller
-			type: "POST", // Metode POST untuk mengirim data
-			data: { virtualAccountNo: virtualAccountNo }, // Kirim nomor VA
-			success: function (response) {
-				let data = JSON.parse(response); // Parse respons JSON
-	
-				// Cek apakah paidStatus ada dalam respons dan tampilkan status
-				let statusText = "";
-				if (data.paidStatus === "Y") {
-					statusText = `<div style="text-align:center; color: green;">Paid</div>`;
-				} else if (data.paidStatus === "N") {
-					statusText = `<div style="text-align:center; color: orange;">Pending</div>`;
-				} else {
-					statusText = `<div style="text-align:center; color: red;">Unknown</div>`;
-				}
-	
-				// Masukkan status ke dalam elemen target
-				$(targetElement).html(statusText);
-			},
-			error: function (xhr, status, error) {
-				console.error("Error fetching paid status:", status, error);
-				$(targetElement).html(
-					`<div style="text-align:center; color: red;">Error</div>`
-				);
-			},
-		});
-	}
-	
 
 	$("#table_va").on("click", ".btn_edit", function () {
 		var customerNo = $(this).data("id"); // Ambil customerNo dari button
