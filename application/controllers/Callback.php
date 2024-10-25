@@ -43,6 +43,11 @@ class Callback extends CI_Controller
         $this->template->load('layout/main', 'callback/simulatorpayment');
     }
 
+    public function History_Status_Pembayaran()
+    {
+        $this->template->load('layout/main', 'callback/history_status_pembayaran');
+    }
+
     public function History_Pembayaran()
     {
         $this->template->load('layout/main', 'callback/history_pembayaran');
