@@ -83,6 +83,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a href="<?= base_url() ?>Callback/History_Status_Pembayaran" class="nav-link">
+                                <i class="link-icon" data-feather="box"></i>
+                                <span class="link-title">Riwayat Status Pembayaran</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="<?= base_url() ?>Callback/History_Pembayaran" class="nav-link">
                                 <i class="link-icon" data-feather="archive"></i>
                                 <span class="link-title">Riwayat Transfer To VA</span>
