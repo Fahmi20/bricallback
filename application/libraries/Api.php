@@ -21,6 +21,9 @@ class Api
     ];
     private $private_key;
     private $access_token = null;
+    private $last_url;
+    private $last_headers;
+    private $last_body;
 
     public function __construct()
     {
@@ -117,41 +120,225 @@ EOD;
     }
 
 
-    public function send_va_payment_notification($partnerServiceId, $customerNo, $virtualAccountNo,$trxDateTime,$paymentRequestId,$paymentAmount)
+    public function send_push_notif(
+        $partnerServiceId,
+        $customerNo,
+        $virtualAccountNo,
+        $trxDateTime,
+        $paymentRequestId,
+        $additionalInfo,
+        $paymentAmount,
+        $callback = null
+    ) {
+        try {
+            if (
+                empty($partnerServiceId) || empty($customerNo) || empty($virtualAccountNo) ||
+                empty($trxDateTime) || empty($paymentRequestId) || empty($paymentAmount)
+            ) {
+                throw new InvalidArgumentException("Parameter tidak lengkap atau salah.");
+            }
+            $timezone = new DateTimeZone('+07:00');
+            $datetime = new DateTime('now', $timezone);
+            $timestamp = $datetime->format('Y-m-d\TH:i:s.vP');
+            $access_token = $this->get_valid_access_token();
+            $baseUrl = "https://sandbox.partner.api.bri.co.id";
+            $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
+            $body = [
+                'partnerServiceId' => $partnerServiceId,
+                'customerNo' => $customerNo,
+                'virtualAccountNo' => $virtualAccountNo,
+                'trxDateTime' => $trxDateTime,
+                'paymentRequestId' => $paymentRequestId,
+                'additionalInfo' => $additionalInfo,
+                'idApp' => 'YPGS',
+                'passApp' => '4d4776a092ca457e89bd1436f67184a8',
+                'paymentAmount' => $paymentAmount,
+                'terminalId' => '9',
+                'bankId' => '002'
+            ];
+            $body_json = json_encode($body, JSON_UNESCAPED_SLASHES);
+            $signature = $this->generate_hmac_signature($path, 'POST', $timestamp, $access_token, $body_json);
+            $external_id = rand(100000000, 999999999);
+            $headers = [
+                'Authorization: Bearer ' . $access_token,
+                'X-TIMESTAMP: ' . $timestamp,
+                'X-SIGNATURE: ' . $signature,
+                'Content-Type: application/json',
+                'X-PARTNER-ID: ' . $this->partner_id,
+                'CHANNEL-ID: 00009',
+                'X-EXTERNAL-ID: ' . $external_id,
+            ];
+
+            $url = $baseUrl . $path;
+            $response = $this->send_api_request($url, 'POST', $headers, $body_json);
+            $responseData = json_decode($response, true);
+            if ($callback && is_callable($callback)) {
+                call_user_func($callback, $responseData);
+            }
+            return $responseData;
+        } catch (Exception $e) {
+            error_log('Error saat mengirim notifikasi: ' . $e->getMessage());
+            return ['status' => 'error', 'message' => $e->getMessage()];
+        }
+    }
+
+    // Fungsi untuk mengirim request ke API
+    private function send_api_request_push_notify($url, $method, $headers, $body)
     {
-        $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
-        $access_token = $this->get_valid_access_token();
+        $ch = curl_init($url);
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+
+        $response = curl_exec($ch);
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        if ($error) {
+            throw new RuntimeException("CURL Error: " . $error);
+        }
+
+        return $response;
+    }
+
+
+
+    public function send_api_request_push_notif($url, $method, $headers, $body, $callback = null)
+    {
+        // Inisialisasi cURL
+        $ch = curl_init();
+
+        // Hitung panjang body JSON
+        $content_length = strlen($body);
+
+        // Tambahkan header Content-Length
+        $headers[] = "Content-Length: " . $content_length;
+        $headers[] = "Accept-Encoding: gzip, deflate";
+        $headers[] = "Cache-Control: max-age=0";
+        $headers[] = "Connection: keep-alive";
+        $headers[] = "Accept-Language: en-US,en;q=0.8,id;q=0.6";
+
+        // Set opsi cURL
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);  // Set method POST
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);    // Set headers
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);       // Set body JSON
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);    // Kembalikan respons sebagai string
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);    // Ikuti redirect (--location)
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);   // Nonaktifkan verifikasi SSL (untuk testing sandbox)
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);   // Nonaktifkan verifikasi host (untuk testing sandbox)
+
+        // Tambahan untuk User-Agent
+        curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36");
+
+        // Eksekusi cURL
+        $response = curl_exec($ch);
+
+        // Cek error cURL
+        if (curl_errno($ch)) {
+            $error_msg = curl_error($ch);
+            log_message('error', 'cURL error: ' . $error_msg);
+            curl_close($ch);
+            return false;
+        }
+
+        // Tutup cURL
+        curl_close($ch);
+
+        // Panggil callback jika diberikan
+        if ($callback && is_callable($callback)) {
+            call_user_func($callback, json_decode($response, true));
+        }
+
+        return $response;
+    }
+
+
+
+
+
+
+
+    public function push_notification($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
+    {
+        $timestamp = gmdate('Y-m-d\TH:i:s\Z');
         $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
-        $body = [
+        $token = $this->get_valid_access_token();
+        $partnerUrl = 'http://127.0.0.1:8000/bricallback/backend/callback'; // Sesuaikan dengan nilai partnerUrl
+
+        // Template URL dengan placeholder
+        $urlTemplate = 'https://sandbox.partner.api.bri.co.id/{partnerUrl}/snap/v1.0/transfer-va/notify-payment-intrabank';
+
+        // Ganti {partnerUrl} dengan nilai variabel partnerUrl
+        $url = str_replace('{partnerUrl}', $partnerUrl, $urlTemplate);
+
+        $body = array(
             'partnerServiceId' => $partnerServiceId,
             'customerNo' => $customerNo,
             'virtualAccountNo' => $virtualAccountNo,
             'trxDateTime' => $trxDateTime,
             'paymentRequestId' => $paymentRequestId,
-            'additionalInfo' => 'SPP 1',
-            'idApp' => 'ypgs',
-            'passApp' => 'G6bDFAAbwTUhqhMGa9qOsydLGBexH6bh',
             'paymentAmount' => $paymentAmount,
+            'idApp' => 'YPGS',
+            'passApp' => '12345',
             'terminalId' => '9',
-            'bankId' => '002'
+            'bankId' => '002',
+            'partnerUrl' => $partnerUrl,
+            'clientSecret' => $this->client_secret,
+            'token' => $token
+        );
 
-        ];
-        $body_json = json_encode($body);
-        $signature = $this->generate_hmac_signature($path, 'POST', $timestamp, $access_token, $body_json);
+        $body_json = json_encode($body, JSON_UNESCAPED_SLASHES);
+        $signature = $this->generate_hmac_signature($path, 'POST', $timestamp, $token, $body_json);
         $external_id = rand(100000000, 999999999);
-        $headers = [
-            'Authorization: Bearer ' . $access_token,
-            'X-SIGNATURE: ' . $signature,
+        $headers = array(
+            'Authorization: Bearer ' . $token,
             'X-TIMESTAMP: ' . $timestamp,
+            'X-SIGNATURE: ' . $signature,
+            'Content-Type: application/json',
             'X-PARTNER-ID: ' . $this->partner_id,
-            'CHANNEL-ID: ' . $this->channel_id,
-            'X-EXTERNAL-ID: ' . $external_id,
-            'Content-Type: application/json'
-        ];
-        $url = $this->baseUrl . $path;
+            'CHANNEL-ID: ' . 'TRFLA',
+            'X-EXTERNAL-ID: ' . $external_id
+        );
+
+        log_message('info', 'Sending request to: ' . $url);
+        log_message('info', 'Request body: ' . $body_json);
+        echo 'URL: ' . $url . '<br>';
+        echo 'Headers: ' . json_encode($headers) . '<br>';
+        echo 'Body: ' . $body_json . '<br>';
+
+        // Kirim request
         $response = $this->send_api_request($url, 'POST', $headers, $body_json);
+
         return json_decode($response, true);
     }
+
+
+
+    public function get_last_url()
+    {
+        return $this->last_url;
+    }
+
+    public function get_last_headers()
+    {
+        return $this->last_headers;
+    }
+
+    public function get_last_body()
+    {
+        return $this->last_body;
+    }
+
+
+
+
+
+
+
+
 
 
 
@@ -224,50 +411,54 @@ EOD;
     }
 
 
-    public function inquiry_payment_va_briva($partnerServiceId, $customerNo, $virtualAccountNo, $amount, $currency, $trxDateInit, $sourceBankCode, $inquiryRequestId, $additionalInfo)
-{
-    $timestamp = gmdate('Y-m-d\TH:i:s\Z');
-    $path = '/snap/v1.0/transfer-va/inquiry';
-    $token = $this->get_valid_access_token();
+    public function inquiry_payment_va_briva(
+        $partnerServiceId,
+        $customerNo,
+        $virtualAccountNo,
+        $amount,
+        $inquiryRequestId
+    ) {
+        $timestamp = gmdate('Y-m-d\TH:i:s\Z');
+        $path = '/snap/v1.0/transfer-va/inquiry';
+        $token = $this->get_valid_access_token();
+        $partnerUrl = 'http://103.167.35.206:8000/bricallback/backend/inquiry_payment_va_callback';
+        $endTime = (new DateTime('now', new DateTimeZone('Asia/Jakarta')))
+            ->add(new DateInterval('P1D'))  // Tambahkan 1 hari
+            ->format('Y-m-d\TH:i:sP');  // Format ISO-8601 dengan offset zona waktu
+        $body = [
+            'partnerServiceId' => $partnerServiceId,
+            'customerNo' => $customerNo,
+            'virtualAccountNo' => $virtualAccountNo,
+            'amount' => (float) $amount,
+            'currency' => 'IDR',
+            'trxDateInit' => '',
+            'channelCode' => '',
+            'sourceBankCode' => '002',
+            'passApp' => 'G6bDFAAbwTUhqhMGa9qOsydLGBexH6bh',
+            'inquiryRequestId' => $inquiryRequestId,
+            'idApp' => 'YPGS',
+            'partnerUrl' => $partnerUrl,
+            'clientSecret' => $this->client_secret,
+            'token' => $token,
+            'endTime' => $endTime
 
-    $body = [
-        'partnerServiceId' => '   ' . $partnerServiceId,
-        'customerNo' => $customerNo,
-        'virtualAccountNo' => '   ' . $virtualAccountNo,
-        'amount' => $amount,
-        'currency' => $currency,
-        'trxDateInit' => $trxDateInit,
-        'channelCode' => $this->channel_id,
-        'sourceBankCode' => $sourceBankCode,
-        'passApp' => 'G6bDFAAbwTUhqhMGa9qOsydLGBexH6bh',
-        'inquiryRequestId' => $inquiryRequestId,
-        'additionalInfo' => $additionalInfo,
-        'idApp' => 'ypgs',
-        'partnerUrl' => 'http://127.0.0.1:8000',
-        'token' => $token,
-        'clientSecret' => $this->client_secret
-    ];
-    $body_json = json_encode($body, JSON_UNESCAPED_SLASHES);
-    $signature = $this->generate_hmac_signature($path, 'POST', $timestamp, $token, $body_json);
-    $external_id = rand(100000000, 999999999);
-
-    $headers = [
-        'Authorization: Bearer ' . $token,
-        'X-SIGNATURE: ' . $signature,
-        'X-TIMESTAMP: ' . $timestamp,
-        'X-PARTNER-ID: ' . $this->partner_id,
-        'CHANNEL-ID: ' . $this->channel_id,
-        'X-EXTERNAL-ID: ' . $external_id,
-        'Content-Type: application/json'
-    ];
-
-    $url = 'https://sandbox.partner.api.bri.co.id' . $path;
-    $response = $this->send_api_request($url, 'POST', $headers, $body_json);
-    return json_decode($response, true);
-}
-
-
-
+        ];
+        $body_json = json_encode($body, JSON_UNESCAPED_SLASHES);
+        $signature = $this->generate_hmac_signature($path, 'POST', $timestamp, $token, $body_json);
+        $external_id = rand(100000000, 999999999);
+        $headers = [
+            'Authorization: Bearer ' . $token,
+            'X-SIGNATURE: ' . $signature,
+            'X-TIMESTAMP: ' . $timestamp,
+            'X-PARTNER-ID: ' . $this->partner_id,
+            'CHANNEL-ID: ' . '00009',
+            'X-EXTERNAL-ID: ' . $external_id,
+            'Content-Type: application/json'
+        ];
+        $url = 'https://sandbox.partner.api.bri.co.id' . $path;
+        $response = $this->send_api_request($url, 'POST', $headers, $body_json);
+        return json_decode($response, true);
+    }
 
 
 
@@ -405,6 +596,9 @@ EOD;
 
         return json_decode($response, true);
     }
+
+
+
 
 
     public function update_status_va($partnerServiceId, $customerNo, $virtualAccountNo, $trxId, $paidStatus)
@@ -630,10 +824,6 @@ EOD;
         $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
         $access_token = $this->get_access_token();
 
-        if (isset($access_token['error'])) {
-            return ['error' => 'Failed to retrieve access token'];
-        }
-
         $path = '/snap/v1.0/transfer-va/status';
 
         $body = [
@@ -642,6 +832,7 @@ EOD;
             'virtualAccountNo' => $virtualAccountNo,
             'inquiryRequestId' => $inquiryRequestId
         ];
+
 
         $body_json = json_encode($body);
         $external_id = rand(100000000, 999999999);
@@ -686,12 +877,29 @@ EOD;
         return hash_hmac('sha512', $payload, $this->client_secret);
     }
 
-    private function send_api_request($url, $method = 'POST', $headers = [], $body = null)
+    private function send_api_request($url, $method = 'POST', $headers = [], $body = null, $callback = null)
     {
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
+        // Tambahan: Menangani cookie
+        $cookieFile = __DIR__ . "/cookie.txt";
+        curl_setopt($ch, CURLOPT_COOKIEJAR, $cookieFile);
+        curl_setopt($ch, CURLOPT_COOKIEFILE, $cookieFile);
+
+        // Tambahan: Pengaturan User Agent
+        curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36");
+
+        // Tambahan: Timeout agar permintaan tidak menggantung
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);  // 30 detik timeout
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);  // 10 detik timeout koneksi
+
+        // Tambahan: Opsi untuk mengikuti redirect jika ada
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_MAXREDIRS, 5);  // Maksimal 5 redirect
+
+        // Metode HTTP
         switch (strtoupper($method)) {
             case 'POST':
                 curl_setopt($ch, CURLOPT_POST, true);
@@ -720,9 +928,13 @@ EOD;
                 return ['error' => 'Unsupported HTTP method'];
         }
 
+        // Tambahan: Verifikasi SSL dinonaktifkan untuk pengujian sandbox
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
         $response = curl_exec($ch);
 
+        // Tambahan: Cek respons dan error
         if ($response === false) {
             $error = curl_error($ch);
             curl_close($ch);
@@ -730,7 +942,15 @@ EOD;
         }
 
         curl_close($ch);
+
+        // Pemanggilan callback jika tersedia
+        if (is_callable($callback)) {
+            return call_user_func($callback, $response);
+        }
+
         return $response;
     }
+
+
 
 }
