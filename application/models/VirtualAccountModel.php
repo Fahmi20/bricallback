@@ -135,6 +135,11 @@ public function get_virtual_account_by_customer_no_and_partnumber_and_paidstatus
         }
     }
 
+    public function insert_transaction($data) {
+        $this->db->insert('transactions', $data);
+        return $this->db->insert_id();
+    }
+
 
     
 
@@ -172,6 +177,18 @@ public function get_virtual_account_by_customer_no_and_partnumber_and_paidstatus
         $query = $this->db->get('virtual_account_payments');
         return $query->result();
     }
+
+    public function get_paid_status($customerNo) {
+        $this->db->select('paidStatus');
+        $this->db->where('customerNo', $customerNo);
+        $query = $this->db->get('virtual_accounts'); // Sesuaikan nama tabel Anda
+    
+        if ($query->num_rows() > 0) {
+            return $query->row()->paidStatus;
+        }
+        return false;
+    }
+    
     
 
     public function get_virtual_account_data($customerNo)
