@@ -103,9 +103,15 @@
                     </div>
 
                     <!-- REFERENSI -->
+
                     <div class="mb-4">
                         <label for="trxId" class="form-label fw-bold">REFERENSI</label>
                         <input type="text" id="trxId" class="form-control" value=""
+                            style="height: 50px; font-size: 18px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+                    </div>
+                    <div class="mb-4">
+                        <label for="additionalInfo" class="form-label fw-bold">DESKRIPSI</label>
+                        <input type="text" id="additionalInfo" class="form-control" value=""
                             style="height: 50px; font-size: 18px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
                     </div>
 
