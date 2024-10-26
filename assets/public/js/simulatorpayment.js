@@ -1,7 +1,7 @@
 $(document).ready(function () {
 	// SIMULATOR Inquiry Button Click
 	$("#inquiryButton").click(function () {
-		let virtualAccountNo = "   " + $("#virtualAccountNo").val();
+		let virtualAccountNo = $("#partnerReferenceNo").val();
 
 		// Tampilkan spinner dan nonaktifkan tombol
 		$("#loadingSpinner").show();
@@ -11,7 +11,7 @@ $(document).ready(function () {
 		$.ajax({
 			url: "../Backend/get_virtual_account_data_simulator",
 			type: "POST",
-			data: { virtualAccountNo: virtualAccountNo },
+			data: { partnerReferenceNo: partnerReferenceNo },
 			success: function (response) {
 				let data = JSON.parse(response);
 
@@ -35,6 +35,7 @@ $(document).ready(function () {
 					$("#total_amount").text("Rp. " + data.totalAmount);
 					$("#trxId").val(data.trxId);
 					$("#additionalInfo").val(data.additionalInfo);
+					$("#partnerReferenceNo").val(data.partnerReferenceNo);
 
 					// Sembunyikan form dan tampilkan detail informasi
 					$("#form_inquiry").hide();
@@ -306,6 +307,7 @@ $(document).ready(function () {
 					expiredDateInput: formattedExpiredDate,
 					trxId: $("#trxId").val(),
 					additionalInfo: $("#additionalInfo").val(),
+					partnerReferenceNo: $("#partnerReferenceNo").val(),
 				},
 				success: function (response) {
 					console.log("VA updated:", response);
