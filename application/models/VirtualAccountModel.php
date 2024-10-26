@@ -121,9 +121,9 @@ public function get_virtual_account_by_customer_no_and_partnumber_and_paidstatus
         }
     }
 
-    public function get_virtual_account_by_virtualAccount_No_simulator($virtualAccountNo)
+    public function get_virtual_account_by_virtualAccount_No_simulator($partnerReferenceNo)
     {
-        $this->db->where('virtualAccountNo', $virtualAccountNo);
+        $this->db->where('partnerReferenceNo', $partnerReferenceNo);
         $this->db->where('paidStatus', 'N');
         $this->db->order_by('partNumber', 'ASC');
         $query = $this->db->get('virtual_accounts');
