@@ -146,7 +146,7 @@ class Backend extends CI_Controller
         $expiredDateInput = $this->input->post('expiredDate');
         $trxId = $this->input->post('trxId');
         $additionalInfo = $this->input->post('additionalInfo');
-        $partnerReferenceNo = $this->generate_unique_payment_id();
+        
         $trx_nim = $this->input->post('trx_nim');
         $Jumlah = $this->input->post('Jumlah');
         if ($Jumlah > 6) {
@@ -160,6 +160,7 @@ class Backend extends CI_Controller
         $responses = [];
         $errors = [];
         for ($i = 1; $i <= $Jumlah; $i++) {
+            $partnerReferenceNo = $this->generate_unique_payment_id() . $i;
             $data = [
                 'partnerServiceId' => $partnerServiceIdWithSpaces,
                 'customerNo' => $customerNo,
@@ -175,6 +176,7 @@ class Backend extends CI_Controller
                 'trx_nim' => $trx_nim,
                 'partNumber' => $i
             ];
+        
             $response = $this->api->create_virtual_account(
                 $data['partnerServiceId'],
                 $data['customerNo'],
@@ -504,8 +506,8 @@ class Backend extends CI_Controller
 
     public function get_virtual_account_data_simulator()
     {
-        $virtualAccountNo = $this->input->post('virtualAccountNo');
-        $virtualAccount = $this->VirtualAccountModel->get_virtual_account_by_virtualAccount_No_simulator($virtualAccountNo);
+        $partnerReferenceNo = $this->input->post('partnerReferenceNo');
+        $virtualAccount = $this->VirtualAccountModel->get_virtual_account_by_virtualAccount_No_simulator($partnerReferenceNo);
         if ($virtualAccount) {
             echo json_encode([
                 "virtualAccountNo" => $virtualAccount->virtualAccountNo,
@@ -541,7 +543,7 @@ class Backend extends CI_Controller
         $virtualAccountName = $this->input->post('virtualAccountName');
         $paidAmountCurrency = 'IDR';
         $sourceAccountNo = '123';
-        $partnerReferenceNo = $this->generate_unique_payment_id();
+        $partnerReferenceNo = $this->input->post('partnerReferenceNo');
         $trxDateTime = new DateTime('now', new DateTimeZone('Asia/Jakarta'));
         $trxDateTimeFormatted = $trxDateTime->format('Y-m-d\TH:i:sP');
         $paidAmount = [
@@ -666,6 +668,7 @@ class Backend extends CI_Controller
         $expiredDateInput = $this->input->post('expiredDateInput');
         $trxId = $this->input->post('trxId');
         $additionalInfo = $this->input->post('additionalInfo');
+        $partnerReferenceNo = $this->input->post('partnerReferenceNo');
         $totalAmountCurrency = 'IDR';
         $expiredDate = new DateTime($expiredDateInput, new DateTimeZone('Asia/Jakarta'));
         $expiredDateWithTimezone = $expiredDate->format('Y-m-d\TH:i:sP');
@@ -675,7 +678,8 @@ class Backend extends CI_Controller
             'trxId' => $trxId,
             'totalAmount' => $totalAmount,
             'expiredDate' => $expiredDateWithTimezone,
-            'additionalInfo' => $additionalInfo
+            'additionalInfo' => $additionalInfo,
+            'partnerReferenceNo' => $partnerReferenceNo
         ];
         $updateStatus = $this->VirtualAccountModel->update_virtual_account($customerNo, $updateData);
         if ($updateStatus) {
