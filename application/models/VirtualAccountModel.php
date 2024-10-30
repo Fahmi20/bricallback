@@ -121,11 +121,11 @@ public function get_virtual_account_by_customer_no_and_partnumber_and_paidstatus
         }
     }
 
-    public function get_virtual_account_by_virtualAccount_No_simulator($partnerReferenceNo)
+    public function get_virtual_account_by_virtualAccount_No_simulator($virtualAccountNo)
     {
-        $this->db->where('partnerReferenceNo', $partnerReferenceNo);
+        $this->db->where('virtualAccountNo', $virtualAccountNo);
         $this->db->where('paidStatus', 'N');
-        $this->db->order_by('partNumber', 'ASC');
+        $this->db->order_by('partnerReferenceNo', 'ASC');
         $query = $this->db->get('virtual_accounts');
 
         if ($query->num_rows() > 0) {
@@ -185,6 +185,17 @@ public function get_virtual_account_by_customer_no_and_partnumber_and_paidstatus
     
         if ($query->num_rows() > 0) {
             return $query->row()->paidStatus;
+        }
+        return false;
+    }
+
+    public function get_partnerReferenceNo($customerNo) {
+        $this->db->select('partnerReferenceNo');
+        $this->db->where('customerNo', $customerNo);
+        $query = $this->db->get('virtual_accounts'); // Sesuaikan nama tabel Anda
+    
+        if ($query->num_rows() > 0) {
+            return $query->row()->partnerReferenceNo;
         }
         return false;
     }
