@@ -1,7 +1,7 @@
 $(document).ready(function () {
 	// SIMULATOR Inquiry Button Click
 	$("#inquiryButton").click(function () {
-		let virtualAccountNo = $("#partnerReferenceNo").val();
+		let virtualAccountNo = "   " + $("#virtualAccountNo").val();
 
 		// Tampilkan spinner dan nonaktifkan tombol
 		$("#loadingSpinner").show();
@@ -11,7 +11,7 @@ $(document).ready(function () {
 		$.ajax({
 			url: "../Backend/get_virtual_account_data_simulator",
 			type: "POST",
-			data: { partnerReferenceNo: partnerReferenceNo },
+			data: { virtualAccountNo: virtualAccountNo },
 			success: function (response) {
 				let data = JSON.parse(response);
 
@@ -34,8 +34,8 @@ $(document).ready(function () {
 					$("#customer_name").text(data.virtualAccountName);
 					$("#total_amount").text("Rp. " + data.totalAmount);
 					$("#trxId").val(data.trxId);
-					$("#additionalInfo").val(data.additionalInfo);
 					$("#partnerReferenceNo").val(data.partnerReferenceNo);
+					$("#additionalInfo").val(data.additionalInfo);
 
 					// Sembunyikan form dan tampilkan detail informasi
 					$("#form_inquiry").hide();
@@ -89,6 +89,8 @@ $(document).ready(function () {
 				":" +
 				("0" + expiredDateInput.getMinutes()).slice(-2) +
 				":00+07:00";
+			let partnerReferenceNo = $("#partnerReferenceNo").val();
+
 
 			if (totalAmountInput) {
 				let remainingAmount = parseFloat(
@@ -102,6 +104,7 @@ $(document).ready(function () {
 					$("#customer_number").text(),
 					$("#partnerserviceid_number").text(),
 					$("#customer_name").text(),
+					partnerReferenceNo,
 					function () {
 						inquiryPayment(
 							virtualAccountNo,
@@ -140,7 +143,8 @@ $(document).ready(function () {
 					totalAmountInput,
 					$("#customer_number").text(),
 					$("#partnerserviceid_number").text(),
-					$("#customer_name").text()
+					$("#customer_name").text(),
+					$("#partnerReferenceNo").text()
 				);
 			}
 		});
@@ -151,18 +155,24 @@ $(document).ready(function () {
 			customerNo,
 			partnerServiceId,
 			virtualAccountName,
+			partnerReferenceNo,
 			callback
 		) {
+			const requestData = {
+				virtualAccountNo,
+				customerNo,
+				partnerServiceId,
+				totalAmountInput,
+				virtualAccountName,
+				partnerReferenceNo,
+			};
+		
+			console.log("Data yang dikirim:", requestData); // Debug: Lihat data yang dikirim
+		
 			$.ajax({
 				url: "../Backend/process_payment_transfer_to_va_simulator",
 				type: "POST",
-				data: {
-					virtualAccountNo,
-					customerNo,
-					partnerServiceId,
-					totalAmountInput,
-					virtualAccountName,
-				},
+				data: requestData,
 				dataType: "json",
 				success: function (response) {
 					console.log("Respon dari server:", response);
@@ -175,20 +185,14 @@ $(document).ready(function () {
 						}).then(() => {
 							callback(); // Lanjutkan ke inquiryPayment
 						});
-
-						// Sembunyikan informasi lama dan tampilkan informasi sukses
+		
 						$("#detail_information").hide();
 						$("#detail_information_success").show();
-						$("#customer_number_success").text($("#customer_number").text());
-						$("#partnerserviceid_number_success").text(
-							$("#partnerserviceid_number").text()
-						);
 						$("#customer_name_success").text($("#customer_name").text());
+						$("#partnerReference_number_success").text($("#partnerReferenceNo").val());
 						$("#va_number_success").text($("#va_number").text());
 						$("#total_amount_success").text($("#total_amount_input").val());
-						$("#step-selesai .circle")
-							.removeClass("border-secondary")
-							.addClass("border-success");
+						$("#step-selesai .circle").removeClass("border-secondary").addClass("border-success");
 						$("#success-icon").css("color", "#28a745");
 						$("#text-selesai").css("color", "#28a745");
 					} else {
@@ -209,6 +213,7 @@ $(document).ready(function () {
 				},
 			});
 		}
+		
 
 		function inquiryPayment(
 			virtualAccountNo,
@@ -307,7 +312,6 @@ $(document).ready(function () {
 					expiredDateInput: formattedExpiredDate,
 					trxId: $("#trxId").val(),
 					additionalInfo: $("#additionalInfo").val(),
-					partnerReferenceNo: $("#partnerReferenceNo").val(),
 				},
 				success: function (response) {
 					console.log("VA updated:", response);
