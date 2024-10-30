@@ -57,6 +57,112 @@ class Backend extends CI_Controller
         }
     }
 
+    public function inquiry_payment_va_briva_controller()
+    {
+        $partnerServiceId = '03636';
+        $customerNo = '444333';
+        $partnerServiceId = str_pad($partnerServiceId, 8, '0', STR_PAD_LEFT);  // "    77777"
+        $virtualAccountNo = $partnerServiceId . $customerNo;
+        if (strlen($virtualAccountNo) > 28) {
+            throw new Exception("virtualAccountNo terlalu panjang. Maksimal 28 karakter.");
+        }
+
+        // Debugging untuk memastikan format benar
+        var_dump($virtualAccountNo);  // Contoh: "    7777700000000000001"
+        echo "Panjang virtualAccountNo: " . strlen($virtualAccountNo);  // Harus <= 28
+
+        // Siapkan data untuk request
+        $postData = [
+            'partnerServiceId' => trim($partnerServiceId),  // Ditrim untuk dikirim tanpa spasi
+            'customerNo' => $customerNo,
+            'virtualAccountNo' => $virtualAccountNo,
+            'amount' => '12345.00',
+            'currency' => 'IDR',
+            'inquiryRequestId' => uniqid('inq_')
+        ];
+
+        // Panggil API untuk inquiry payment
+        $response = $this->api->inquiry_payment_va_briva(
+            $postData['partnerServiceId'],
+            $postData['customerNo'],
+            $postData['virtualAccountNo'],
+            $postData['amount'],
+            $postData['inquiryRequestId']
+        );
+
+        // Tampilkan respons dalam format JSON
+        echo json_encode($response);
+    }
+
+    public function get_inquiry_payment_va_briva_controller()
+    {
+        // Mengambil parameter dari input GET
+        $partnerServiceId = $this->input->get('partnerServiceId');
+        $customerNo = $this->input->get('customerNo');
+        $virtualAccountNo = $this->input->get('virtualAccountNo');
+        $amount = $this->input->get('amount');
+        $trxDateInit = $this->input->get('trxDateInit');
+        $inquiryRequestId = $this->input->get('inquiryRequestId');
+        $channelCode = '9'; // Kode channel tetap
+        $sourceBankCode = '002'; // Kode bank, misalnya BRI
+        $passApp = 'G6bDFAAbwTUhqhMGa9qOsydLGBexH6bh';
+        $idApp = 'YPGS';
+        $partnerUrl = 'http://103.167.35.206:8000';
+
+        // Menyusun body request
+        $body = [
+            'partnerServiceId' => $partnerServiceId,
+            'customerNo' => $customerNo,
+            'virtualAccountNo' => $virtualAccountNo,
+            'amount' => [
+                'value' => (float) $amount, // Memastikan amount dalam tipe float
+                'currency' => 'IDR' // Menetapkan mata uang
+            ],
+            'trxDateInit' => $trxDateInit,
+            'channelCode' => $channelCode,
+            'sourceBankCode' => $sourceBankCode,
+            'passApp' => $passApp,
+            'inquiryRequestId' => $inquiryRequestId,
+            'idApp' => $idApp,
+            'partnerUrl' => $partnerUrl
+        ];
+        return $body;
+    }
+
+    public function payment_va_briva_controller()
+    {
+
+        $postData = [
+            'partnerServiceId' => '   03636',
+            'customerNo' => '444444',
+            'virtualAccountNo' => '   03636444444',
+            'trxDateTime' => '2024-10-20T23:05:07+07:00',
+            'paymentRequestId' => '1729353906',
+            'additionalInfo' => [
+                'paymentAmount' => '1234.00'
+            ]
+        ];
+
+        try {
+            $response = $this->api->payment_va_briva(
+                $postData['partnerServiceId'],
+                $postData['customerNo'],
+                $postData['virtualAccountNo'],
+                $postData['trxDateTime'],
+                $postData['paymentRequestId'],
+                $postData['additionalInfo']
+            );
+
+            header('Content-Type: application/json');
+            echo json_encode($response, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'error' => 'Internal Server Error',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 
     public function inquiry_payment()
     {
@@ -89,7 +195,6 @@ class Backend extends CI_Controller
         }
         echo json_encode(['data' => $responses]);
     }
-
 
     public function inquiry_paymentVA()
     {
@@ -132,6 +237,121 @@ class Backend extends CI_Controller
         }
     }
 
+
+    public function process_payment_transfer_to_va()
+    {
+        $partnerServiceId = '00000';//03636
+        $customerNo = '34071';
+        $partnerServiceIdWithSpaces = '   ' . $partnerServiceId;
+        $virtualAccountNo = '   ' . $partnerServiceId . $customerNo;
+        $inquiryResponse = $this->api->inquiry_payment_va($partnerServiceIdWithSpaces, $customerNo, $virtualAccountNo);
+        if (isset($inquiryResponse['responseCode']) && $inquiryResponse['responseCode'] == '2003200') {
+            $virtualAccountData = $inquiryResponse['virtualAccountData'];
+            $virtualAccountName = $virtualAccountData['virtualAccountName'];
+            $totalAmount = $virtualAccountData['totalAmount'];
+            $paidAmountValue = $totalAmount['value'];
+            $paidAmountCurrency = $totalAmount['currency'];
+            $sourceAccountNo = '123';
+            $partnerReferenceNo = '123';
+            $trxDateTime = new DateTime('now', new DateTimeZone('Asia/Jakarta'));
+            $trxDateTimeFormatted = $trxDateTime->format('Y-m-d\TH:i:sP');  // Format sesuai ISO-8601
+            $paidAmount = [
+                'value' => $paidAmountValue,
+                'currency' => $paidAmountCurrency
+            ];
+            $paymentResponse = $this->api->payment_va(
+                $partnerServiceIdWithSpaces,
+                $customerNo,
+                $virtualAccountNo,
+                $virtualAccountName,
+                $sourceAccountNo,
+                $partnerReferenceNo,
+                $paidAmount,
+                $trxDateTimeFormatted
+            );
+
+            if (isset($paymentResponse['responseCode']) && $paymentResponse['responseCode'] == '2003300') {
+                $this->VirtualAccountModel->save_payment($paymentResponse['virtualAccountData']);
+                $output = [
+                    'status' => true,
+                    'message' => 'Pembayaran berhasil',
+                    'data' => $paymentResponse
+                ];
+                return $this->output
+                    ->set_content_type('application/json')
+                    ->set_status_header(200)
+                    ->set_output(json_encode($output));
+            } else {
+                $output = [
+                    'status' => false,
+                    'message' => 'Gagal melakukan pembayaran',
+                    'data' => $paymentResponse
+                ];
+                return $this->output
+                    ->set_content_type('application/json')
+                    ->set_status_header(500)
+                    ->set_output(json_encode($output));
+            }
+        } else {
+            $output = [
+                'status' => false,
+                'message' => 'Inquiry VA gagal',
+                'data' => $inquiryResponse
+            ];
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(500)
+                ->set_output(json_encode($output));
+        }
+    }
+
+    public function test_inquiry_payment()
+    {
+        $partnerServiceId = '   03636';
+        $customerNo = '565656';
+        $virtualAccountNo = '   03636565656';
+        $response = $this->api->inquiry_payment_va(
+            $partnerServiceId,
+            $customerNo,
+            $virtualAccountNo
+        );
+        echo json_encode($response);
+    }
+
+    public function test_payment_va()
+    {
+        $partnerServiceId = '   03636';
+        $customerNo = '565656';
+        $virtualAccountNo = '   03636565656';
+        $virtualAccountName = 'Fahmi';
+        $sourceAccountNo = '123';
+        $partnerReferenceNo = $this->generate_unique_payment_id();
+        $paidAmountValue = '500.00';
+        $paidAmountCurrency = 'IDR';
+        $paidAmount = [
+            'value' => $paidAmountValue,
+            'currency' => $paidAmountCurrency
+        ];
+        $trxDateTime = new DateTime('now', new DateTimeZone('Asia/Jakarta'));
+        $trxDateTimeFormatted = $trxDateTime->format('Y-m-d\TH:i:sP');
+
+        $response = $this->api->payment_va(
+            $partnerServiceId,
+            $customerNo,
+            $virtualAccountNo,
+            $virtualAccountName,
+            $sourceAccountNo,
+            $partnerReferenceNo,
+            $paidAmount,
+            $trxDateTimeFormatted
+        );
+
+        // Output the result
+
+        echo json_encode($response);
+
+    }
+
     public function create_virtual_account_manual_sisfo()
     {
         $partnerServiceId = $this->input->post('partnerServiceId');
@@ -146,7 +366,6 @@ class Backend extends CI_Controller
         $expiredDateInput = $this->input->post('expiredDate');
         $trxId = $this->input->post('trxId');
         $additionalInfo = $this->input->post('additionalInfo');
-        
         $trx_nim = $this->input->post('trx_nim');
         $Jumlah = $this->input->post('Jumlah');
         if ($Jumlah > 6) {
@@ -176,7 +395,6 @@ class Backend extends CI_Controller
                 'trx_nim' => $trx_nim,
                 'partNumber' => $i
             ];
-        
             $response = $this->api->create_virtual_account(
                 $data['partnerServiceId'],
                 $data['customerNo'],
@@ -227,9 +445,6 @@ class Backend extends CI_Controller
             ]);
         }
     }
-
-
-
 
     public function create_virtual_account_manual()
     {
@@ -335,7 +550,9 @@ class Backend extends CI_Controller
                     $data['trxId']
                 );
                 $paidStatus = $this->VirtualAccountModel->get_paid_status($data['customerNo']);
+                $partnerReferenceNo = $this->VirtualAccountModel->get_partnerReferenceNo($data['customerNo']);
                 $response['virtualAccountData']['paidStatus'] = $paidStatus ? $paidStatus : 'No Data';
+                $response['virtualAccountData']['partnerReferenceNo'] = $partnerReferenceNo ? $partnerReferenceNo : 'No Data';
                 $responses[] = $response;
             }
             echo json_encode($responses);
@@ -436,7 +653,7 @@ class Backend extends CI_Controller
     }
     public function get_report_va_controller()
     {
-        $partnerServiceId = '03636';
+        $partnerServiceId = '00000';
         $partnerServiceIdWithSpaces = '   ' . $partnerServiceId;
         $startDate = $this->input->post('startDate');
         $startTime = '00:00:00+07:00';
@@ -488,6 +705,53 @@ class Backend extends CI_Controller
         }
     }
 
+    public function push_notification_controller()
+    {
+        $partnerServiceId = $this->input->post('partnerServiceId');
+        $customerNo = $this->input->post('customerNo');
+        $virtualAccountNo = $this->input->post('virtualAccountNo');
+        $trxDateTimeInput = $this->input->post('expiredDate');
+        $paymentRequestId = $this->input->post('paymentRequestId');
+        $additionalInfo = $this->input->post('additionalInfo');
+
+        if (empty($trxDateTimeInput) || empty($partnerServiceId) || empty($customerNo) || empty($virtualAccountNo)) {
+            echo json_encode(['error' => 'Missing required parameters']);
+            return;
+        }
+
+        try {
+            $trxDateTime = new DateTime($trxDateTimeInput, new DateTimeZone('Asia/Jakarta'));
+            $trxDateTimeWithTimezone = $trxDateTime->format('Y-m-d\TH:i:sP');
+        } catch (Exception $e) {
+            echo json_encode(['error' => 'Invalid date format']);
+            return;
+        }
+
+        $response = $this->api->push_notif(
+            $partnerServiceId,
+            $customerNo,
+            $virtualAccountNo,
+            $trxDateTimeWithTimezone,
+            $paymentRequestId,
+            $additionalInfo
+        );
+
+        if (isset($response['error'])) {
+            echo json_encode(['error' => $response['error']]);
+        } else {
+            $this->VirtualAccountModel->save_notification([
+                'partnerServiceId' => $partnerServiceId,
+                'customerNo' => $customerNo,
+                'virtualAccountNo' => $virtualAccountNo,
+                'trxDateTime' => $trxDateTimeWithTimezone,
+                'paymentRequestId' => $paymentRequestId,
+                'additionalInfo' => $additionalInfo,
+                'status' => 'Sent'
+            ]);
+
+            echo json_encode(['success' => 'Notification sent successfully']);
+        }
+    }
 
     public function get_virtual_account_data()
     {
@@ -500,14 +764,15 @@ class Backend extends CI_Controller
             "expiredDate" => $virtualAccount->expiredDate,
             "trxId" => $virtualAccount->trxId,
             "totalAmountCurrency" => 'IDR',
-            "additionalInfo" => $virtualAccount->additionalInfo
+            "additionalInfo" => $virtualAccount->additionalInfo,
+            "partnerReferenceNo" => $virtualAccount->partnerReferenceNo
         ]);
     }
 
     public function get_virtual_account_data_simulator()
     {
-        $partnerReferenceNo = $this->input->post('partnerReferenceNo');
-        $virtualAccount = $this->VirtualAccountModel->get_virtual_account_by_virtualAccount_No_simulator($partnerReferenceNo);
+        $virtualAccountNo = $this->input->post('virtualAccountNo');
+        $virtualAccount = $this->VirtualAccountModel->get_virtual_account_by_virtualAccount_No_simulator($virtualAccountNo);
         if ($virtualAccount) {
             echo json_encode([
                 "virtualAccountNo" => $virtualAccount->virtualAccountNo,
@@ -520,7 +785,8 @@ class Backend extends CI_Controller
                 "totalAmountCurrency" => 'IDR',
                 "additionalInfo" => $virtualAccount->additionalInfo,
                 "paidStatus" => $virtualAccount->paidStatus,
-                "partNumber" => $virtualAccount->partNumber
+                "partNumber" => $virtualAccount->partNumber,
+                "partnerReferenceNo" => $virtualAccount->partnerReferenceNo
             ]);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Data virtual account tidak ditemukan']);
@@ -598,17 +864,23 @@ class Backend extends CI_Controller
             echo json_encode(array('status' => 'error', 'message' => 'Nomor virtual account tidak valid'));
             return;
         }
+
+        // Ambil virtual account dari database
         $virtualAccount = $this->VirtualAccountModel->get_virtual_account_by_virtualAccount_No_simulator($virtualAccountNo);
 
         if (!$virtualAccount) {
             echo json_encode(array('status' => 'error', 'message' => 'Virtual account tidak ditemukan'));
             return;
         }
+
+        // Cek apakah paidStatus perlu diperbarui
         if ($newPaidStatus === $virtualAccount->paidStatus) {
             log_message('info', 'PaidStatus sudah sama, tidak perlu diperbarui di database untuk VA: ' . $virtualAccountNo);
             echo json_encode(array('status' => 'success', 'message' => 'Status sudah up-to-date'));
             return;
         }
+
+        // Update paidStatus di database
         $updateData = array('paidStatus' => $newPaidStatus);
         $updateStatus = $this->VirtualAccountModel->update_virtual_account_simulator($virtualAccountNo, $updateData);
 
@@ -617,6 +889,8 @@ class Backend extends CI_Controller
             echo json_encode(array('status' => 'error', 'message' => 'Gagal memperbarui status di database'));
             return;
         }
+
+        // Kirim data ke API eksternal
         $data = array(
             'partnerServiceId' => $virtualAccount->partnerServiceId,
             'customerNo' => $virtualAccount->customerNo,
@@ -657,29 +931,26 @@ class Backend extends CI_Controller
         log_message('debug', 'Updating paidStatus to: ' . $newPaidStatus . ' for ' . $virtualAccountNo);
     }
 
-
-
     public function update_virtual_account_manual()
     {
         $partNumber = $this->input->post('partNumber');
+        $paidStatus = 'N';
         $customerNo = $this->input->post('customerNo');
         $virtualAccountName = $this->input->post('virtualAccountName');
         $totalAmount = $this->input->post('totalAmount');
         $expiredDateInput = $this->input->post('expiredDateInput');
         $trxId = $this->input->post('trxId');
         $additionalInfo = $this->input->post('additionalInfo');
-        $partnerReferenceNo = $this->input->post('partnerReferenceNo');
         $totalAmountCurrency = 'IDR';
         $expiredDate = new DateTime($expiredDateInput, new DateTimeZone('Asia/Jakarta'));
         $expiredDateWithTimezone = $expiredDate->format('Y-m-d\TH:i:sP');
-        $virtualAccount = $this->VirtualAccountModel->get_virtual_account_by_customer_no_and_partnumber_and_paidstatus($customerNo, $partNumber);
+        $virtualAccount = $this->VirtualAccountModel->get_virtual_account_by_customer_no_and_partnumber_and_paidstatus($customerNo, $partNumber, $paidStatus);
         $updateData = [
             'virtualAccountName' => $virtualAccountName,
             'trxId' => $trxId,
             'totalAmount' => $totalAmount,
             'expiredDate' => $expiredDateWithTimezone,
-            'additionalInfo' => $additionalInfo,
-            'partnerReferenceNo' => $partnerReferenceNo
+            'additionalInfo' => $additionalInfo
         ];
         $updateStatus = $this->VirtualAccountModel->update_virtual_account($customerNo, $updateData);
         if ($updateStatus) {
@@ -712,133 +983,6 @@ class Backend extends CI_Controller
         }
     }
 
-
-    public function test_push_notification()
-    {
-        $json_data = json_decode(file_get_contents('php://input'), true);
-        $partnerServiceId = $json_data['partnerServiceId'];
-        $customerNo = $json_data['customerNo'];
-        $virtualAccountNo = $json_data['virtualAccountNo'];
-        $trxDateTime = $json_data['trxDateTime'];
-        $paymentRequestId = $json_data['paymentRequestId'];
-        $additionalInfo = $json_data['additionalInfo'];
-        $paymentAmount = $json_data['paymentAmount'];
-        $response = $this->api->send_push_notif(
-            $partnerServiceId,
-            $customerNo,
-            $virtualAccountNo,
-            $trxDateTime,
-            $paymentRequestId,
-            $additionalInfo,
-            $paymentAmount
-        );
-
-        echo "<h3>Data yang dikirim ke BRI:</h3>";
-        echo "<strong>URL:</strong> " . $this->api->get_last_url() . "<br>";
-        echo "<strong>Headers:</strong> <pre>" . print_r($this->api->get_last_headers(), true) . "</pre>";
-        echo "<strong>Body:</strong> <pre>" . print_r($this->api->get_last_body(), true) . "</pre>";
-        echo "<h3>Response dari BRI:</h3>";
-        echo "<pre>" . print_r($response, true) . "</pre>";
-    }
-
-    public function notify_payment()
-    {
-        // Menerima dan mendekode JSON input dari Postman
-        $json_data = json_decode(file_get_contents('php://input'), true);
-
-        // Validasi jika data JSON tidak terdekode dengan benar
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->output
-                ->set_content_type('application/json')
-                ->set_output(json_encode(['error' => 'Payload JSON tidak valid']));
-            return;
-        }
-
-        // Inisialisasi parameter dari JSON
-        $partnerServiceId = $json_data['partnerServiceId'];
-        $customerNo = $json_data['customerNo'];
-        $virtualAccountNo = $json_data['virtualAccountNo'];
-        $trxDateTime = $json_data['trxDateTime'];
-        $paymentRequestId = $json_data['paymentRequestId'];
-        $additionalInfo = $json_data['additionalInfo'];
-        $paymentAmount = $json_data['paymentAmount'];
-
-        // Mengirim notifikasi melalui API dan mendapatkan respons
-        $result = $this->api->send_push_notif(
-            $partnerServiceId,
-            $customerNo,
-            $virtualAccountNo,
-            $trxDateTime,
-            $paymentRequestId,
-            $additionalInfo,
-            $paymentAmount
-        );
-
-        // Mengembalikan respons dari API langsung ke klien
-        $this->output
-            ->set_content_type('application/json')
-            ->set_output(json_encode($result));
-    }
-
-
-
-
-    public function receive_notification()
-    {
-        $this->enable_cors();
-
-        $payload = file_get_contents('php://input');
-        $data = json_decode($payload, true);
-        if (
-            !isset($data['partnerServiceId']) || !isset($data['customerNo']) ||
-            !isset($data['virtualAccountNo']) || !isset($data['trxDateTime']) ||
-            !isset($data['paymentRequestId']) || !isset($data['paymentAmount'])
-        ) {
-            $this->output
-                ->set_status_header(400)
-                ->set_content_type('application/json')
-                ->set_output(json_encode(['error' => 'Invalid payload']));
-            return;
-        }
-
-        $this->save_to_database($data);
-        $this->log_request($data);
-        if (isset($data['status']) && $data['status'] === 'success') {
-            $this->output
-                ->set_status_header(200)
-                ->set_content_type('application/json')
-                ->set_output(json_encode(['message' => 'Notification received and saved successfully']));
-        } else {
-            $this->output
-                ->set_status_header(400)
-                ->set_content_type('application/json')
-                ->set_output(json_encode(['error' => 'Invalid transaction status']));
-        }
-    }
-
-
-    private function save_to_database($data)
-    {
-        $additionalInfo = isset($data['additionalInfo']) ? $data['additionalInfo'] : null;
-        $terminalId = isset($data['terminalId']) ? $data['terminalId'] : null;
-        $bankId = isset($data['bankId']) ? $data['bankId'] : null;
-        $status = isset($data['status']) ? $data['status'] : 'unknown';
-
-        $this->db->insert('payment_notifications', array(
-            'partner_service_id' => $data['partnerServiceId'],
-            'customer_no' => $data['customerNo'],
-            'virtual_account_no' => $data['virtualAccountNo'],
-            'trx_datetime' => $data['trxDateTime'],
-            'payment_request_id' => $data['paymentRequestId'],
-            'additional_info' => $additionalInfo,
-            'payment_amount' => $data['paymentAmount'],
-            'terminal_id' => $terminalId,
-            'bank_id' => $bankId,
-            'status' => $status,
-            'created_at' => date('Y-m-d H:i:s')
-        ));
-    }
-
     private function enable_cors()
     {
         $allowed_origins = ['https://sandbox.bri.co.id'];
@@ -857,10 +1001,6 @@ class Backend extends CI_Controller
         }
     }
 
-    private function log_request($data)
-    {
-        file_put_contents('logs/api.log', date('Y-m-d H:i:s') . ' ' . json_encode($data) . PHP_EOL, FILE_APPEND);
-    }
 
 }
 
