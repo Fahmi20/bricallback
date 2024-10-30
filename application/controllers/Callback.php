@@ -33,6 +33,11 @@ class Callback extends CI_Controller
         $this->template->load('layout/main', 'callback/supplier');
     }
 
+    public function Webhook()
+    {
+        $this->template->load('layout/main', 'callback/webhook');
+    }
+
     public function Simulator()
     {
         $this->template->load('layout/main', 'callback/simulator');
