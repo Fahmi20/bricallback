@@ -32,6 +32,11 @@ $(document).ready(function () {
 				render: function (data, type, row) {
 					return `<div style="text-align:center;">${row.customerNo}</div>`;
 				},
+			},{
+				data: "partnerReferenceNo",
+				render: function (data, type, row) {
+					return `<div style="text-align:center;">${row.partnerReferenceNo}</div>`;
+				},
 			},
 			{
 				data: "virtualAccountNo",
