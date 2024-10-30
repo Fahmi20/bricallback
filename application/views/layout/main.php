@@ -110,7 +110,13 @@
                         <li class="nav-item">
                             <a href="<?= base_url() ?>Callback/SimulatorPayment" class="nav-link">
                                 <i class="link-icon" data-feather="cpu"></i>
-                                <span class="link-title">Simulator Paid</span>
+                                <span class="link-title">Paid Simulator</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="<?= base_url() ?>Callback/Webhook" class="nav-link">
+                                <i class="link-icon" data-feather="refresh-cw"></i>
+                                <span class="link-title">Webhook</span>
                             </a>
                         </li>
                     <?php } ?>
