@@ -105,7 +105,12 @@
                     <!-- REFERENSI -->
 
                     <div class="mb-4">
-                        <label for="trxId" class="form-label fw-bold">REFERENSI</label>
+                        <label for="partnerReferenceNo" class="form-label fw-bold">REFERENSI</label>
+                        <input type="text" id="partnerReferenceNo" class="form-control" value=""
+                            style="height: 50px; font-size: 18px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+                    </div>
+                    <div class="mb-4">
+                        <label for="trxId" class="form-label fw-bold">TRX ID</label>
                         <input type="text" id="trxId" class="form-control" value=""
                             style="height: 50px; font-size: 18px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
                     </div>
@@ -136,25 +141,19 @@
                     </h5>
 
                     <div class="details-wrapper">
-                        <!-- NOMOR CUSTOMER -->
-                        <p class="detail-item">
-                            <i class="bi bi-person me-2" style="color: #007bff;"></i>
-                            <strong>Nomor Customer:</strong>
-                            <span id="customer_number_success" class="text-muted"></span>
-                        </p>
-
-                        <!-- NOMOR PARTNER -->
-                        <p class="detail-item">
-                            <i class="bi bi-people-fill me-2" style="color: #007bff;"></i>
-                            <strong>Nomor Partner:</strong>
-                            <span id="partnerserviceid_number_success" class="text-muted"></span>
-                        </p>
 
                         <!-- NAMA CUSTOMER -->
                         <p class="detail-item">
                             <i class="bi bi-person-badge-fill me-2" style="color: #007bff;"></i>
                             <strong>Nama:</strong>
                             <span id="customer_name_success" class="text-muted"></span>
+                        </p>
+
+                        <!-- REFERSNI -->
+                        <p class="detail-item">
+                            <i class="bi bi-credit-card-2-front-fill me-2" style="color: #007bff;"></i>
+                            <strong>Nomor Referensi:</strong>
+                            <span id="partnerReference_number_success" class="text-muted"></span>
                         </p>
 
                         <!-- NOMOR VIRTUAL ACCOUNT -->
