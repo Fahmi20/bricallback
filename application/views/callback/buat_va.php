@@ -21,6 +21,7 @@
                                 <th>No</th>
                                 <th>ID Partner</th>
                                 <th>Customer No</th>
+                                <th>Nomor Partner Reference</th>
                                 <th>Nomor Virtual Account</th>
                                 <th>Status Pembayaran</th>
                                 <th>Nama</th>
