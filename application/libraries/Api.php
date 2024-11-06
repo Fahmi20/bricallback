@@ -163,13 +163,14 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     );
 
     $body_json = json_encode($body);
-    $signature = $this->generate_hmac_signature($path, 'POST', $timestamp, $token, $body_json);
+    $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $body_json;
+    $signature = hash_hmac('sha512', $stringToSign, $this->public_key_pem);
     $signatureBase64 = base64_encode($signature);
 
     $headers = array(
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
-        'X-SIGNATURE: ' . '',
+        'X-SIGNATURE: ' . $signatureBase64,
         'Content-type: application/json',
         'X-PARTNER-ID: ' . $this->partner_id,
         'CHANNEL-ID: ' . 'TRFLA',
