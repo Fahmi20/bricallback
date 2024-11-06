@@ -164,8 +164,6 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
 
     $body_json = json_encode($body);
     $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $body_json;
-
-    // Membuat signature untuk header X-SIGNATURE
     $signature = hash_hmac('sha512', $stringToSign, $this->client_secret);
     $signatureBase64 = base64_encode($signature);
 
@@ -178,8 +176,6 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
         'CHANNEL-ID: ' . 'TRFLA',
         'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
     );
-
-    // Mengirim request dan mengambil response
     $response = $this->send_api_request($url, 'POST', $headers, $body_json);
     return json_decode($response, true);
 }
@@ -847,6 +843,7 @@ private function verify_signature($data, $signature)
     private function send_api_request($url, $method = 'POST', $headers = [], $body = null, $callback = null)
     {
         $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
