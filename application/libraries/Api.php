@@ -167,11 +167,12 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
 
     // Membuat signature untuk header X-SIGNATURE
     $signature = hash_hmac('sha512', $stringToSign, $this->client_secret);
+    $signatureBase64 = base64_encode($signature);
 
     $headers = array(
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
-        'X-SIGNATURE: ' . $signature,
+        'X-SIGNATURE: ' . $signatureBase64,
         'Content-Type: application/json',
         'X-PARTNER-ID: ' . $this->partner_id,
         'CHANNEL-ID: ' . 'TRFLA',
