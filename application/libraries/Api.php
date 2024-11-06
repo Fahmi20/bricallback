@@ -138,7 +138,7 @@ EOD;
 
 public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
 {
-    $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
+    $timestamp = date('Y-m-d\TH:i:s.vP');
     $token = $this->get_push_notif_token();
     if (!$token) {
         throw new Exception("Gagal memperoleh token push notifikasi");
