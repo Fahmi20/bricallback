@@ -135,7 +135,7 @@ $this->public_key = "-----BEGIN PUBLIC KEY-----\n" .
 
     // Verifikasi tanda tangan dari respons token menggunakan public key
     if (isset($json['accessToken'], $json['signature'], $json['timestamp'])) {
-        $isValid = $this->verify_signature_from_bri($json['accessToken'], $json['signature'], $json['timestamp']);
+        $isValid = $this->verify_signature_from_bri($json['accessToken'], $json['publicKey'], $json['timestamp']);
         if ($isValid) {
             return $json['accessToken'];
         } else {
