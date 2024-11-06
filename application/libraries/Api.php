@@ -99,31 +99,29 @@ $this->public_key = "-----BEGIN PUBLIC KEY-----\n" .
 
     public function get_push_notif_token()
 {
-    // Menghasilkan timestamp sesuai format yang diharapkan
+    // Menghasilkan timestamp sesuai format
     $timestamp = date('Y-m-d\TH:i:s.vP');
 
-    // Menyusun body request untuk mendapatkan token
+    // Menyusun body request
     $body = json_encode(array(
         'grantType' => 'client_credentials'
     ));
 
-    // Membuat string untuk ditandatangani menggunakan client_id dan timestamp
+    // Membuat string untuk ditandatangani
     $stringToSign = $this->client_id_push_notif . '|' . $timestamp;
 
-    // Memuat private key untuk tanda tangan
+    // Menggunakan private key untuk tanda tangan
     $privateKey = openssl_get_privatekey($this->private_key);
     if (!$privateKey) {
         throw new Exception('Gagal memuat kunci privat');
     }
 
-    // Tanda tangani string dengan private key menggunakan SHA256
     openssl_sign($stringToSign, $signature, $privateKey, OPENSSL_ALGO_SHA256);
     openssl_free_key($privateKey);
 
-    // Encode tanda tangan menjadi Base64
     $signatureBase64 = base64_encode($signature);
 
-    // Menyusun header untuk permintaan token
+    // Menyiapkan header
     $headers = array(
         'X-SIGNATURE: ' . $signatureBase64,
         'X-CLIENT-KEY: ' . $this->client_id_push_notif,
@@ -133,63 +131,10 @@ $this->public_key = "-----BEGIN PUBLIC KEY-----\n" .
 
     // Mengirim request dan mengambil response
     $response = $this->send_api_request($this->token_url, 'POST', $headers, $body);
-    if (!$response) {
-        throw new Exception('Gagal mendapatkan respons dari server BRI.');
-    }
-
-    // Decode respons JSON
     $json = json_decode($response, true);
-    if (!$json || !isset($json['accessToken'], $json['signature'], $json['timestamp'])) {
-        throw new Exception('Token respons tidak lengkap atau tidak valid.');
-    }
 
-    // Verifikasi tanda tangan dari respons token menggunakan public key BRI
-    $isValid = $this->verify_signature_from_bri($json['accessToken'], $json['signature'], $json['timestamp']);
-    if ($isValid) {
-        return $json['accessToken'];
-    } else {
-        throw new Exception('Tanda tangan token tidak valid.');
-    }
+    return isset($json['accessToken']) ? $json['accessToken'] : null;
 }
-
-// Fungsi untuk memverifikasi tanda tangan dari BRI menggunakan public key
-public function verify_signature_from_bri($data, $signature, $timestamp)
-{
-    // JSON string dari public key yang diberikan oleh BRI
-    $jsonKey = '{"publicKey":"MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB"}';
-    
-    // Decode JSON dan ekstrak public key
-    $keyData = json_decode($jsonKey, true);
-    if (!$keyData || !isset($keyData['publicKey'])) {
-        throw new Exception('Gagal membaca public key dari JSON.');
-    }
-    
-    // Konversi ke format PEM yang dikenali oleh openssl
-    $publicKeyPem = "-----BEGIN PUBLIC KEY-----\n" .
-                    chunk_split($keyData['publicKey'], 64, "\n") .
-                    "-----END PUBLIC KEY-----\n";
-
-    // Mengonversi public key menjadi resource untuk openssl
-    $publicKeyId = openssl_get_publickey($publicKeyPem);
-    if (!$publicKeyId) {
-        throw new Exception('Gagal memuat kunci publik untuk verifikasi.');
-    }
-
-    // Gabungkan timestamp dan data untuk string verifikasi
-    $stringToVerify = $timestamp . '|' . $data;
-
-    // Decode signature dari base64
-    $signatureDecoded = base64_decode($signature);
-
-    // Verifikasi tanda tangan menggunakan public key
-    $isValid = openssl_verify($stringToVerify, $signatureDecoded, $publicKeyId, OPENSSL_ALGO_SHA256);
-    openssl_free_key($publicKeyId);
-
-    return $isValid === 1;
-}
-
-
-
 
 
 public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
