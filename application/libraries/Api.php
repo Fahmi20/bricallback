@@ -138,7 +138,7 @@ EOD;
 
 public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
 {
-    $timestamp = date('Y-m-d\TH:i:s.vP');
+    $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
     $token = $this->get_push_notif_token();
     if (!$token) {
         throw new Exception("Gagal memperoleh token push notifikasi");
@@ -173,7 +173,7 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
         'X-SIGNATURE: ' . $signatureBase64,
-        'Content-Type: application/json',
+        'Content-type: application/json',
         'X-PARTNER-ID: ' . $this->partner_id,
         'CHANNEL-ID: ' . 'TRFLA',
         'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
