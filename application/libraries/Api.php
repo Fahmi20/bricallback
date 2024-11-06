@@ -98,25 +98,30 @@ $this->public_key = "-----BEGIN PUBLIC KEY-----\n" .
     }
 
     public function get_push_notif_token()
-{
-    $timestamp = date('Y-m-d\TH:i:s.vP');
-    $body = json_encode(array(
-        'grantType' => 'client_credentials'
-    ));
-    $stringToSign = $this->client_id_push_notif . '|' . $timestamp;
-    $signature = hash_hmac('sha256', $stringToSign, $this->client_secret_push_notif, true);
-    $signatureBase64 = base64_encode($signature);
-    $headers = array(
-        'X-SIGNATURE: ' . $signatureBase64,
-        'X-CLIENT-KEY: ' . $this->client_id_push_notif,
-        'X-TIMESTAMP: ' . $timestamp,
-        'Content-Type: application/json',
-    );
-    $response = $this->send_api_request($this->token_url, 'POST', $headers, $body);
-    $json = json_decode($response, true);
-    echo json_encode($json);
-    return isset($json['accessToken']) ? $json['accessToken'] : null;
-}
+    {
+        $timestamp = date('Y-m-d\TH:i:s.vP');
+        $body = json_encode(array(
+            'grantType' => 'client_credentials'
+        ));
+        $stringToSign = $this->client_id_push_notif . '|' . $timestamp;
+        $privateKey = openssl_get_privatekey($this->private_key);
+
+        if (!$privateKey) {
+            throw new Exception('Gagal memuat kunci privat');
+        }
+        openssl_sign($stringToSign, $signature, $privateKey, OPENSSL_ALGO_SHA256);
+        openssl_free_key($privateKey);
+        $signatureBase64 = base64_encode($signature);
+        $headers = array(
+            'X-SIGNATURE: ' . $signatureBase64,
+            'X-CLIENT-KEY: ' . $this->client_id_push_notif,
+            'X-TIMESTAMP: ' . $timestamp,
+            'Content-Type: application/json',
+        );
+        $response = $this->send_api_request($this->token_url, 'POST', $headers, $body);
+        $json = json_decode($response, true);
+        return isset($json['accessToken']) ? $json['accessToken'] : null; 
+    }
 
 
 public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
@@ -141,7 +146,7 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     );
     $body_json = json_encode($body);
     $stringToSign = $path . '|' . 'POST' . '|' . $timestamp . '|' . $token . '|' . $body_json;
-    $signature = hash_hmac('sha512', $stringToSign, $this->client_secret, true);
+    $signature = hash_hmac('sha512', $stringToSign, $this->client_secret_push_notif, true);
     $signatureBase64 = base64_encode($signature);
     $headers = array(
         'Authorization: Bearer ' . $token,
