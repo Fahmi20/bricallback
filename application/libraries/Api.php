@@ -20,10 +20,7 @@ class Api
         '00009' => 'API'
     ];
     private $public_key;
-
-    private $token_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/access-token/b2b"; // URL token BRI
-    private $notif_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/transfer-va/notify-payment-intrabank"; // URL notifikasi BRI
-
+    
     private $private_key;
     private $access_token = null;
     private $last_url;
@@ -96,72 +93,10 @@ EOD;
         return $this->access_token;
     }
 
-    // Verifikasi tanda tangan menggunakan pubkey.pem
-    public function verify_bri_signature($data, $signature)
-    {
-        // Path ke file pubkey.pem
-        $publicKeyPath = '/mnt/data/pubkey.pem';
-        $publicKey = file_get_contents($publicKeyPath);
-
-        if (!$publicKey) {
-            throw new Exception('Gagal membaca file public key.');
-        }
-
-        // Konversi public key menjadi resource
-        $publicKeyId = openssl_get_publickey($publicKey);
-
-        if (!$publicKeyId) {
-            throw new Exception('Gagal memuat kunci publik untuk verifikasi.');
-        }
-
-        // Decode signature dari base64
-        $signatureDecoded = base64_decode($signature);
-
-        // Verifikasi signature menggunakan public key
-        $isValid = openssl_verify($data, $signatureDecoded, $publicKeyId, OPENSSL_ALGO_SHA256);
-
-        // Bebaskan resource public key
-        openssl_free_key($publicKeyId);
-
-        return $isValid === 1;
-    }
-
-    public function handle_bri_notification($notification)
-    {
-        // Ambil data dan signature dari notifikasi
-        $data = json_encode($notification['data']); // Sesuaikan dengan struktur data notifikasi
-        $signature = $notification['signature'];
-
-        // Verifikasi signature notifikasi
-        if ($this->verify_bri_signature($data, $signature)) {
-            // Signature valid, lanjutkan ke get_push_notif_token dan send_push_notif
-            try {
-                $token = $this->get_push_notif_token();
-
-                // Contoh pemanggilan send_push_notif
-                $this->send_push_notif(
-                    $notification['data']['partnerServiceId'],
-                    $notification['data']['customerNo'],
-                    $notification['data']['virtualAccountNo'],
-                    $notification['data']['trxDateTime'],
-                    $notification['data']['paymentRequestId'],
-                    $notification['data']['paymentAmount']
-                );
-
-                return true; // Notifikasi berhasil diproses dan dikirim
-
-            } catch (Exception $e) {
-                throw new Exception("Error dalam pengiriman notifikasi: " . $e->getMessage());
-            }
-        } else {
-            // Signature tidak valid
-            throw new Exception('Signature notifikasi BRI tidak valid.');
-        }
-    }
-
     public function get_push_notif_token()
     {
-        $url = $this->token_url;
+        $path = '/snap/v1.0/access-token/b2b';
+        $url = 'https://sandbox.partner.api.bri.co.id' . $path;
         $timezone = new DateTimeZone('+07:00');
         $datetime = new DateTime('now', $timezone);
         $timestamp = $datetime->format('Y-m-d\TH:i:s.vP');
@@ -169,7 +104,7 @@ EOD;
             'grantType' => 'client_credentials'
         ]);
         $stringToSign = $this->client_id . '|' . $timestamp;
-        $privateKey = $this->client_secret;
+        $privateKey = $this->private_key;
         $privateKeyId = openssl_get_privatekey($privateKey);
 
         if (!$privateKeyId) {
@@ -193,7 +128,8 @@ EOD;
     {
         $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
         $token = $this->get_push_notif_token();
-        $url = $this->notif_url;
+        $partnerUrl = 'https://sandbox.partner.api.bri.co.id';
+        $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
         $body = [
             'partnerServiceId' => $partnerServiceId,
             'customerNo' => $customerNo,
@@ -209,21 +145,52 @@ EOD;
             ]
         ];
         $body_json = json_encode($body);
-        $signature = $this->generate_hmac_signature($url, 'POST', $timestamp, $token, $body_json);
+        $signature = $this->generate_hmac_signature($path, 'POST', $timestamp, $token, $body_json);
         $external_id = rand(100000000, 999999999);
         $headers = array(
             'Authorization: Bearer ' . $token,
             'X-TIMESTAMP: ' . $timestamp,
             'X-SIGNATURE: ' . $signature,
             'Content-Type: application/json',
-            'X-PARTNER-ID: ' . $this->client_id,
+            'X-PARTNER-ID: ' . $this->partner_id,
             'CHANNEL-ID: ' . 'TRFLA',
             'X-EXTERNAL-ID: ' . $external_id
         );
+        $url = $partnerUrl . $path;
 
+        // Kirim request dan ambil respons
         $response = $this->send_api_request($url, 'POST', $headers, $body_json);
-        return json_decode($response, true);
+        $json_response = json_decode($response, true);
+
+        // Verifikasi tanda tangan respons dari BRI
+        if (!$this->verify_bri_signature($body_json, $json_response['signature'])) {
+            throw new Exception('Signature dari BRI tidak valid');
+        }
+
+        return $json_response;
     }
+
+    private function verify_bri_signature($data, $signature)
+    {
+        // Konversi signature dari base64
+        $signatureDecoded = base64_decode($signature);
+
+        // Muat public key
+        $publicKeyId = openssl_get_publickey($this->public_key);
+
+        if (!$publicKeyId) {
+            throw new Exception('Gagal memuat kunci publik');
+        }
+
+        // Verifikasi signature menggunakan public key BRI
+        $isValid = openssl_verify($data, $signatureDecoded, $publicKeyId, OPENSSL_ALGO_SHA256);
+
+        // Bebaskan resource public key
+        openssl_free_key($publicKeyId);
+
+        return $isValid === 1; // Mengembalikan true jika valid, false jika tidak valid
+    }
+
 
     public function send_api_request_push_notif($url, $method, $headers, $body, $callback = null)
     {
