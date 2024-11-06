@@ -6,7 +6,7 @@ class Api
     private $baseUrl = 'https://sandbox.partner.api.bri.co.id';
 
     private $public_key;
-    private $public_key_path = __DIR__ . '/../../keys/pubkey.pem'; // Path ke public key yang disediakan BRI
+    private $public_key_path = '/mnt/data/pubkey.pem'; // Path ke public key yang disediakan BRI
     private $client_id_push_notif = 'G6bDFAAbwTUhqhMGa9qOsydLGBexH6bh';
     private $client_secret_push_notif = 'MNfGscq4w6XUmAp3';
     private $token_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/access-token/b2b";
@@ -149,14 +149,22 @@ $this->public_key = "-----BEGIN PUBLIC KEY-----\n" .
 // Fungsi untuk memverifikasi tanda tangan dari BRI menggunakan public key
 public function verify_signature_from_bri($data, $signature, $timestamp)
 {
-    // Baca public key dari path yang disesuaikan
-    $publicKey = file_get_contents($this->public_key_path);
-    if (!$publicKey) {
-        throw new Exception('Gagal membaca file public key.');
+    // JSON string dari `pubkey.pem`
+    $jsonKey = '{"publicKey":"MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB"}';
+    
+    // Decode JSON dan ekstrak public key
+    $keyData = json_decode($jsonKey, true);
+    if (!$keyData || !isset($keyData['publicKey'])) {
+        throw new Exception('Gagal membaca public key dari JSON.');
     }
+    
+    // Konversi ke format PEM yang dikenali oleh openssl
+    $publicKeyPem = "-----BEGIN PUBLIC KEY-----\n" .
+                    chunk_split($keyData['publicKey'], 64, "\n") .
+                    "-----END PUBLIC KEY-----\n";
 
     // Mengonversi public key menjadi resource untuk openssl
-    $publicKeyId = openssl_get_publickey($publicKey);
+    $publicKeyId = openssl_get_publickey($publicKeyPem);
     if (!$publicKeyId) {
         throw new Exception('Gagal memuat kunci publik untuk verifikasi.');
     }
