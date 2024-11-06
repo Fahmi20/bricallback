@@ -102,7 +102,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="<?= base_url() ?>Callback/Laporan_Barang_Masuk" class="nav-link">
+                            <a href="<?= base_url() ?>Callback/Log_Transaksi" class="nav-link">
                                 <i class="link-icon" data-feather="activity"></i>
                                 <span class="link-title">Log Transaksi</span>
                             </a>
