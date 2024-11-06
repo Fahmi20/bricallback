@@ -131,7 +131,7 @@ EOD;
     // Mengirim request dan mengambil response
     $response = $this->send_api_request($this->token_url, 'POST', $headers, $body);
     $json = json_decode($response, true);
-
+    echo json_encode($json);
     return isset($json['accessToken']) ? $json['accessToken'] : null;
 }
 
@@ -163,8 +163,7 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     );
 
     $body_json = json_encode($body);
-    $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $body_json;
-    $signature = hash_hmac('sha512', $stringToSign, $this->client_secret);
+    $signature = $this->generate_hmac_signature($path, 'POST', $timestamp, $token, $body_json);
     $signatureBase64 = base64_encode($signature);
 
     $headers = array(
