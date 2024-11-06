@@ -5,15 +5,16 @@ class Api
 {
     private $baseUrl = 'https://sandbox.partner.api.bri.co.id';
 
+    private $public_key;
+    private $public_key_path = '/mnt/data/pubkey.pem'; // Path ke public key yang disediakan BRI
     private $client_id_push_notif = 'G6bDFAAbwTUhqhMGa9qOsydLGBexH6bh';
     private $client_secret_push_notif = 'MNfGscq4w6XUmAp3';
+    private $token_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/access-token/b2b";
+    private $notif_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/transfer-va/notify-payment-intrabank";
     private $client_id = 'G6bDFAAbwTUhqhMGa9qOsydLGBexH6bh';
     private $client_secret = 'MNfGscq4w6XUmAp3';
     private $partner_id = 'YGSDev';
     private $channel_id = '00009';
-    private $public_key_path = '/mnt/data/pubkey.pem';
-    private $token_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/access-token/b2b";
-    private $notif_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/transfer-va/notify-payment-intrabank";
     private $channel_id_mapping = [
         '00001' => 'teller',
         '00002' => 'ATM',
@@ -50,6 +51,10 @@ ophbwpAlJ8EBZxQqEQJAeE/dQXB7hICB8A5ZAIFAVWQHJPf/Ahj8VDdpIdVzWK0b
 1BV6b19Ki7JbcONQuWbbNr4swlYvj2UFnaGzA43E6g==
 -----END RSA PRIVATE KEY-----
 EOD;
+
+$this->public_key = "-----BEGIN PUBLIC KEY-----\n" .
+                            chunk_split("MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB", 64) .
+                            "-----END PUBLIC KEY-----";
     }
 
     public function get_access_token()
@@ -92,100 +97,52 @@ EOD;
         return $this->access_token;
     }
 
-    public function get_push_notif_token()
-    {
-        $timestamp = date('Y-m-d\TH:i:s.vP');
-        $body = json_encode(array(
-            'grantType' => 'client_credentials'
-        ));
-        $stringToSign = $this->client_id_push_notif . '|' . $timestamp;
-        $privateKey = openssl_get_privatekey($this->private_key);
-
-        if (!$privateKey) {
-            throw new Exception('Gagal memuat kunci privat');
-        }
-        openssl_sign($stringToSign, $signature, $privateKey, OPENSSL_ALGO_SHA256);
-        openssl_free_key($privateKey);
-        $signatureBase64 = base64_encode($signature);
-        $headers = array(
-            'X-SIGNATURE: ' . $signatureBase64,
-            'X-CLIENT-KEY: ' . $this->client_id_push_notif,
-            'X-TIMESTAMP: ' . $timestamp,
-            'Content-Type: application/json',
-        );
-        $response = $this->send_api_request($this->token_url, 'POST', $headers, $body);
-        $json = json_decode($response, true);
-        return isset($json['accessToken']) ? $json['accessToken'] : null; 
-    }
-
     public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
-    {
-        $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
-        $token = $this->get_push_notif_token();
-        if (!$token) {
-            throw new Exception("Token tidak ditemukan");
-        }
+{
+    // Mengambil timestamp dengan zona waktu UTC
+    $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
+    $token = $this->get_push_notif_token();
+    $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
+    $url = 'https://sandbox.partner.api.bri.co.id' . $path;
+    
+    // Menyusun body JSON untuk notifikasi
+    $body = array(
+        'partnerServiceId' => $partnerServiceId,
+        'customerNo' => $customerNo,
+        'virtualAccountNo' => $virtualAccountNo,
+        'paymentRequestId' => $paymentRequestId,
+        'trxDateTime' => $trxDateTime,
+        'additionalInfo' => array(
+            'idApp' => 'YPGS',
+            'passApp' => '354324134',
+            'paymentAmount' => $paymentAmount,
+            'terminalId' => '9',
+            'bankId' => '002'
+        )
+    );
+    $body_json = json_encode($body);
 
-        $body = array(
-            'partnerServiceId' => $partnerServiceId,
-            'customerNo' => $customerNo,
-            'virtualAccountNo' => $virtualAccountNo,
-            'paymentRequestId' => $paymentRequestId,
-            'trxDateTime' => $trxDateTime,
-            'additionalInfo' => array(
-                'idApp' => 'YPGS',
-                'passApp' => '354324134',
-                'paymentAmount' => $paymentAmount,
-                'terminalId' => '9',
-                'bankId' => '002'
-            )
-        );
-        $body_json = json_encode($body);
-        $signature = hash_hmac('sha512', $timestamp . '|' . $body_json, $token, true);
-        $signatureBase64 = base64_encode($signature);
+    // Membuat tanda tangan HMAC SHA-512
+    $stringToSign = $path . '|' . 'POST' . '|' . $timestamp . '|' . $token . '|' . $body_json;
+    $signature = hash_hmac('sha512', $stringToSign, $this->client_secret, true);
+    $signatureBase64 = base64_encode($signature);
 
-        $headers = array(
-            'Authorization: Bearer ' . $token,
-            'X-TIMESTAMP: ' . $timestamp,
-            'X-SIGNATURE: ' . $signatureBase64,
-            'Content-Type: application/json',
-            'X-PARTNER-ID: ' . $this->partner_id,
-            'CHANNEL-ID: ' . 'TRFLA',
-            'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
-        );
-        $url = $this->notif_url;
-        $response = $this->send_api_request($url, 'POST', $headers, $body_json);
-        return json_decode($response, true);
-    }
+    // Menyusun header
+    $headers = array(
+        'Authorization: Bearer ' . $token,
+        'X-TIMESTAMP: ' . $timestamp,
+        'X-SIGNATURE: ' . $signatureBase64,
+        'Content-Type: application/json',
+        'X-PARTNER-ID: ' . $this->partner_id,
+        'CHANNEL-ID: ' . 'TRFLA',
+        'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
+    );
 
-    public function verify_bri_signature($data, $signature, $timestamp)
-    {
-        $publicKey = file_get_contents($this->public_key_path);
-        if (!$publicKey) {
-            throw new Exception('Gagal membaca file public key.');
-        }
-        $publicKeyId = openssl_get_publickey($publicKey);
-        if (!$publicKeyId) {
-            throw new Exception('Gagal memuat kunci publik untuk verifikasi.');
-        }
-        $signatureDecoded = base64_decode($signature);
-        $stringToVerify = $timestamp . '|' . json_encode($data);
-        $isValid = openssl_verify($stringToVerify, $signatureDecoded, $publicKeyId, OPENSSL_ALGO_SHA512);
-        openssl_free_key($publicKeyId);
-        return $isValid === 1;
-    }
+    // Mengirim request
+    $response = $this->send_api_request($url, 'POST', $headers, $body_json);
+    return json_decode($response, true);
+}
 
-    public function handle_bri_notification($notification, $headers)
-    {
-        $data = $notification;
-        $signature = isset($headers['X-SIGNATURE']) ? $headers['X-SIGNATURE'] : '';
-        $timestamp = isset($headers['X-TIMESTAMP']) ? $headers['X-TIMESTAMP'] : '';
-        if ($this->verify_bri_signature($data, $signature, $timestamp)) {
-            echo "Notifikasi valid dan diverifikasi";
-        } else {
-            throw new Exception('Signature notifikasi BRI tidak valid.');
-        }
-    }
 
 
     public function send_api_request_push_notif($url, $method, $headers, $body, $callback = null)
