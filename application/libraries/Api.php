@@ -4,11 +4,14 @@ defined('BASEPATH') or exit('No direct script access allowed');
 class Api
 {
     private $baseUrl = 'https://sandbox.partner.api.bri.co.id';
+
+    private $client_id_push_notif = 'G6bDFAAbwTUhqhMGa9qOsydLGBexH6bh';
+    private $client_secret_push_notif = 'MNfGscq4w6XUmAp3';
     private $client_id = 'G6bDFAAbwTUhqhMGa9qOsydLGBexH6bh';
     private $client_secret = 'MNfGscq4w6XUmAp3';
     private $partner_id = 'YGSDev';
     private $channel_id = '00009';
-    private $public_key_path = '/mnt/data/pubkey.pem'; // Path ke public key yang disediakan BRI
+    private $public_key_path = '/mnt/data/pubkey.pem';
     private $token_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/access-token/b2b";
     private $notif_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/transfer-va/notify-payment-intrabank";
     private $channel_id_mapping = [
@@ -91,38 +94,28 @@ EOD;
 
     public function get_push_notif_token()
     {
-        // Gunakan date() untuk PHP 5.3
-        $timestamp = date('Y-m-d\TH:i:s.vP'); // Menyusun format timestamp sesuai dengan standar
-
-        // Persiapan body untuk request token
+        $timestamp = date('Y-m-d\TH:i:s.vP');
         $body = json_encode(array(
             'grantType' => 'client_credentials'
         ));
-
-        // Membuat signature menggunakan client_id dan timestamp
-        $stringToSign = $this->client_id . '|' . $timestamp;
-        $privateKey = openssl_get_privatekey($this->private_key); // Jika client_secret adalah private key
+        $stringToSign = $this->client_id_push_notif . '|' . $timestamp;
+        $privateKey = openssl_get_privatekey($this->private_key);
 
         if (!$privateKey) {
             throw new Exception('Gagal memuat kunci privat');
         }
-
         openssl_sign($stringToSign, $signature, $privateKey, OPENSSL_ALGO_SHA256);
         openssl_free_key($privateKey);
         $signatureBase64 = base64_encode($signature);
-
-        // Menyiapkan header untuk request token
         $headers = array(
             'X-SIGNATURE: ' . $signatureBase64,
-            'X-CLIENT-KEY: ' . $this->client_id,
+            'X-CLIENT-KEY: ' . $this->client_id_push_notif,
             'X-TIMESTAMP: ' . $timestamp,
             'Content-Type: application/json',
         );
-
-        // Kirim request dan ambil response
         $response = $this->send_api_request($this->token_url, 'POST', $headers, $body);
         $json = json_decode($response, true);
-        return isset($json['accessToken']) ? $json['accessToken'] : null; // Mengembalikan accessToken jika ada
+        return isset($json['accessToken']) ? $json['accessToken'] : null; 
     }
 
     public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
@@ -148,8 +141,6 @@ EOD;
             )
         );
         $body_json = json_encode($body);
-
-        // Buat HMAC-SHA512 signature
         $signature = hash_hmac('sha512', $timestamp . '|' . $body_json, $token, true);
         $signatureBase64 = base64_encode($signature);
 
