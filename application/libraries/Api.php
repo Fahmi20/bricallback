@@ -96,16 +96,31 @@ EOD;
         return $this->access_token;
     }
 
+    // Verifikasi tanda tangan menggunakan pubkey.pem
     public function verify_bri_signature($data, $signature)
     {
-        $signatureDecoded = base64_decode($signature);
-        $publicKeyId = openssl_get_publickey($this->public_key);
+        // Path ke file pubkey.pem
+        $publicKeyPath = '/mnt/data/pubkey.pem';
+        $publicKey = file_get_contents($publicKeyPath);
+
+        if (!$publicKey) {
+            throw new Exception('Gagal membaca file public key.');
+        }
+
+        // Konversi public key menjadi resource
+        $publicKeyId = openssl_get_publickey($publicKey);
 
         if (!$publicKeyId) {
             throw new Exception('Gagal memuat kunci publik untuk verifikasi.');
         }
 
+        // Decode signature dari base64
+        $signatureDecoded = base64_decode($signature);
+
+        // Verifikasi signature menggunakan public key
         $isValid = openssl_verify($data, $signatureDecoded, $publicKeyId, OPENSSL_ALGO_SHA256);
+
+        // Bebaskan resource public key
         openssl_free_key($publicKeyId);
 
         return $isValid === 1;
@@ -113,12 +128,17 @@ EOD;
 
     public function handle_bri_notification($notification)
     {
-        $data = json_encode($notification['data']);
+        // Ambil data dan signature dari notifikasi
+        $data = json_encode($notification['data']); // Sesuaikan dengan struktur data notifikasi
         $signature = $notification['signature'];
+
+        // Verifikasi signature notifikasi
         if ($this->verify_bri_signature($data, $signature)) {
-            $this->log_notification("Verifikasi berhasil untuk data: " . $data);
+            // Signature valid, lanjutkan ke get_push_notif_token dan send_push_notif
             try {
                 $token = $this->get_push_notif_token();
+
+                // Contoh pemanggilan send_push_notif
                 $this->send_push_notif(
                     $notification['data']['partnerServiceId'],
                     $notification['data']['customerNo'],
@@ -128,16 +148,13 @@ EOD;
                     $notification['data']['paymentAmount']
                 );
 
-                $this->log_notification("Notifikasi berhasil diproses dan dikirim.");
-                return true;
+                return true; // Notifikasi berhasil diproses dan dikirim
 
             } catch (Exception $e) {
-                $this->log_notification("Error dalam proses pengiriman notifikasi: " . $e->getMessage());
                 throw new Exception("Error dalam pengiriman notifikasi: " . $e->getMessage());
             }
-
         } else {
-            $this->log_notification("Verifikasi gagal untuk data: " . $data);
+            // Signature tidak valid
             throw new Exception('Signature notifikasi BRI tidak valid.');
         }
     }
