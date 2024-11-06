@@ -163,7 +163,7 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     );
 
     $body_json = json_encode($body);
-    $stringToSign = $path . '|POST|' . $timestamp . '|' . $token . '|' . $body_json;
+    $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $body_json;
 
     // Membuat signature untuk header X-SIGNATURE
     $signature = hash_hmac('sha512', $stringToSign, $this->client_secret);
