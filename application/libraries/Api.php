@@ -169,7 +169,7 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     $headers = array(
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
-        'X-SIGNATURE: ' . $this->public_key_pem,
+        'X-SIGNATURE: ' . '',
         'Content-type: application/json',
         'X-PARTNER-ID: ' . $this->partner_id,
         'CHANNEL-ID: ' . 'TRFLA',
