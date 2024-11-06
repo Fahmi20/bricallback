@@ -98,38 +98,61 @@ $this->public_key = "-----BEGIN PUBLIC KEY-----\n" .
     }
 
     public function get_push_notif_token()
-    {
-        $timestamp = date('Y-m-d\TH:i:s.vP');
-        $body = json_encode(array(
-            'grantType' => 'client_credentials'
-        ));
-        $stringToSign = $this->client_id_push_notif . '|' . $timestamp;
-        $privateKey = openssl_get_privatekey($this->private_key);
+{
+    // Menghasilkan timestamp sesuai format
+    $timestamp = date('Y-m-d\TH:i:s.vP');
 
-        if (!$privateKey) {
-            throw new Exception('Gagal memuat kunci privat');
-        }
-        openssl_sign($stringToSign, $signature, $privateKey, OPENSSL_ALGO_SHA256);
-        openssl_free_key($privateKey);
-        $signatureBase64 = base64_encode($signature);
-        $headers = array(
-            'X-SIGNATURE: ' . $signatureBase64,
-            'X-CLIENT-KEY: ' . $this->client_id_push_notif,
-            'X-TIMESTAMP: ' . $timestamp,
-            'Content-Type: application/json',
-        );
-        $response = $this->send_api_request($this->token_url, 'POST', $headers, $body);
-        $json = json_decode($response, true);
-        return isset($json['accessToken']) ? $json['accessToken'] : null; 
+    // Menyusun body request
+    $body = json_encode(array(
+        'grantType' => 'client_credentials'
+    ));
+
+    // Membuat string untuk ditandatangani
+    $stringToSign = $this->client_id_push_notif . '|' . $timestamp;
+
+    // Menggunakan private key untuk tanda tangan
+    $privateKey = openssl_get_privatekey($this->private_key);
+    if (!$privateKey) {
+        throw new Exception('Gagal memuat kunci privat');
     }
+
+    openssl_sign($stringToSign, $signature, $privateKey, OPENSSL_ALGO_SHA256);
+    openssl_free_key($privateKey);
+
+    $signatureBase64 = base64_encode($signature);
+
+    // Menyiapkan header
+    $headers = array(
+        'X-SIGNATURE: ' . $signatureBase64,
+        'X-CLIENT-KEY: ' . $this->client_id_push_notif,
+        'X-TIMESTAMP: ' . $timestamp,
+        'Content-Type: application/json',
+    );
+
+    // Mengirim request dan mengambil response
+    $response = $this->send_api_request($this->token_url, 'POST', $headers, $body);
+    $json = json_decode($response, true);
+
+    return isset($json['accessToken']) ? $json['accessToken'] : null;
+}
 
 
 public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
 {
+    // Menghasilkan timestamp dalam UTC
     $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
+
+    // Mengambil token dengan memanggil fungsi get_push_notif_token
     $token = $this->get_push_notif_token();
+    if (!$token) {
+        throw new Exception("Gagal memperoleh token push notifikasi");
+    }
+
+    // Menyusun URL dan path notifikasi
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
+
+    // Menyusun body request notifikasi
     $body = array(
         'partnerServiceId' => $partnerServiceId,
         'customerNo' => $customerNo,
@@ -145,9 +168,15 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
         )
     );
     $body_json = json_encode($body);
-    $stringToSign = $path . '|' . 'POST' . '|' . $timestamp . '|' . $token . '|' . $body_json;
+
+    // Membuat string untuk ditandatangani
+    $stringToSign = $path . '|POST|' . $timestamp . '|' . $token . '|' . $body_json;
+
+    // Menggunakan client_secret untuk HMAC-SHA512
     $signature = hash_hmac('sha512', $stringToSign, $this->client_secret_push_notif, true);
     $signatureBase64 = base64_encode($signature);
+
+    // Menyusun header
     $headers = array(
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
@@ -157,9 +186,12 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
         'CHANNEL-ID: ' . 'TRFLA',
         'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
     );
+
+    // Mengirim request dan mengambil response
     $response = $this->send_api_request($url, 'POST', $headers, $body_json);
     return json_decode($response, true);
 }
+
 
 
     public function send_api_request_push_notif($url, $method, $headers, $body, $callback = null)
