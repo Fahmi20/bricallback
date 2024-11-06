@@ -11,6 +11,7 @@ class Api
     private $client_secret_push_notif = 'MNfGscq4w6XUmAp3';
     private $token_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/access-token/b2b";
     private $notif_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/transfer-va/notify-payment-intrabank";
+    private $public_key_pem = "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB-----END PUBLIC KEY-----";
     private $client_id = 'G6bDFAAbwTUhqhMGa9qOsydLGBexH6bh';
     private $client_secret = 'MNfGscq4w6XUmAp3';
     private $partner_id = 'YGSDev';
@@ -52,9 +53,7 @@ ophbwpAlJ8EBZxQqEQJAeE/dQXB7hICB8A5ZAIFAVWQHJPf/Ahj8VDdpIdVzWK0b
 -----END RSA PRIVATE KEY-----
 EOD;
 
-$this->public_key = "-----BEGIN PUBLIC KEY-----\n" .
-                            chunk_split("MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB", 64) .
-                            "-----END PUBLIC KEY-----";
+
     }
 
     public function get_access_token()
@@ -139,20 +138,15 @@ $this->public_key = "-----BEGIN PUBLIC KEY-----\n" .
 
 public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
 {
-    // Menghasilkan timestamp dalam UTC
     $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
-
-    // Mendapatkan token yang valid
     $token = $this->get_push_notif_token();
     if (!$token) {
         throw new Exception("Gagal memperoleh token push notifikasi");
     }
 
-    // Menyusun path dan URL endpoint
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
 
-    // Menyusun body request notifikasi sesuai dengan struktur dokumentasi
     $body = array(
         'partnerServiceId' => $partnerServiceId,
         'customerNo' => $customerNo,
@@ -160,21 +154,21 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
         'paymentRequestId' => $paymentRequestId,
         'trxDateTime' => $trxDateTime,
         'additionalInfo' => array(
-            'idApp' => '24123244',           // Sesuaikan dengan nilai contoh
-            'passApp' => '354324134',         // Sesuaikan dengan nilai contoh
+            'idApp' => 'YPGS',
+            'passApp' => '354324134',
             'paymentAmount' => $paymentAmount,
-            'terminalId' => '1',              // Sesuaikan dengan nilai yang diharapkan
-            'bankId' => '002'                 // ID bank BRI sebagai contoh
+            'terminalId' => '9',
+            'bankId' => '002'
         )
     );
-    $body_json = json_encode($body);
 
-    // Membuat tanda tangan
+    $body_json = json_encode($body);
     $stringToSign = $path . '|POST|' . $timestamp . '|' . $token . '|' . $body_json;
-    $signature = hash_hmac('sha512', $stringToSign, $this->client_secret, true);
+
+    // Membuat signature untuk header X-SIGNATURE
+    $signature = hash_hmac('sha512', $stringToSign, $this->client_secret);
     $signatureBase64 = base64_encode($signature);
 
-    // Menyusun header sesuai kebutuhan
     $headers = array(
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
@@ -185,84 +179,29 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
         'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
     );
 
-    // Mengirim request dan menguraikan respons
+    // Mengirim request dan mengambil response
     $response = $this->send_api_request($url, 'POST', $headers, $body_json);
-    $json_response = json_decode($response, true);
-
-    // Memeriksa respons sesuai dengan struktur respons
-    if (isset($json_response['responseCode']) && $json_response['responseCode'] === '2003400') {
-        // Jika respons berhasil, memproses virtualAccountData jika tersedia
-        return array(
-            'status' => 'success',
-            'message' => $json_response['responseMessage'],
-            'data' => isset($json_response['virtualAccountData']) ? $json_response['virtualAccountData'] : null
-        );
-    } else {
-        // Jika gagal, mengembalikan pesan error
-        return array(
-            'status' => 'error',
-            'message' => isset($json_response['responseMessage']) ? $json_response['responseMessage'] : 'Gagal menerima respons yang valid'
-        );
-    }
+    return json_decode($response, true);
 }
 
-
-public function handle_bri_notification($notification, $headers)
+// Fungsi untuk memverifikasi signature dari notifikasi BRI
+private function verify_signature($data, $signature)
 {
-    // Ambil data dan signature dari notifikasi
-    $data = json_encode($notification); // Payload JSON notifikasi
-    $signature = isset($headers['X-SIGNATURE']) ? $headers['X-SIGNATURE'] : null;
-    $timestamp = isset($headers['X-TIMESTAMP']) ? $headers['X-TIMESTAMP'] : null;
+    // Menggunakan public key yang sudah ada dalam format lengkap PEM
+    $pubKeyId = openssl_get_publickey($this->public_key_pem);
 
-    if (!$signature || !$timestamp) {
-        throw new Exception("Header X-SIGNATURE atau X-TIMESTAMP tidak tersedia.");
+    if (!$pubKeyId) {
+        throw new Exception("Public key tidak valid atau gagal dimuat.");
     }
 
-    // Verifikasi signature notifikasi menggunakan public key BRI
-    $isValid = $this->verify_signature_from_bri($data, $signature, $timestamp);
-    if ($isValid) {
-        echo "Notifikasi valid dan diverifikasi";
-        // Lanjutkan proses notifikasi sesuai kebutuhan
-    } else {
-        throw new Exception("Signature notifikasi BRI tidak valid.");
-    }
+    // Verifikasi signature menggunakan public key
+    $result = openssl_verify($data, base64_decode($signature), $pubKeyId, OPENSSL_ALGO_SHA512);
+
+    openssl_free_key($pubKeyId);
+
+    return $result === 1;
 }
 
-// Fungsi untuk memverifikasi tanda tangan dari notifikasi BRI menggunakan public key
-public function verify_signature_from_bri($data, $signature, $timestamp)
-{
-    // JSON string dari public key yang diberikan oleh BRI
-    $jsonKey = '{"publicKey":"MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB"}';
-    
-    // Decode JSON dan ekstrak public key
-    $keyData = json_decode($jsonKey, true);
-    if (!$keyData || !isset($keyData['publicKey'])) {
-        throw new Exception('Gagal membaca public key dari JSON.');
-    }
-    
-    // Konversi ke format PEM yang dikenali oleh openssl
-    $publicKeyPem = "-----BEGIN PUBLIC KEY-----\n" .
-                    chunk_split($keyData['publicKey'], 64, "\n") .
-                    "-----END PUBLIC KEY-----\n";
-
-    // Mengonversi public key menjadi resource untuk openssl
-    $publicKeyId = openssl_get_publickey($publicKeyPem);
-    if (!$publicKeyId) {
-        throw new Exception('Gagal memuat kunci publik untuk verifikasi.');
-    }
-
-    // Gabungkan timestamp dan data untuk string verifikasi
-    $stringToVerify = $timestamp . '|' . $data;
-
-    // Decode signature dari base64
-    $signatureDecoded = base64_decode($signature);
-
-    // Verifikasi tanda tangan menggunakan public key
-    $isValid = openssl_verify($stringToVerify, $signatureDecoded, $publicKeyId, OPENSSL_ALGO_SHA256);
-    openssl_free_key($publicKeyId);
-
-    return $isValid === 1;
-}
 
 
 
