@@ -52,12 +52,13 @@
                 <h5 class="modal-title" id="exampleModalLabel">Create Virtual Account</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="form_create_va" action="<?php echo base_url('backend/create_virtual_account_manual'); ?>" method="POST">
+            <form id="form_create_va" action="<?php echo base_url('backend/create_virtual_account_manual'); ?>"
+                method="POST">
                 <div class="modal-body">
-                <div class="form-group">
+                    <div class="form-group">
                         <label for="customerNo">Nomor Customer</label>
-                        <input type="text" id="customerNo" name="customerNo" class="form-control"
-                           minlength="6" maxlength="8" required title="Nomor Customer Max 8 Digit">
+                        <input type="text" id="customerNo" name="customerNo" class="form-control" minlength="6"
+                            maxlength="8" required title="Nomor Customer Max 8 Digit">
                     </div>
                     <div class="form-group">
                         <label for="virtualAccountName">Virtual Account Name</label>
@@ -68,10 +69,6 @@
                         <label for="totalAmount">Total Amount (Value)</label>
                         <input type="number" id="totalAmount" name="totalAmount" class="form-control" min="1" required
                             title="Please enter a valid total amount">
-                    </div>
-                    <div class="form-group">
-                        <label for="expiredDate">Expired Date</label>
-                        <input type="datetime-local" id="expiredDate" name="expiredDate" class="form-control" required>
                     </div>
                     <div class="form-group" style="display: none;">
                         <label for="trxDateTime">Tanggal Transaksi</label>
