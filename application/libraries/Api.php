@@ -189,8 +189,67 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
 
     // Mengirim request dan mengambil response
     $response = $this->send_api_request($url, 'POST', $headers, $body_json);
+    echo json_encode($response);
     return json_decode($response, true);
 }
+
+public function handle_bri_notification($notification, $headers)
+{
+    // Ambil data dan signature dari notifikasi
+    $data = json_encode($notification); // Payload JSON notifikasi
+    $signature = isset($headers['X-SIGNATURE']) ? $headers['X-SIGNATURE'] : null;
+    $timestamp = isset($headers['X-TIMESTAMP']) ? $headers['X-TIMESTAMP'] : null;
+
+    if (!$signature || !$timestamp) {
+        throw new Exception("Header X-SIGNATURE atau X-TIMESTAMP tidak tersedia.");
+    }
+
+    // Verifikasi signature notifikasi menggunakan public key BRI
+    $isValid = $this->verify_signature_from_bri($data, $signature, $timestamp);
+    if ($isValid) {
+        echo "Notifikasi valid dan diverifikasi";
+        // Lanjutkan proses notifikasi sesuai kebutuhan
+    } else {
+        throw new Exception("Signature notifikasi BRI tidak valid.");
+    }
+}
+
+// Fungsi untuk memverifikasi tanda tangan dari notifikasi BRI menggunakan public key
+public function verify_signature_from_bri($data, $signature, $timestamp)
+{
+    // JSON string dari public key yang diberikan oleh BRI
+    $jsonKey = '{"publicKey":"MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB"}';
+    
+    // Decode JSON dan ekstrak public key
+    $keyData = json_decode($jsonKey, true);
+    if (!$keyData || !isset($keyData['publicKey'])) {
+        throw new Exception('Gagal membaca public key dari JSON.');
+    }
+    
+    // Konversi ke format PEM yang dikenali oleh openssl
+    $publicKeyPem = "-----BEGIN PUBLIC KEY-----\n" .
+                    chunk_split($keyData['publicKey'], 64, "\n") .
+                    "-----END PUBLIC KEY-----\n";
+
+    // Mengonversi public key menjadi resource untuk openssl
+    $publicKeyId = openssl_get_publickey($publicKeyPem);
+    if (!$publicKeyId) {
+        throw new Exception('Gagal memuat kunci publik untuk verifikasi.');
+    }
+
+    // Gabungkan timestamp dan data untuk string verifikasi
+    $stringToVerify = $timestamp . '|' . $data;
+
+    // Decode signature dari base64
+    $signatureDecoded = base64_decode($signature);
+
+    // Verifikasi tanda tangan menggunakan public key
+    $isValid = openssl_verify($stringToVerify, $signatureDecoded, $publicKeyId, OPENSSL_ALGO_SHA256);
+    openssl_free_key($publicKeyId);
+
+    return $isValid === 1;
+}
+
 
 
 
