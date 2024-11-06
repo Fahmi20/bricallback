@@ -142,17 +142,17 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     // Menghasilkan timestamp dalam UTC
     $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
 
-    // Mengambil token dengan memanggil fungsi get_push_notif_token
+    // Mendapatkan token yang valid
     $token = $this->get_push_notif_token();
     if (!$token) {
         throw new Exception("Gagal memperoleh token push notifikasi");
     }
 
-    // Menyusun URL dan path notifikasi
+    // Menyusun path dan URL endpoint
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
 
-    // Menyusun body request notifikasi
+    // Menyusun body request notifikasi sesuai dengan struktur dokumentasi
     $body = array(
         'partnerServiceId' => $partnerServiceId,
         'customerNo' => $customerNo,
@@ -160,23 +160,21 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
         'paymentRequestId' => $paymentRequestId,
         'trxDateTime' => $trxDateTime,
         'additionalInfo' => array(
-            'idApp' => 'YPGS',
-            'passApp' => '354324134',
+            'idApp' => '24123244',           // Sesuaikan dengan nilai contoh
+            'passApp' => '354324134',         // Sesuaikan dengan nilai contoh
             'paymentAmount' => $paymentAmount,
-            'terminalId' => '9',
-            'bankId' => '002'
+            'terminalId' => '1',              // Sesuaikan dengan nilai yang diharapkan
+            'bankId' => '002'                 // ID bank BRI sebagai contoh
         )
     );
     $body_json = json_encode($body);
 
-    // Membuat string untuk ditandatangani
+    // Membuat tanda tangan
     $stringToSign = $path . '|POST|' . $timestamp . '|' . $token . '|' . $body_json;
-
-    // Menggunakan client_secret untuk HMAC-SHA512
-    $signature = hash_hmac('sha512', $stringToSign, $this->client_secret);
+    $signature = hash_hmac('sha512', $stringToSign, $this->client_secret, true);
     $signatureBase64 = base64_encode($signature);
 
-    // Menyusun header
+    // Menyusun header sesuai kebutuhan
     $headers = array(
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
@@ -187,10 +185,27 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
         'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
     );
 
-    // Mengirim request dan mengambil response
+    // Mengirim request dan menguraikan respons
     $response = $this->send_api_request($url, 'POST', $headers, $body_json);
-    return json_decode($response, true);
+    $json_response = json_decode($response, true);
+
+    // Memeriksa respons sesuai dengan struktur respons
+    if (isset($json_response['responseCode']) && $json_response['responseCode'] === '2003400') {
+        // Jika respons berhasil, memproses virtualAccountData jika tersedia
+        return array(
+            'status' => 'success',
+            'message' => $json_response['responseMessage'],
+            'data' => isset($json_response['virtualAccountData']) ? $json_response['virtualAccountData'] : null
+        );
+    } else {
+        // Jika gagal, mengembalikan pesan error
+        return array(
+            'status' => 'error',
+            'message' => isset($json_response['responseMessage']) ? $json_response['responseMessage'] : 'Gagal menerima respons yang valid'
+        );
+    }
 }
+
 
 public function handle_bri_notification($notification, $headers)
 {
