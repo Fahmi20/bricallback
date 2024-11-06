@@ -4,10 +4,9 @@ $(document).ready(function() {
         processing: true,
         serverSide: false,
         ajax: {
-            url: "../Backend/inquiry_status_va_controller", // URL backend
+            url: "../Backend/inquiry_status_va_controller",
             type: "GET",
             dataSrc: function(json) {
-                // Mengubah struktur data agar sesuai dengan DataTables
                 return json.map(function(item) {
                     return {
                         customerNo: item.virtualAccountData.customerNo || '-',
