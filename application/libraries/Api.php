@@ -142,53 +142,55 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     // Menghasilkan timestamp dalam UTC
     $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
 
-    // Mengambil token yang valid
-    $access_token = $this->get_valid_access_token();
-    if (!$access_token) {
+    // Mengambil token dengan memanggil fungsi get_push_notif_token
+    $token = $this->get_push_notif_token();
+    if (!$token) {
         throw new Exception("Gagal memperoleh token push notifikasi");
     }
 
     // Menyusun URL dan path notifikasi
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
-    $url = $this->baseUrl . $path;
+    $url = 'https://sandbox.partner.api.bri.co.id' . $path;
 
     // Menyusun body request notifikasi
-    $body = [
+    $body = array(
         'partnerServiceId' => $partnerServiceId,
         'customerNo' => $customerNo,
         'virtualAccountNo' => $virtualAccountNo,
         'paymentRequestId' => $paymentRequestId,
         'trxDateTime' => $trxDateTime,
-        'additionalInfo' => [
+        'additionalInfo' => array(
             'idApp' => 'YPGS',
             'passApp' => '354324134',
             'paymentAmount' => $paymentAmount,
             'terminalId' => '9',
             'bankId' => '002'
-        ]
-    ];
+        )
+    );
     $body_json = json_encode($body);
 
-    // Membuat tanda tangan dengan HMAC-SHA512
-    $signature = $this->generate_hmac_signature($path, 'POST', $timestamp, $access_token, $body_json);
+    // Membuat string untuk ditandatangani
+    $stringToSign = $path . '|POST|' . $timestamp . '|' . $token . '|' . $body_json;
+
+    // Menggunakan client_secret untuk HMAC-SHA512
+    $signature = hash_hmac('sha512', $stringToSign, $this->client_secret_push_notif);
+    $signatureBase64 = base64_encode($signature);
 
     // Menyusun header
-    $external_id = rand(100000000, 999999999);
-    $headers = [
-        'Authorization: Bearer ' . $access_token,
-        'X-SIGNATURE: ' . $signature,
+    $headers = array(
+        'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
+        'X-SIGNATURE: ' . $signatureBase64,
+        'Content-Type: application/json',
         'X-PARTNER-ID: ' . $this->partner_id,
-        'CHANNEL-ID: ' . $this->channel_id,
-        'X-EXTERNAL-ID: ' . $external_id,
-        'Content-Type: application/json'
-    ];
+        'CHANNEL-ID: ' . 'TRFLA',
+        'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
+    );
 
     // Mengirim request dan mengambil response
     $response = $this->send_api_request($url, 'POST', $headers, $body_json);
     return json_decode($response, true);
 }
-
 
 public function handle_bri_notification($notification, $headers)
 {
@@ -884,7 +886,7 @@ public function verify_signature_from_bri($data, $signature, $timestamp)
     private function generate_hmac_signature($path, $method, $timestamp, $token, $body)
     {
         $payload = $method . ':' . $path . ':' . $token . ':' . hash('sha256', $body) . ':' . $timestamp;
-        return hash_hmac('sha512', $payload, $this->client_secret_push_notif);
+        return hash_hmac('sha512', $payload, $this->client_secret);
     }
 
     private function send_api_request($url, $method = 'POST', $headers = [], $body = null, $callback = null)
