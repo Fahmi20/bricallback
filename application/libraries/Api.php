@@ -101,7 +101,7 @@ EOD;
 
         // Membuat signature menggunakan client_id dan timestamp
         $stringToSign = $this->client_id . '|' . $timestamp;
-        $privateKey = openssl_get_privatekey($this->client_secret); // Jika client_secret adalah private key
+        $privateKey = openssl_get_privatekey($this->private_key); // Jika client_secret adalah private key
 
         if (!$privateKey) {
             throw new Exception('Gagal memuat kunci privat');
@@ -162,8 +162,6 @@ EOD;
             'CHANNEL-ID: ' . 'TRFLA',
             'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
         );
-
-        // Kirim request notifikasi pembayaran
         $url = $this->notif_url;
         $response = $this->send_api_request($url, 'POST', $headers, $body_json);
         return json_decode($response, true);
@@ -171,25 +169,18 @@ EOD;
 
     public function verify_bri_signature($data, $signature, $timestamp)
     {
-        // Baca public key dari file pubkey.pem
         $publicKey = file_get_contents($this->public_key_path);
         if (!$publicKey) {
             throw new Exception('Gagal membaca file public key.');
         }
-
-        // Convert public key ke resource untuk openssl
         $publicKeyId = openssl_get_publickey($publicKey);
         if (!$publicKeyId) {
             throw new Exception('Gagal memuat kunci publik untuk verifikasi.');
         }
-
         $signatureDecoded = base64_decode($signature);
         $stringToVerify = $timestamp . '|' . json_encode($data);
-
-        // Verifikasi signature
         $isValid = openssl_verify($stringToVerify, $signatureDecoded, $publicKeyId, OPENSSL_ALGO_SHA512);
         openssl_free_key($publicKeyId);
-
         return $isValid === 1;
     }
 
@@ -198,10 +189,8 @@ EOD;
         $data = $notification;
         $signature = isset($headers['X-SIGNATURE']) ? $headers['X-SIGNATURE'] : '';
         $timestamp = isset($headers['X-TIMESTAMP']) ? $headers['X-TIMESTAMP'] : '';
-
         if ($this->verify_bri_signature($data, $signature, $timestamp)) {
             echo "Notifikasi valid dan diverifikasi";
-            // Lanjutkan proses notifikasi
         } else {
             throw new Exception('Signature notifikasi BRI tidak valid.');
         }
