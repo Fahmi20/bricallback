@@ -6,6 +6,8 @@ class Api
     private $baseUrl = 'https://sandbox.partner.api.bri.co.id';
     private $client_id = 'G6bDFAAbwTUhqhMGa9qOsydLGBexH6bh';
     private $client_secret = 'MNfGscq4w6XUmAp3';
+
+    private $public_key_path = '/mnt/data/pubkey.pem';
     private $partner_id = 'YGSDev';
     private $channel_id = '00009';
     private $channel_id_mapping = [
@@ -161,34 +163,56 @@ EOD;
         // Kirim request dan ambil respons
         $response = $this->send_api_request($url, 'POST', $headers, $body_json);
         $json_response = json_decode($response, true);
-
-        // Verifikasi tanda tangan respons dari BRI
-        if (!$this->verify_bri_signature($body_json, $json_response['signature'])) {
-            throw new Exception('Signature dari BRI tidak valid');
-        }
-
         return $json_response;
     }
 
-    private function verify_bri_signature($data, $signature)
+    public function verify_bri_signature($data, $signature, $timestamp)
     {
-        // Konversi signature dari base64
-        $signatureDecoded = base64_decode($signature);
+        // Baca public key dari file pubkey.pem
+        $publicKey = file_get_contents($this->public_key_path);
 
-        // Muat public key
-        $publicKeyId = openssl_get_publickey($this->public_key);
-
-        if (!$publicKeyId) {
-            throw new Exception('Gagal memuat kunci publik');
+        if (!$publicKey) {
+            throw new Exception('Gagal membaca file public key.');
         }
 
-        // Verifikasi signature menggunakan public key BRI
-        $isValid = openssl_verify($data, $signatureDecoded, $publicKeyId, OPENSSL_ALGO_SHA256);
+        // Konversi public key menjadi resource
+        $publicKeyId = openssl_get_publickey($publicKey);
+
+        if (!$publicKeyId) {
+            throw new Exception('Gagal memuat kunci publik untuk verifikasi.');
+        }
+
+        // Decode signature dari base64
+        $signatureDecoded = base64_decode($signature);
+
+        // Membuat string yang akan diverifikasi (misalnya `timestamp|data`)
+        $stringToVerify = $timestamp . '|' . json_encode($data);
+
+        // Verifikasi signature menggunakan public key
+        $isValid = openssl_verify($stringToVerify, $signatureDecoded, $publicKeyId, OPENSSL_ALGO_SHA512);
 
         // Bebaskan resource public key
         openssl_free_key($publicKeyId);
 
-        return $isValid === 1; // Mengembalikan true jika valid, false jika tidak valid
+        return $isValid === 1; // Mengembalikan true jika signature valid, false jika tidak valid
+    }
+
+    public function handle_bri_notification($notification, $headers)
+    {
+        // Ambil data dan signature dari notifikasi
+        $data = $notification;
+        $signature = $headers['X-SIGNATURE'];
+        $timestamp = $headers['X-TIMESTAMP'];
+
+        // Verifikasi signature notifikasi
+        if ($this->verify_bri_signature($data, $signature, $timestamp)) {
+            // Signature valid, lanjutkan ke proses lainnya
+            echo "Notifikasi valid dan diverifikasi";
+            // Tambahkan proses lebih lanjut di sini
+        } else {
+            // Signature tidak valid
+            throw new Exception('Signature notifikasi BRI tidak valid.');
+        }
     }
 
 
