@@ -187,9 +187,9 @@ class Callback extends CI_Controller
         $this->template->load('layout/main', 'callback/data_transaksi');
     }
 
-    public function Laporan_Barang_Keluar()
+    public function Log_Transaksi()
     {
-        $this->template->load('layout/main', 'callback/laporan_barang_keluar');
+        $this->template->load('layout/main', 'callback/log_transaksi');
     }
 
     public function Laporan_Permintaan_Barang()
