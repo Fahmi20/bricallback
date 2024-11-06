@@ -97,15 +97,34 @@ $this->public_key = "-----BEGIN PUBLIC KEY-----\n" .
         return $this->access_token;
     }
 
-    public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
+    public function get_push_notif_token()
 {
-    // Mengambil timestamp dengan zona waktu UTC
+    $timestamp = date('Y-m-d\TH:i:s.vP');
+    $body = json_encode(array(
+        'grantType' => 'client_credentials'
+    ));
+    $stringToSign = $this->client_id_push_notif . '|' . $timestamp;
+    $signature = hash_hmac('sha256', $stringToSign, $this->client_secret_push_notif, true);
+    $signatureBase64 = base64_encode($signature);
+    $headers = array(
+        'X-SIGNATURE: ' . $signatureBase64,
+        'X-CLIENT-KEY: ' . $this->client_id_push_notif,
+        'X-TIMESTAMP: ' . $timestamp,
+        'Content-Type: application/json',
+    );
+    $response = $this->send_api_request($this->token_url, 'POST', $headers, $body);
+    $json = json_decode($response, true);
+    echo json_encode($json);
+    return isset($json['accessToken']) ? $json['accessToken'] : null;
+}
+
+
+public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
+{
     $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
     $token = $this->get_push_notif_token();
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
-    
-    // Menyusun body JSON untuk notifikasi
     $body = array(
         'partnerServiceId' => $partnerServiceId,
         'customerNo' => $customerNo,
@@ -121,13 +140,9 @@ $this->public_key = "-----BEGIN PUBLIC KEY-----\n" .
         )
     );
     $body_json = json_encode($body);
-
-    // Membuat tanda tangan HMAC SHA-512
     $stringToSign = $path . '|' . 'POST' . '|' . $timestamp . '|' . $token . '|' . $body_json;
     $signature = hash_hmac('sha512', $stringToSign, $this->client_secret, true);
     $signatureBase64 = base64_encode($signature);
-
-    // Menyusun header
     $headers = array(
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
@@ -137,12 +152,9 @@ $this->public_key = "-----BEGIN PUBLIC KEY-----\n" .
         'CHANNEL-ID: ' . 'TRFLA',
         'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
     );
-
-    // Mengirim request
     $response = $this->send_api_request($url, 'POST', $headers, $body_json);
     return json_decode($response, true);
 }
-
 
 
     public function send_api_request_push_notif($url, $method, $headers, $body, $callback = null)
@@ -162,25 +174,15 @@ $this->public_key = "-----BEGIN PUBLIC KEY-----\n" .
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);    // Ikuti redirect (--location)
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);   // Nonaktifkan verifikasi SSL (untuk testing sandbox)
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);   // Nonaktifkan verifikasi host (untuk testing sandbox)
-
-        // Tambahan untuk User-Agent
         curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36");
-
-        // Eksekusi cURL
         $response = curl_exec($ch);
-
-        // Cek error cURL
         if (curl_errno($ch)) {
             $error_msg = curl_error($ch);
             log_message('error', 'cURL error: ' . $error_msg);
             curl_close($ch);
             return false;
         }
-
-        // Tutup cURL
         curl_close($ch);
-
-        // Panggil callback jika diberikan
         if ($callback && is_callable($callback)) {
             call_user_func($callback, json_decode($response, true));
         }
@@ -254,15 +256,6 @@ $this->public_key = "-----BEGIN PUBLIC KEY-----\n" .
     {
         return $this->last_body;
     }
-
-
-
-
-
-
-
-
-
 
 
     public function inquiry_payment_va($partnerServiceId, $customerNo, $virtualAccountNo)
