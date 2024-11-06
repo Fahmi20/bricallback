@@ -19,6 +19,9 @@ class Api
         '00008' => 'OTHER',
         '00009' => 'API'
     ];
+    private $public_key = "-----BEGIN PUBLIC KEY-----\n" .
+                          chunk_split("MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB", 64) .
+                          "-----END PUBLIC KEY-----";
     private $private_key;
     private $access_token = null;
     private $last_url;
@@ -44,6 +47,7 @@ ophbwpAlJ8EBZxQqEQJAeE/dQXB7hICB8A5ZAIFAVWQHJPf/Ahj8VDdpIdVzWK0b
 1BV6b19Ki7JbcONQuWbbNr4swlYvj2UFnaGzA43E6g==
 -----END RSA PRIVATE KEY-----
 EOD;
+
     }
 
     public function get_access_token()
@@ -150,8 +154,38 @@ EOD;
             'X-EXTERNAL-ID: ' . $external_id
         );
         $url = $partnerUrl . $path;
+
+        // Kirim request dan ambil respons
         $response = $this->send_api_request($url, 'POST', $headers, $body_json);
-        return json_decode($response, true);
+        $json_response = json_decode($response, true);
+
+        // Verifikasi tanda tangan respons dari BRI
+        if (!$this->verify_bri_signature($body_json, $json_response['signature'])) {
+            throw new Exception('Signature dari BRI tidak valid');
+        }
+
+        return $json_response;
+    }
+
+    private function verify_bri_signature($data, $signature)
+    {
+        // Konversi signature dari base64
+        $signatureDecoded = base64_decode($signature);
+
+        // Muat public key
+        $publicKeyId = openssl_get_publickey($this->public_key);
+
+        if (!$publicKeyId) {
+            throw new Exception('Gagal memuat kunci publik');
+        }
+
+        // Verifikasi signature menggunakan public key BRI
+        $isValid = openssl_verify($data, $signatureDecoded, $publicKeyId, OPENSSL_ALGO_SHA256);
+
+        // Bebaskan resource public key
+        openssl_free_key($publicKeyId);
+
+        return $isValid === 1; // Mengembalikan true jika valid, false jika tidak valid
     }
 
 
