@@ -6,7 +6,7 @@ class Api
     private $baseUrl = 'https://sandbox.partner.api.bri.co.id';
 
     private $public_key;
-    private $public_key_path = '/mnt/data/pubkey.pem'; // Path ke public key yang disediakan BRI
+    private $public_key_path = __DIR__ . '/../../keys/pubkey.pem'; // Path ke public key yang disediakan BRI
     private $client_id_push_notif = 'G6bDFAAbwTUhqhMGa9qOsydLGBexH6bh';
     private $client_secret_push_notif = 'MNfGscq4w6XUmAp3';
     private $token_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/access-token/b2b";
