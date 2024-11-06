@@ -99,7 +99,7 @@ $this->public_key = "-----BEGIN PUBLIC KEY-----\n" .
 
     public function get_push_notif_token()
 {
-    // Menghasilkan timestamp sesuai format yang diharapkan
+    // Menghasilkan timestamp sesuai format
     $timestamp = date('Y-m-d\TH:i:s.vP');
 
     // Menyusun body request
@@ -121,7 +121,7 @@ $this->public_key = "-----BEGIN PUBLIC KEY-----\n" .
 
     $signatureBase64 = base64_encode($signature);
 
-    // Menyusun header
+    // Menyiapkan header
     $headers = array(
         'X-SIGNATURE: ' . $signatureBase64,
         'X-CLIENT-KEY: ' . $this->client_id_push_notif,
@@ -133,49 +133,8 @@ $this->public_key = "-----BEGIN PUBLIC KEY-----\n" .
     $response = $this->send_api_request($this->token_url, 'POST', $headers, $body);
     $json = json_decode($response, true);
 
-    // Verifikasi tanda tangan dari respons token
-    if (isset($json['accessToken'], $json['signature'], $json['timestamp'])) {
-        $isValid = $this->verify_signature_from_bri($json['accessToken'], $json['signature'], $json['timestamp']);
-        if ($isValid) {
-            return $json['accessToken'];
-        } else {
-            throw new Exception('Tanda tangan token tidak valid.');
-        }
-    } else {
-        throw new Exception('Token respons tidak lengkap.');
-    }
+    return isset($json['accessToken']) ? $json['accessToken'] : null;
 }
-
-// Fungsi untuk memverifikasi tanda tangan dari BRI menggunakan public key
-public function verify_signature_from_bri($data, $signature, $timestamp)
-{
-    // Path ke public key BRI
-    $publicKeyPath = $this->public_key_path;
-    $publicKey = file_get_contents($publicKeyPath);
-
-    if (!$publicKey) {
-        throw new Exception('Gagal membaca file public key.');
-    }
-
-    // Convert public key ke resource untuk openssl
-    $publicKeyId = openssl_get_publickey($publicKey);
-    if (!$publicKeyId) {
-        throw new Exception('Gagal memuat kunci publik untuk verifikasi.');
-    }
-
-    // String yang akan diverifikasi
-    $stringToVerify = $timestamp . '|' . $data;
-
-    // Decode signature dari base64
-    $signatureDecoded = base64_decode($signature);
-
-    // Verifikasi tanda tangan menggunakan public key
-    $isValid = openssl_verify($stringToVerify, $signatureDecoded, $publicKeyId, OPENSSL_ALGO_SHA256);
-    openssl_free_key($publicKeyId);
-
-    return $isValid === 1;
-}
-
 
 
 public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
