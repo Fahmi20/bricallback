@@ -99,7 +99,7 @@ EOD;
             'grantType' => 'client_credentials'
         ));
         $stringToSign = $this->client_id_push_notif . '|' . $timestamp;
-        $privateKey = openssl_get_privatekey($this->private_key);
+        $privateKey = openssl_get_privatekey($this->public_key_path);
 
         if (!$privateKey) {
             throw new Exception('Gagal memuat kunci privat');
