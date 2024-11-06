@@ -173,7 +173,7 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     $stringToSign = $path . '|POST|' . $timestamp . '|' . $token . '|' . $body_json;
 
     // Menggunakan client_secret untuk HMAC-SHA512
-    $signature = hash_hmac('sha512', $stringToSign, $this->client_secret_push_notif, true);
+    $signature = hash_hmac('sha512', $stringToSign, $this->client_secret_push_notif);
     $signatureBase64 = base64_encode($signature);
 
     // Menyusun header
@@ -189,7 +189,6 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
 
     // Mengirim request dan mengambil response
     $response = $this->send_api_request($url, 'POST', $headers, $body_json);
-    echo json_encode($response);
     return json_decode($response, true);
 }
 
