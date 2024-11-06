@@ -149,19 +149,19 @@ $this->public_key = "-----BEGIN PUBLIC KEY-----\n" .
 // Fungsi untuk memverifikasi tanda tangan dari BRI menggunakan public key
 public function verify_signature_from_bri($data, $signature, $timestamp)
 {
-    // Baca public key dari file pubkey.pem
+    // Baca public key dari path yang disesuaikan
     $publicKey = file_get_contents($this->public_key_path);
     if (!$publicKey) {
         throw new Exception('Gagal membaca file public key.');
     }
 
-    // Convert public key ke resource untuk openssl
+    // Mengonversi public key menjadi resource untuk openssl
     $publicKeyId = openssl_get_publickey($publicKey);
     if (!$publicKeyId) {
         throw new Exception('Gagal memuat kunci publik untuk verifikasi.');
     }
 
-    // String yang akan diverifikasi: gabungan timestamp dan data
+    // Gabungkan timestamp dan data untuk string verifikasi
     $stringToVerify = $timestamp . '|' . $data;
 
     // Decode signature dari base64
@@ -173,6 +173,7 @@ public function verify_signature_from_bri($data, $signature, $timestamp)
 
     return $isValid === 1;
 }
+
 
 
 
