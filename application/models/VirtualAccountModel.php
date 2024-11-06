@@ -19,21 +19,21 @@ class VirtualAccountModel extends CI_Model
     }
 
     public function save_payment($data)
-{
-    $insert_data = array(
-        'partner_service_id'    => $data['partnerServiceId'],
-        'customer_no'           => $data['customerNo'],
-        'virtual_account_no'    => $data['virtualAccountNo'],
-        'virtual_account_name'  => $data['virtualAccountName'],
-        'partner_reference_no'  => $data['partnerReferenceNo'],
-        'paid_amount_value'     => $data['paidAmount']['value'],
-        'paid_amount_currency'  => $data['paidAmount']['currency'],
-        'trx_date_time'         => $data['trxDateTime'],
-        'payment_request_id'    => $data['paymentRequestId']
-    );
+    {
+        $insert_data = array(
+            'partner_service_id' => $data['partnerServiceId'],
+            'customer_no' => $data['customerNo'],
+            'virtual_account_no' => $data['virtualAccountNo'],
+            'virtual_account_name' => $data['virtualAccountName'],
+            'partner_reference_no' => $data['partnerReferenceNo'],
+            'paid_amount_value' => $data['paidAmount']['value'],
+            'paid_amount_currency' => $data['paidAmount']['currency'],
+            'trx_date_time' => $data['trxDateTime'],
+            'payment_request_id' => $data['paymentRequestId']
+        );
 
-    return $this->db->insert('virtual_account_payments', $insert_data);
-}
+        return $this->db->insert('virtual_account_payments', $insert_data);
+    }
 
 
     public function get_last_customer_no()
@@ -51,37 +51,37 @@ class VirtualAccountModel extends CI_Model
     }
 
     public function get_existing_partnumber()
-{
-    $this->db->select('partNumber');
-    $this->db->from('virtual_accounts');
-    $this->db->order_by('partNumber', 'DESC');
-    $this->db->limit(1);
-    $query = $this->db->get();
+    {
+        $this->db->select('partNumber');
+        $this->db->from('virtual_accounts');
+        $this->db->order_by('partNumber', 'DESC');
+        $this->db->limit(1);
+        $query = $this->db->get();
 
-    if ($query !== false && $query->num_rows() > 0) {
-        return $query->row()->partNumber;
-    } else {
-        return null;
+        if ($query !== false && $query->num_rows() > 0) {
+            return $query->row()->partNumber;
+        } else {
+            return null;
+        }
     }
-}
 
-public function get_virtual_account_by_customer_no_and_partnumber_and_paidstatus($customerNo, $partNumber, $paidStatus)
-{
-    $this->db->where('customerNo', $customerNo);
-    $this->db->where('paidStatus', 'N');
-    $this->db->order_by('partNumber', 'ASC');
-    $query = $this->db->get('virtual_accounts');
+    public function get_virtual_account_by_customer_no_and_partnumber_and_paidstatus($customerNo, $partNumber, $paidStatus)
+    {
+        $this->db->where('customerNo', $customerNo);
+        $this->db->where('paidStatus', 'N');
+        $this->db->order_by('partNumber', 'ASC');
+        $query = $this->db->get('virtual_accounts');
 
-    if ($query->num_rows() > 0) {
-        return $query->row();  // Mengembalikan satu baris sebagai objek
-    } else {
-        return false;  // Tidak ditemukan
+        if ($query->num_rows() > 0) {
+            return $query->row();  // Mengembalikan satu baris sebagai objek
+        } else {
+            return false;  // Tidak ditemukan
+        }
     }
-}
 
 
 
-    
+
 
     public function get_virtual_account_by_customer_no($customerNo)
     {
@@ -103,21 +103,16 @@ public function get_virtual_account_by_customer_no_and_partnumber_and_paidstatus
 
     public function update_virtual_account($customerNo, $updateData)
     {
-        // Log untuk debugging
         log_message('debug', 'Updating virtual account for customerNo: ' . $customerNo);
         log_message('debug', 'Update data: ' . print_r($updateData, true));
-
-        // Update data virtual account berdasarkan customerNo
         $this->db->where('customerNo', $customerNo);
         $this->db->update('virtual_accounts', $updateData);
-
-        // Cek apakah ada baris yang diubah
         if ($this->db->affected_rows() > 0) {
             log_message('debug', 'Update successful for customerNo: ' . $customerNo);
-            return true; // Mengembalikan true jika update berhasil
+            return true;
         } else {
             log_message('error', 'Update failed or no changes for customerNo: ' . $customerNo);
-            return false; // Mengembalikan false jika tidak ada baris yang diubah
+            return false;
         }
     }
 
@@ -135,31 +130,32 @@ public function get_virtual_account_by_customer_no_and_partnumber_and_paidstatus
         }
     }
 
-    public function insert_transaction($data) {
+    public function insert_transaction($data)
+    {
         $this->db->insert('transactions', $data);
         return $this->db->insert_id();
     }
 
 
-    
+
 
 
     public function update_virtual_account_simulator($virtualAccountNo, $updateData)
-{
-    log_message('debug', 'Updating virtual account for virtualAccountNo: ' . $virtualAccountNo);
-    log_message('debug', 'Update data: ' . print_r($updateData, true));
+    {
+        log_message('debug', 'Updating virtual account for virtualAccountNo: ' . $virtualAccountNo);
+        log_message('debug', 'Update data: ' . print_r($updateData, true));
 
-    $this->db->where('virtualAccountNo', $virtualAccountNo);
-    $this->db->update('virtual_accounts', $updateData);
+        $this->db->where('virtualAccountNo', $virtualAccountNo);
+        $this->db->update('virtual_accounts', $updateData);
 
-    if ($this->db->affected_rows() > 0) {
-        log_message('debug', 'Update successful for virtualAccountNo: ' . $virtualAccountNo);
-        return true;
-    } else {
-        log_message('error', 'Update failed or no changes for virtualAccountNo: ' . $virtualAccountNo);
-        return false;
+        if ($this->db->affected_rows() > 0) {
+            log_message('debug', 'Update successful for virtualAccountNo: ' . $virtualAccountNo);
+            return true;
+        } else {
+            log_message('error', 'Update failed or no changes for virtualAccountNo: ' . $virtualAccountNo);
+            return false;
+        }
     }
-}
 
 
     public function get_all_virtual_accounts()
@@ -178,29 +174,49 @@ public function get_virtual_account_by_customer_no_and_partnumber_and_paidstatus
         return $query->result();
     }
 
-    public function get_paid_status($customerNo) {
+    public function get_process_daily_reports($virtualAccountNo = null)
+{
+    $this->db->select('virtualAccountNo, partnerServiceId, startDate'); // Pilih kolom yang dibutuhkan
+
+    if ($virtualAccountNo) {
+        $this->db->where('virtualAccountNo', $virtualAccountNo); // Filter jika ada virtualAccountNo yang diberikan
+    }
+
+    $query = $this->db->get('virtual_accounts'); // Nama tabel virtual accounts
+
+    if ($query->num_rows() > 0) {
+        return $query->result(); // Kembalikan semua hasil
+    }
+    return false;
+}
+
+
+
+    public function get_paid_status($customerNo)
+    {
         $this->db->select('paidStatus');
         $this->db->where('customerNo', $customerNo);
         $query = $this->db->get('virtual_accounts'); // Sesuaikan nama tabel Anda
-    
+
         if ($query->num_rows() > 0) {
             return $query->row()->paidStatus;
         }
         return false;
     }
 
-    public function get_partnerReferenceNo($customerNo) {
+    public function get_partnerReferenceNo($customerNo)
+    {
         $this->db->select('partnerReferenceNo');
         $this->db->where('customerNo', $customerNo);
         $query = $this->db->get('virtual_accounts'); // Sesuaikan nama tabel Anda
-    
+
         if ($query->num_rows() > 0) {
             return $query->row()->partnerReferenceNo;
         }
         return false;
     }
-    
-    
+
+
 
     public function get_virtual_account_data($customerNo)
     {
