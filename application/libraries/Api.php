@@ -99,7 +99,7 @@ $this->public_key = "-----BEGIN PUBLIC KEY-----\n" .
 
     public function get_push_notif_token()
 {
-    // Menghasilkan timestamp sesuai format
+    // Menghasilkan timestamp sesuai format yang diharapkan
     $timestamp = date('Y-m-d\TH:i:s.vP');
 
     // Menyusun body request
@@ -110,20 +110,12 @@ $this->public_key = "-----BEGIN PUBLIC KEY-----\n" .
     // Membuat string untuk ditandatangani
     $stringToSign = $this->client_id_push_notif . '|' . $timestamp;
 
-    // Menggunakan private key untuk tanda tangan
-    $privateKey = openssl_get_privatekey($this->private_key);
-    if (!$privateKey) {
-        throw new Exception('Gagal memuat kunci privat');
-    }
+    // Encode public_key ke Base64 dan tambahkan sebagai tanda pengenal di header
+    $publicKeyBase64 = base64_encode($this->public_key);
 
-    openssl_sign($stringToSign, $signature, $privateKey, OPENSSL_ALGO_SHA256);
-    openssl_free_key($privateKey);
-
-    $signatureBase64 = base64_encode($signature);
-
-    // Menyiapkan header
+    // Menyusun header dengan public_key
     $headers = array(
-        'X-SIGNATURE: ' . $signatureBase64,
+        'X-SIGNATURE: ' . $publicKeyBase64,
         'X-CLIENT-KEY: ' . $this->client_id_push_notif,
         'X-TIMESTAMP: ' . $timestamp,
         'Content-Type: application/json',
@@ -133,8 +125,10 @@ $this->public_key = "-----BEGIN PUBLIC KEY-----\n" .
     $response = $this->send_api_request($this->token_url, 'POST', $headers, $body);
     $json = json_decode($response, true);
 
+    // Mengembalikan token jika tersedia
     return isset($json['accessToken']) ? $json['accessToken'] : null;
 }
+
 
 
 public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
