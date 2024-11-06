@@ -87,7 +87,7 @@
                     </p>
 
                     <!-- Tampilkan Nominal Pembayaran dengan Input -->
-                    <p><strong>TOTAL NOMINAL:</strong></p>
+                    <p><strong>NOMINAL PEMBAYARAN:</strong></p>
                     <input type="text" id="total_amount_input" class="form-control" placeholder="Rp. 0"
                         style="font-size: 24px; font-weight: bold; color: #28a745; border-radius: 10px;">
 
