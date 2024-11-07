@@ -161,17 +161,25 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     $body_json = json_encode($body);
 
     // Membuat string untuk signature
-    $stringToSign = 'POST:' . $path . ':' . $token . ':' . hash('sha256', $body_json) . ':' . $timestamp;
-    
+    $hashedBody = hash('sha256', $body_json);
+    $stringToSign = 'POST:' . $path . ':' . $token . ':' . $hashedBody . ':' . $timestamp;
+
+    // Debugging output
+    echo "String to Sign: " . $stringToSign . "\n"; 
+    echo "Hashed Body: " . $hashedBody . "\n"; 
+
     // Menggunakan `client_secret` untuk HMAC-SHA512
     $signature = hash_hmac('sha512', $stringToSign, $this->client_secret_push_notif); 
     $signatureBase64 = base64_encode($signature);
+
+    echo "Signature (HMAC-SHA512): " . $signature . "\n";
+    echo "Signature Base64: " . $signatureBase64 . "\n"; 
 
     // Header untuk request
     $headers = array(
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
-        'X-SIGNATURE: ' . $signatureBase64,  // Signature dengan client_secret
+        'X-SIGNATURE: ' . $signatureBase64,
         'Content-type: application/json',
         'X-PARTNER-ID: ' . $this->partner_id,
         'CHANNEL-ID: ' . 'TRFLA',
@@ -182,6 +190,7 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     $response = $this->send_api_request($url, 'POST', $headers, $body_json);
     return json_decode($response, true);
 }
+
 
 
 
