@@ -132,16 +132,18 @@ EOD;
 public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
 {
     $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
+
+    // Dapatkan token untuk otorisasi
     $token = $this->get_push_notif_token();
     if (!$token) {
         throw new Exception("Gagal memperoleh token push notifikasi");
     }
 
-    // URL dan endpoint notifikasi
+    // Endpoint dan path
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
 
-    // Kunci publik dalam format string (tanpa header dan footer)
+    // Kunci publik yang diberikan
     $publicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB";
 
     // Data yang akan dikirim sebagai payload
@@ -161,29 +163,30 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     );
     $body_json = json_encode($body);
 
-    // Menyusun signature untuk permintaan
+    // Membuat string untuk signature
     $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $body_json;
     $signature = hash_hmac('sha512', $stringToSign, $this->private_key);
     $signatureBase64 = base64_encode($signature);
 
-    // Gabungkan signature dan publicKey
-    $combinedSignature = base64_encode($publicKey . '|' . $signatureBase64);
+    // Gabungkan `publicKey` dan `signatureBase64`
+    $combinedSignature = $publicKey . '|' . $signatureBase64;
 
-    // Menyusun headers
+    // Header untuk request
     $headers = array(
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
-        'X-SIGNATURE: ' . $combinedSignature,  // Mengirimkan kunci publik dan signature di sini
+        'X-SIGNATURE: ' . $combinedSignature,  // Header dengan public key dan signature
         'Content-type: application/json',
         'X-PARTNER-ID: ' . $this->partner_id,
         'CHANNEL-ID: ' . 'TRFLA',
         'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
     );
 
-    // Mengirim permintaan API
+    // Mengirim permintaan
     $response = $this->send_api_request($url, 'POST', $headers, $body_json);
     return json_decode($response, true);
 }
+
 
 
 
