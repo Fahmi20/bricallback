@@ -168,14 +168,12 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     $signature = hash_hmac('sha512', $stringToSign, $publicKey);
     $signatureBase64 = base64_encode($signature);
 
-    // Gabungkan `publicKey` dan `signatureBase64`
-    $combinedSignature = $publicKey . '|' . $signatureBase64;
 
     // Header untuk request
     $headers = array(
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
-        'X-SIGNATURE: ' . $combinedSignature,  // Header dengan public key dan signature
+        'X-SIGNATURE: ' . $signatureBase64,  // Header dengan public key dan signature
         'Content-type: application/json',
         'X-PARTNER-ID: ' . $this->partner_id,
         'CHANNEL-ID: ' . 'TRFLA',
