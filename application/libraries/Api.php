@@ -8,7 +8,7 @@ class Api
     private $public_key;
     private $public_key_path = '/mnt/data/pubkey.pem'; // Path ke public key yang disediakan BRI
     private $client_id_push_notif = 'G6bDFAAbwTUhqhMGa9qOsydLGBexH6bh';
-    private $client_secret_push_notif = 'MNfGscq4w6XUmAp3';
+    private $client_secret_push_notif = 'LyV9XytLCLNOXbmdIaXh9zl4iPI2mSsXaxU90QR94E';
     private $token_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/access-token/b2b";
     private $notif_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/transfer-va/notify-payment-intrabank";
     private $public_key_pem = "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB-----END PUBLIC KEY-----";
@@ -140,7 +140,7 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     }
 
     // Endpoint dan path
-    $path = 'http://103.167.35.206:8000/snap/v1.0/transfer-va/notify-payment-intrabank';
+    $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
 
     // Data yang akan dikirim sebagai payload
@@ -164,7 +164,7 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     $stringToSign = 'POST:' . $path . ':' . $token . ':' . hash('sha256', $body_json) . ':' . $timestamp;
     
     // Menggunakan `client_secret` untuk HMAC-SHA512
-    $signature = hash_hmac('sha512', $stringToSign, $this->client_secret); 
+    $signature = hash_hmac('sha512', $stringToSign, $this->client_secret_push_notif); 
     $signatureBase64 = base64_encode($signature);
 
     // Header untuk request
