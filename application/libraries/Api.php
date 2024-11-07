@@ -133,17 +133,17 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
 {
     $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
 
-    // Dapatkan token untuk otorisasi
+    // Mendapatkan token untuk otorisasi
     $token = $this->get_push_notif_token();
     if (!$token) {
         throw new Exception("Gagal memperoleh token push notifikasi");
     }
 
-    // Endpoint dan path
+    // Path dan endpoint
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
 
-    // Data yang akan dikirim sebagai payload
+    // Payload body
     $body = array(
         'partnerServiceId' => $partnerServiceId,
         'customerNo' => $customerNo,
@@ -160,12 +160,8 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     );
     $body_json = json_encode($body);
 
-    // Membuat string untuk signature
-    $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $body_json;
-    
-    // Buat signature HMAC-SHA512 dengan private key
-    $signature = hash_hmac('sha512', $stringToSign, $this->private_key);
-    $signatureBase64 = base64_encode($signature);
+    // Menghasilkan signature dengan fungsi generate_hmac_signature
+    $signatureBase64 = base64_encode($this->generate_hmac_signature($path, 'POST', $timestamp, $token, $body_json));
 
     // Header untuk request
     $headers = array(
@@ -182,7 +178,6 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     $response = $this->send_api_request($url, 'POST', $headers, $body_json);
     return json_decode($response, true);
 }
-
 
 
 
