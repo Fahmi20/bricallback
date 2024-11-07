@@ -176,19 +176,33 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
 }
 
 
-
 private function verify_signature($data, $signature)
 {
-    $publicKeyString = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB";
-    $publicKeyPem = "-----BEGIN PUBLIC KEY-----\n" . wordwrap($publicKeyString, 64, "\n", true) . "\n-----END PUBLIC KEY-----";
-    $pubKeyId = openssl_pkey_get_public($publicKeyPem);
+    $publicKeyPath = FCPATH . 'keys' . DIRECTORY_SEPARATOR . 'pubkey.pem';
+    
+    if (!file_exists($publicKeyPath)) {
+        throw new Exception("File public key tidak ditemukan di path: " . $publicKeyPath);
+    }
+
+    $publicKey = file_get_contents($publicKeyPath);
+
+    if ($publicKey === false) {
+        throw new Exception("Gagal membaca file public key.");
+    }
+
+    $pubKeyId = openssl_get_publickey($publicKey);
+
     if (!$pubKeyId) {
         throw new Exception("Public key tidak valid atau gagal dimuat.");
     }
+
     $result = openssl_verify($data, base64_decode($signature), $pubKeyId, OPENSSL_ALGO_SHA512);
+
     openssl_free_key($pubKeyId);
+
     return $result === 1;
 }
+
 
 
     public function send_api_request_push_notif($url, $method, $headers, $body, $callback = null)
