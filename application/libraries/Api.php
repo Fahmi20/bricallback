@@ -136,8 +136,8 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     if (!$token) {
         throw new Exception("Gagal memperoleh token push notifikasi");
     }
-    $signature = '...';
-    $isTokenValid = $this->verify_signature($token, $signature);
+    $publicKeyPath = '...';
+    $isTokenValid = $this->verify_signature($publicKeyPath);
     if (!$isTokenValid) {
         throw new Exception("Token tidak valid");
     }
@@ -176,31 +176,14 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
 }
 
 
-private function verify_signature($data, $signature)
+private function verify_signature($publicKeyPath)
 {
     $publicKeyPath = FCPATH . 'keys' . DIRECTORY_SEPARATOR . 'pubkey.pem';
-    
-    if (!file_exists($publicKeyPath)) {
-        throw new Exception("File public key tidak ditemukan di path: " . $publicKeyPath);
-    }
-
     $publicKey = file_get_contents($publicKeyPath);
 
     if ($publicKey === false) {
         throw new Exception("Gagal membaca file public key.");
     }
-
-    $pubKeyId = openssl_get_publickey($publicKey);
-
-    if (!$pubKeyId) {
-        throw new Exception("Public key tidak valid atau gagal dimuat.");
-    }
-
-    $result = openssl_verify($data, base64_decode($signature), $pubKeyId, OPENSSL_ALGO_SHA512);
-
-    openssl_free_key($pubKeyId);
-
-    return $result === 1;
 }
 
 
