@@ -165,13 +165,12 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     
     // Menggunakan `client_secret` untuk HMAC-SHA512
     $signature = hash_hmac('sha512', $stringToSign, $this->client_secret); 
-    $signatureBase64 = base64_encode($signature);
 
     // Header untuk request
     $headers = array(
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
-        'X-SIGNATURE: ' . $signatureBase64,  // Signature dengan client_secret
+        'X-SIGNATURE: ' . $signature,  // Signature dengan client_secret
         'Content-type: application/json',
         'X-PARTNER-ID: ' . $this->partner_id,
         'CHANNEL-ID: ' . 'TRFLA',
