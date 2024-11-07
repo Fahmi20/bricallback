@@ -165,15 +165,17 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
 
     // Membuat string untuk signature
     $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $body_json;
-    $signature = hash_hmac('sha512', $stringToSign, $publicKey);
+    $signature = hash_hmac('sha512', $stringToSign, $this->private_key);
     $signatureBase64 = base64_encode($signature);
 
+    // Gabungkan `publicKey` dan `signatureBase64`
+    $combinedSignature = $publicKey . '|' . $signatureBase64;
 
     // Header untuk request
     $headers = array(
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
-        'X-SIGNATURE: ' . $signatureBase64,  // Header dengan public key dan signature
+        'X-SIGNATURE: ' . $combinedSignature,
         'Content-type: application/json',
         'X-PARTNER-ID: ' . $this->partner_id,
         'CHANNEL-ID: ' . 'TRFLA',
@@ -184,6 +186,7 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     $response = $this->send_api_request($url, 'POST', $headers, $body_json);
     return json_decode($response, true);
 }
+
 
 
 
