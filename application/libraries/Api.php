@@ -98,18 +98,11 @@ EOD;
 
     public function get_push_notif_token()
 {
-    // Menghasilkan timestamp sesuai format
     $timestamp = date('Y-m-d\TH:i:s.vP');
-
-    // Menyusun body request
     $body = json_encode(array(
         'grantType' => 'client_credentials'
     ));
-
-    // Membuat string untuk ditandatangani
     $stringToSign = $this->client_id_push_notif . '|' . $timestamp;
-
-    // Menggunakan private key untuk tanda tangan
     $privateKey = openssl_get_privatekey($this->private_key);
     if (!$privateKey) {
         throw new Exception('Gagal memuat kunci privat');
@@ -143,6 +136,11 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     if (!$token) {
         throw new Exception("Gagal memperoleh token push notifikasi");
     }
+    $signature = '...';
+    $isTokenValid = $this->verify_signature($token, $signature);
+    if (!$isTokenValid) {
+        throw new Exception("Token tidak valid atau verifikasi gagal");
+    }
 
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
@@ -161,12 +159,10 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
             'bankId' => '002'
         )
     );
-
     $body_json = json_encode($body);
     $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $body_json;
     $signature = hash_hmac('sha512', $stringToSign, $this->public_key_pem);
     $signatureBase64 = base64_encode($signature);
-
     $headers = array(
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
@@ -181,23 +177,24 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
 }
 
 
-// Fungsi untuk memverifikasi signature dari notifikasi BRI
+
 private function verify_signature($data, $signature)
 {
-    // Menggunakan public key yang sudah ada dalam format lengkap PEM
-    $pubKeyId = openssl_get_publickey($this->public_key_pem);
+    $publicKeyPath = FCPATH . 'keys/pubkey.pem';
+    $publicKey = file_get_contents($publicKeyPath);
 
+    if ($publicKey === false) {
+        throw new Exception("Gagal membaca file public key.");
+    }
+    $pubKeyId = openssl_get_publickey($publicKey);
     if (!$pubKeyId) {
         throw new Exception("Public key tidak valid atau gagal dimuat.");
     }
-
-    // Verifikasi signature menggunakan public key
     $result = openssl_verify($data, base64_decode($signature), $pubKeyId, OPENSSL_ALGO_SHA512);
-
     openssl_free_key($pubKeyId);
-
     return $result === 1;
 }
+
 
 
 
