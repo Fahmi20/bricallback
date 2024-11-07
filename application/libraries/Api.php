@@ -165,7 +165,7 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
 
     // Membuat string untuk signature
     $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $body_json;
-    $signature = hash_hmac('sha512', $stringToSign, $this->private_key);
+    $signature = hash_hmac('sha512', $stringToSign, $publicKey);
     $signatureBase64 = base64_encode($signature);
 
     // Gabungkan `publicKey` dan `signatureBase64`
