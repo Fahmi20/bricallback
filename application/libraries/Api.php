@@ -143,9 +143,6 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
 
-    // Kunci publik yang diberikan
-    $publicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB";
-
     // Data yang akan dikirim sebagai payload
     $body = array(
         'partnerServiceId' => $partnerServiceId,
@@ -165,16 +162,16 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
 
     // Membuat string untuk signature
     $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $body_json;
+    
+    // Buat signature HMAC-SHA512 dengan private key
     $signature = hash_hmac('sha512', $stringToSign, $this->private_key);
-
-    // Gabungkan `publicKey` dan `signatureBase64`
-    $combinedSignature = $publicKey . '|' . $signature;
+    $signatureBase64 = base64_encode($signature);
 
     // Header untuk request
     $headers = array(
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
-        'X-SIGNATURE: ' . $combinedSignature,
+        'X-SIGNATURE: ' . $signatureBase64,
         'Content-type: application/json',
         'X-PARTNER-ID: ' . $this->partner_id,
         'CHANNEL-ID: ' . 'TRFLA',
