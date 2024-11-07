@@ -180,7 +180,7 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
 
 private function verify_signature($data, $signature)
 {
-    $publicKeyPath = FCPATH . 'keys/pubkey.pem';
+    $publicKeyPath = FCPATH . 'keys' . DIRECTORY_SEPARATOR . 'pubkey.pem';
     $publicKey = file_get_contents($publicKeyPath);
 
     if ($publicKey === false) {
