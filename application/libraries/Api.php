@@ -136,8 +136,9 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     if (!$token) {
         throw new Exception("Gagal memperoleh token push notifikasi");
     }
-    $publicKeyPath = APPPATH . 'keys/pubkey.pem';
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
+    $url = 'https://sandbox.partner.api.bri.co.id' . $path;
+    $publicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB";
     $body = array(
         'partnerServiceId' => $partnerServiceId,
         'customerNo' => $customerNo,
@@ -149,17 +150,12 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
             'passApp' => '354324134',
             'paymentAmount' => $paymentAmount,
             'terminalId' => '9',
-            'bankId' => '002'
+            'bankId' => '002',
+            'publicKey' => $publicKey
         )
     );
     $body_json = json_encode($body);
     $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $body_json;
-    $receivedSignature = "SIGNATURE_DARI_BRI";
-    $isTokenValid = $this->verify_signature($publicKeyPath, $receivedSignature, $stringToSign);
-    if (!$isTokenValid) {
-        throw new Exception("Token tidak valid");
-    }
-    $url = 'https://sandbox.partner.api.bri.co.id' . $path;
     $signature = hash_hmac('sha512', $stringToSign, $this->private_key);
     $signatureBase64 = base64_encode($signature);
     $headers = array(
@@ -175,23 +171,7 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     return json_decode($response, true);
 }
 
-private function verify_signature($publicKeyPath, $signature, $data)
-{
 
-    $publicKey = file_get_contents($publicKeyPath);
-    if ($publicKey === false) {
-        throw new Exception("Gagal membaca file public key.");
-    }
-    $signatureBinary = base64_decode($signature);
-    $verified = openssl_verify($data, $signatureBinary, $publicKey, OPENSSL_ALGO_SHA512);
-    if ($verified === 1) {
-        return true;  // Signature valid
-    } elseif ($verified === 0) {
-        throw new Exception("Signature tidak valid.");
-    } else {
-        throw new Exception("Terjadi kesalahan saat verifikasi signature.");
-    }
-}
 
 
 
