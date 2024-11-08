@@ -205,7 +205,7 @@ EOD;
         $clientID = $this->client_id_push_notif;
         $publicKeyPath = APPPATH . 'keys/pubkey.pem';
         $publicKey = file_get_contents($publicKeyPath);
-        $signature = "FmdvyEAcJLlaBsxh0EIgNn0N0025ySKQUWNc1TjZrorB4aWdZ1VUsmOK2t7SGtJ+r0/LZr592vGx7iISy5EMEFOU7oGJDJ4iq9r9Xpg7e/sQBycAiz5WakDCEfupGWW7KKsSc8HFHy+z5JSiiMRBFB0EWuult21lU/pbBrCJIM4ThlZvl3slX1h7Ju0jnLXlxcu0xuOr/g/mkQqbgZptIG9EmIOkuiWrUm6vIU/prFBqFFGTGli/71uQ+hjD7R/Jlzvz1qdZf9XE+Ju/U4eDqrHebBQFI7lSLITVYqihLo5InQ+QgtrbcPL5UKQXXHVt0w6SVZ0CMPwN4PIL2KdYQQ==";  // BRI Always base64
+        $signature = base64_encode($publicKey);  // BRI Always base64
         $data = $clientID . "|" . $timestamp;
         $result = openssl_verify($data, base64_decode($signature), $publicKey, OPENSSL_ALGO_SHA256);
         if ($result === 1) {
