@@ -45,7 +45,7 @@ class Backend extends CI_Controller
 
     public function get_access_token_push_notif()
     {
-        $this->api->get_push_notif_token();
+        $this->api->get_push_notif_token_test();
     }
 
 
