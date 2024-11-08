@@ -232,6 +232,7 @@ EOD;
     } else {
         throw new Exception("Gagal memperoleh token push notifikasi");
     }
+
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
     $body = [
@@ -251,8 +252,8 @@ EOD;
     $bodyJson = json_encode($body);
     $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
     $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $bodyJson;
-    $signature = hash_hmac('sha512', $stringToSign, $this->private_key, true);
-    $signatureBase64 = base64_encode($signature);
+
+    // Tidak perlu menandatangani stringToSign, fokus pada verifikasi dengan kunci publik yang disediakan oleh BRI
     $publicKeyPath = APPPATH . 'keys/pubkey.pem';
     if (!file_exists($publicKeyPath)) {
         throw new Exception("File kunci publik tidak ditemukan di: " . $publicKeyPath);
@@ -265,8 +266,16 @@ EOD;
     if ($publicKeyResource === false) {
         throw new Exception("Gagal memuat kunci publik: " . openssl_error_string());
     }
-    $verification = openssl_verify($stringToSign, base64_decode($signatureBase64), $publicKeyResource, OPENSSL_ALGO_SHA256);
+
+    // Catatan: Anda perlu memperoleh tanda tangan yang akan diverifikasi dari sumber terpercaya
+    $signatureFromBRI = ''; // Masukkan tanda tangan yang Anda peroleh dari BRI untuk verifikasi
+    if (empty($signatureFromBRI)) {
+        throw new Exception("Tanda tangan untuk verifikasi tidak tersedia.");
+    }
+
+    $verification = openssl_verify($stringToSign, base64_decode($signatureFromBRI), $publicKeyResource, OPENSSL_ALGO_SHA256);
     openssl_free_key($publicKeyResource);
+
     if ($verification === 1) {
         error_log("Verifikasi tanda tangan berhasil.");
     } elseif ($verification === 0) {
@@ -274,10 +283,11 @@ EOD;
     } else {
         throw new Exception("Kesalahan verifikasi tanda tangan: " . openssl_error_string());
     }
+
     $headers = [
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
-        'X-SIGNATURE: ' . $signatureBase64,
+        'X-SIGNATURE: ' . $signatureFromBRI, // Menggunakan tanda tangan yang sudah diverifikasi
         'Content-Type: application/json',
         'X-PARTNER-ID: ' . $this->partner_id,
         'CHANNEL-ID: ' . 'TRFLA',
@@ -286,6 +296,7 @@ EOD;
     $response = $this->send_api_request($url, 'POST', $headers, $bodyJson);
     return json_decode($response, true);
 }
+
 
 
 
