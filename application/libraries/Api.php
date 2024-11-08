@@ -158,43 +158,61 @@ private function save_to_database($clientID, $timeStamp, $notificationData, $isV
 }
 
 
-    public function get_push_notif_token()
+public function get_push_notif_token()
 {
     $path = '/snap/v1.0/access-token/b2b';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
     $timestamp = date('Y-m-d\TH:i:s.vP');
-    $body = json_encode([
-        'grantType' => 'client_credentials'
-    ]);
+    $body = json_encode(['grantType' => 'client_credentials']);
+
+    // String to be signed
     $stringToSign = $this->client_id_push_notif . '|' . $timestamp;
+
+    // Load private key
     $privateKey = $this->private_key;
     if ($privateKey === false) {
-        echo 'Error loading private key.';
+        error_log('Error loading private key.');
         return null;
     }
+
     $keyResource = openssl_pkey_get_private($privateKey);
     if ($keyResource === false) {
-        echo 'Error loading private key: ' . openssl_error_string();
+        error_log('Error loading private key: ' . openssl_error_string());
         return null;
     }
+
+    // Sign the string
     $signature = '';
     $result = openssl_sign($stringToSign, $signature, $keyResource, OPENSSL_ALGO_SHA256);
     openssl_free_key($keyResource);
+
     if (!$result) {
-        echo 'Error signing string: ' . openssl_error_string();
+        error_log('Error signing string: ' . openssl_error_string());
         return null;
     }
+
     $base64Signature = base64_encode($signature);
+
+    // Headers for the request
     $headers = [
         'X-SIGNATURE: ' . $base64Signature,
         'X-CLIENT-KEY: ' . $this->client_id_push_notif,
         'X-TIMESTAMP: ' . $timestamp,
         'Content-Type: application/json',
     ];
+
+    // Send the request and decode response
     $response = $this->send_api_request($url, 'POST', $headers, $body);
     $json = json_decode($response, true);
-    echo json_encode($json);
+
+    if ($json === null && json_last_error() !== JSON_ERROR_NONE) {
+        error_log('Error decoding JSON response: ' . json_last_error_msg());
+        return null;
+    }
+
+    return $json;
 }
+
 
 
 
@@ -232,14 +250,14 @@ public function get_push_notif_token_test()
 public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
 {
     $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
-    $tokenResponse = $this->get_push_notif_token(); // Mengambil respon dari fungsi `get_push_notif_token()`
-    
-    // Pastikan `accessToken` diekstrak dengan benar
-    if (is_array($tokenResponse) && isset($tokenResponse['accessToken'])) {
-        $token = $tokenResponse['accessToken']; // Menggunakan `accessToken` sebagai token
-    } else {
-        throw new Exception("Gagal memperoleh token push notifikasi");
-    }
+    $tokenResponse = $this->get_push_notif_token();
+if (!is_array($tokenResponse)) {
+    throw new Exception("Invalid token response format: " . json_encode($tokenResponse));
+}
+if (!isset($tokenResponse['accessToken'])) {
+    throw new Exception("Token retrieval failed. Response: " . json_encode($tokenResponse));
+}
+$token = $tokenResponse['accessToken'];
 
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
