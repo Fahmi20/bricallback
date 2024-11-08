@@ -226,19 +226,14 @@ EOD;
 
     public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
 {
-    // Mengambil token
     $tokenResponse = $this->get_push_notif_token();
     if (is_array($tokenResponse) && isset($tokenResponse['accessToken'])) {
         $token = $tokenResponse['accessToken'];
     } else {
         throw new Exception("Gagal memperoleh token push notifikasi");
     }
-
-    // Menentukan path dan URL
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
-
-    // Menyiapkan body JSON
     $body = [
         'partnerServiceId' => $partnerServiceId,
         'customerNo' => $customerNo,
@@ -254,30 +249,20 @@ EOD;
         ]
     ];
     $bodyJson = json_encode($body);
-
-    // Membuat timestamp
     $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
-
-    // Membuat string untuk ditandatangani
     $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $bodyJson;
-
-    // Menggunakan hash_hmac dengan kunci rahasia
-    // Pastikan $this->private_key adalah secret key yang sesuai
     $signature = hash_hmac('sha512', $stringToSign, $this->private_key, true);
-    $signatureBase64 = base64_encode($signature);
-
-    // Menyiapkan header
+    $publicKey = APPPATH .'keys/pubkey.pem';
+    $signatureresult = openssl_verify($stringToSign, base64_decode($signature), $publicKey, OPENSSL_ALGO_SHA256);
     $headers = [
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
-        'X-SIGNATURE: ' . $signatureBase64,
+        'X-SIGNATURE: ' . $signatureresult,
         'Content-Type: application/json',
         'X-PARTNER-ID: ' . $this->partner_id,
         'CHANNEL-ID: ' . 'TRFLA',
         'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
     ];
-
-    // Mengirim permintaan
     $response = $this->send_api_request($url, 'POST', $headers, $bodyJson);
     return json_decode($response, true);
 }
