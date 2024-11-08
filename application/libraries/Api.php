@@ -266,9 +266,7 @@ EOD;
     if ($publicKeyResource === false) {
         throw new Exception("Gagal memuat kunci publik: " . openssl_error_string());
     }
-
-    // Catatan: Anda perlu memperoleh tanda tangan yang akan diverifikasi dari sumber terpercaya
-    $signatureFromBRI = ''; // Masukkan tanda tangan yang Anda peroleh dari BRI untuk verifikasi
+    $signatureFromBRI = '';
     if (empty($signatureFromBRI)) {
         throw new Exception("Tanda tangan untuk verifikasi tidak tersedia.");
     }
