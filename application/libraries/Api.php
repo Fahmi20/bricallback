@@ -7,8 +7,8 @@ class Api
 
     private $public_key;
     private $public_key_path = '/mnt/data/pubkey.pem';
-    private $client_id_push_notif = 'G6bDFAAbwTUhqhMGa9qOsydLGBexH6bh';
-    private $client_secret_push_notif = 'MNfGscq4w6XUmAp3';
+    private $client_id_push_notif = '4d4776a092ca457e89bd1436f67184a8';
+    private $client_secret_push_notif = 'LyV9XytLCLNOXbmdIaXh9zl4i+PI2mSsXaxU90QR94E=';
     private $token_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/access-token/b2b";
     private $notif_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/transfer-va/notify-payment-intrabank";
     private $public_key_pem = "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB-----END PUBLIC KEY-----";
@@ -253,10 +253,8 @@ EOD;
     $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
     
     // Data string yang akan diverifikasi
-    $clientID = $this->client_id_push_notif; // Value dari header Request BRI (sesuaikan dengan yang Anda miliki)
+    $clientID = $this->client_id_push_notif;
     $data = $clientID . "|" . $timestamp;
-
-    // Public key path or string (ubah ini menjadi public key yang Anda miliki)
     $publicKeyPath = APPPATH . 'keys/pubkey.pem';
     if (!file_exists($publicKeyPath)) {
         throw new Exception("File kunci publik tidak ditemukan di: " . $publicKeyPath);
@@ -265,11 +263,7 @@ EOD;
     if ($publicKey === false) {
         throw new Exception("Gagal membaca kunci publik dari file: " . $publicKeyPath);
     }
-
-    // Pastikan untuk mendapatkan signature yang valid dari sumber terpercaya (misalnya dari BRI)
     $signatureFromBRI = "FmdvyEAcJLlaBsxh0EIgNn0N0025ySKQUWNc1TjZrorB4aWdZ1VUsmOK2t7SGtJ+r0/LZr592vGx7iISy5EMEFOU7oGJDJ4iq9r9Xpg7e/sQBycAiz5WakDCEfupGWW7KKsSc8HFHy+z5JSiiMRBFB0EWuult21lU/pbBrCJIM4ThlZvl3slX1h7Ju0jnLXlxcu0xuOr/g/mkQqbgZptIG9EmIOkuiWrUm6vIU/prFBqFFGTGli/71uQ+hjD7R/Jlzvz1qdZf9XE+Ju/U4eDqrHebBQFI7lSLITVYqihLo5InQ+QgtrbcPL5UKQXXHVt0w6SVZ0CMPwN4PIL2KdYQQ=="; // Signature dari BRI
-
-    // Memverifikasi tanda tangan
     $publicKeyResource = openssl_pkey_get_public($publicKey);
     if ($publicKeyResource === false) {
         throw new Exception("Gagal memuat kunci publik: " . openssl_error_string());
@@ -288,7 +282,7 @@ EOD;
     $headers = [
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
-        'X-SIGNATURE: ' . $signatureFromBRI, // Signature yang diverifikasi
+        'X-SIGNATURE: ' . $signatureFromBRI,
         'Content-Type: application/json',
         'X-PARTNER-ID: ' . $this->partner_id,
         'CHANNEL-ID: ' . 'TRFLA',
