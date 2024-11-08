@@ -250,18 +250,15 @@ public function get_push_notif_token_test()
 public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
 {
     $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
-    $tokenResponse = $this->get_push_notif_token();
-if (!is_array($tokenResponse)) {
-    throw new Exception("Invalid token response format: " . json_encode($tokenResponse));
-}
-if (!isset($tokenResponse['accessToken'])) {
-    throw new Exception("Token retrieval failed. Response: " . json_encode($tokenResponse));
-}
-$token = $tokenResponse['accessToken'];
-
+    $tokenResponse = $this->get_push_notif_token(); // Mengambil respon dari fungsi `get_push_notif_token()`
+    if (is_array($tokenResponse) && isset($tokenResponse['accessToken'])) {
+        $token = $tokenResponse['accessToken']; // Menggunakan `accessToken` sebagai token
+    } else {
+        throw new Exception("Gagal memperoleh token push notifikasi");
+    }
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
-    
+
     $body = array(
         'partnerServiceId' => $partnerServiceId,
         'customerNo' => $customerNo,
@@ -277,9 +274,25 @@ $token = $tokenResponse['accessToken'];
         )
     );
     $body_json = json_encode($body);
+
+    // Memuat kunci publik dari file
+    $publicKeyPath = APPPATH . 'keys/pubkey.pem';
+    if (!file_exists($publicKeyPath)) {
+        throw new Exception("File kunci publik tidak ditemukan di: " . $publicKeyPath);
+    }
+    $publicKey = file_get_contents($publicKeyPath);
+    if ($publicKey === false) {
+        throw new Exception("Gagal membaca kunci publik dari file: " . $publicKeyPath);
+    }
+
     $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $body_json;
-    $signature = hash_hmac('sha512', $stringToSign, $this->private_key);
+
+    // Perhatikan: Kunci publik digunakan untuk verifikasi, bukan untuk membuat tanda tangan.
+    // Jika Anda bermaksud menggunakan kunci publik untuk tanda tangan, pastikan logika sesuai dengan kebutuhan Anda.
+
+    $signature = hash_hmac('sha512', $stringToSign, $publicKey);
     $signatureBase64 = base64_encode($signature);
+
     $headers = array(
         'Authorization: Bearer ' . $token, // Menggunakan `accessToken` di header `Authorization`
         'X-TIMESTAMP: ' . $timestamp,
@@ -289,6 +302,7 @@ $token = $tokenResponse['accessToken'];
         'CHANNEL-ID: ' . 'TRFLA',
         'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
     );
+
     $response = $this->send_api_request($url, 'POST', $headers, $body_json);
     return json_decode($response, true);
 }
