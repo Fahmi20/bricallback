@@ -7,8 +7,8 @@ class Api
 
     private $public_key;
     private $public_key_path = '/mnt/data/pubkey.pem'; // Path ke public key yang disediakan BRI
-    private $client_id_push_notif = '4d4776a092ca457e89bd1436f67184a8';
-    private $client_secret_push_notif = 'LyV9XytLCLNOXbmdIaXh9zl4i+PI2mSsXaxU90QR94E=';
+    private $client_id_push_notif = 'G6bDFAAbwTUhqhMGa9qOsydLGBexH6bh';
+    private $client_secret_push_notif = 'MNfGscq4w6XUmAp3';
     private $token_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/access-token/b2b";
     private $notif_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/transfer-va/notify-payment-intrabank";
     private $public_key_pem = "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB-----END PUBLIC KEY-----";
@@ -96,62 +96,110 @@ EOD;
         return $this->access_token;
     }
 
+    function handle_bri_notification()
+{
+    $input = file_get_contents('php://input');
+    $headers = apache_request_headers();
+    $clientID = isset($headers['X-CLIENT-ID']) ? $headers['X-CLIENT-ID'] : null;
+    $timeStamp = isset($headers['X-TIMESTAMP']) ? $headers['X-TIMESTAMP'] : null;
+    $signature = isset($headers['X-SIGNATURE']) ? $headers['X-SIGNATURE'] : null;
+
+    if (!$clientID || !$timeStamp || !$signature) {
+        header('HTTP/1.1 400 Bad Request');
+        echo json_encode(array('error' => 'Missing required headers'));
+        return;
+    }
+
+    $publicKeyPath = APPPATH . 'keys/pubkey.pem';
+    $publicKey = file_get_contents($publicKeyPath);
+    if (!$publicKey) {
+        header('HTTP/1.1 500 Internal Server Error');
+        echo json_encode(array('error' => 'Failed to load public key'));
+        return;
+    }
+    $data = $clientID . "|" . $timeStamp;
+    $keyResource = openssl_get_publickey($publicKey);
+    if (!$keyResource) {
+        header('HTTP/1.1 500 Internal Server Error');
+        echo json_encode(array('error' => 'Invalid public key'));
+        return;
+    }
+    $result = openssl_verify($data, base64_decode($signature), $keyResource, OPENSSL_ALGO_SHA256);
+    openssl_free_key($keyResource);
+
+    if ($result === 1) {
+        $notificationData = json_decode($input, true);
+        $this->save_to_database($clientID, $timeStamp, $input, true);
+
+        header('HTTP/1.1 200 OK');
+        echo json_encode(array('message' => 'Notification received and signature valid'));
+    } elseif ($result === 0) {
+        $this->save_to_database($clientID, $timeStamp, $input, false);
+        header('HTTP/1.1 400 Bad Request');
+        echo json_encode(array('error' => 'Invalid signature'));
+    } else {
+        header('HTTP/1.1 500 Internal Server Error');
+        echo json_encode(array('error' => 'Error verifying signature: ' . openssl_error_string()));
+    }
+}
+
+private function save_to_database($clientID, $timeStamp, $notificationData, $isValid)
+{
+    $pdo = new PDO('mysql:host=103.167.35.206:8000;dbname=inventory', 'root', '');
+    $sql = "INSERT INTO bri_notifications (client_id, timestamp, notification_data, signature_valid)
+            VALUES (:client_id, :timestamp, :notification_data, :signature_valid)";
+
+    $stmt = $pdo->prepare($sql);
+
+    // Bind parameter
+    $stmt->bindParam(':client_id', $clientID);
+    $stmt->bindParam(':timestamp', $timeStamp);
+    $stmt->bindParam(':notification_data', $notificationData);
+    $stmt->bindParam(':signature_valid', $isValid, PDO::PARAM_BOOL);
+
+    // Eksekusi query
+    $stmt->execute();
+}
+
+
+
     public function get_push_notif_token()
 {
     $path = '/snap/v1.0/access-token/b2b';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
     $timestamp = date('Y-m-d\TH:i:s.vP');
-
-    // Body request
-    $body = json_encode(array(
+    $body = json_encode([
         'grantType' => 'client_credentials'
-    ));
-
-    // Membentuk stringToSign
+    ]);
     $stringToSign = $this->client_id_push_notif . '|' . $timestamp;
-
-    // Path ke kunci publik
-    $publicKeyPath = APPPATH . 'keys/pubkey.pem';
-    $publicKey = file_get_contents($publicKeyPath);
-    if ($publicKey === false) {
-        echo 'Error loading public key.';
+    $privateKey = $this->private_key;
+    if ($privateKey === false) {
+        echo 'Error loading private key.';
         return null;
     }
-    $keyResource = openssl_pkey_get_public($publicKey);
+    $keyResource = openssl_pkey_get_private($privateKey);
     if ($keyResource === false) {
-        echo 'Error loading public key: ' . openssl_error_string();
+        echo 'Error loading private key: ' . openssl_error_string();
         return null;
     }
     $signature = '';
     $result = openssl_sign($stringToSign, $signature, $keyResource, OPENSSL_ALGO_SHA256);
+    openssl_free_key($keyResource);
     if (!$result) {
-        echo 'Error creating signature: ' . openssl_error_string();
+        echo 'Error signing string: ' . openssl_error_string();
         return null;
     }
     $base64Signature = base64_encode($signature);
-    $headers = array(
+    $headers = [
         'X-SIGNATURE: ' . $base64Signature,
         'X-CLIENT-KEY: ' . $this->client_id_push_notif,
         'X-TIMESTAMP: ' . $timestamp,
         'Content-Type: application/json',
-    );
-
-    // Kirim permintaan API
+    ];
     $response = $this->send_api_request($url, 'POST', $headers, $body);
-
-    // Decode respons JSON
     $json = json_decode($response, true);
-
-    // Validasi hasil respons
-    if (isset($json['accessToken'])) {
-        echo 'Token: ' . $json['accessToken'];
-        return $json['accessToken'];
-    } else {
-        echo 'Error fetching token: ' . json_encode($json);
-        return null;
-    }
+    echo json_encode($json);
 }
-
 
 
 
@@ -195,7 +243,7 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     }
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
-    $publicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB";
+    
     $body = array(
         'partnerServiceId' => $partnerServiceId,
         'customerNo' => $customerNo,
@@ -207,8 +255,7 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
             'passApp' => '354324134',
             'paymentAmount' => $paymentAmount,
             'terminalId' => '9',
-            'bankId' => '002',
-            'publicKey' => $publicKey
+            'bankId' => '002'
         )
     );
     $body_json = json_encode($body);
