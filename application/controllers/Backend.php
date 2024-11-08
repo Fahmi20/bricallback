@@ -43,18 +43,6 @@ class Backend extends CI_Controller
         $this->api->get_push_notif_token();
     }
 
-    public function verify_token()
-{
-    $clientID = "isi_client_id";       // Isi dengan client ID aktual
-    $timeStamp = "isi_timestamp";      // Isi dengan timestamp aktual dalam format yang diinginkan
-    $clientSecret = "isi_client_secret"; // Isi dengan client secret aktual
-    $accessToken = "isi_access_token"; // Isi dengan access token aktual
-
-    $result = $this->api->get_push_notif_token($clientID, $timeStamp, $clientSecret, $accessToken);
-    echo $result; // Tampilkan hasil validasi
-}
-
-
 
     public function inquiry_payment_va_briva_controller()
     {

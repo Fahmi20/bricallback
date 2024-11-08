@@ -53,8 +53,6 @@ ophbwpAlJ8EBZxQqEQJAeE/dQXB7hICB8A5ZAIFAVWQHJPf/Ahj8VDdpIdVzWK0b
 -----END RSA PRIVATE KEY-----
 EOD;
 
-$this->CI =& get_instance();
-
 
     }
 
@@ -98,33 +96,75 @@ $this->CI =& get_instance();
         return $this->access_token;
     }
 
-    public function get_push_notif_token($clientID, $timeStamp, $clientSecret, $accessToken)
+    public function get_push_notif_token()
 {
-    $httpMethod = "POST";
-    $endpointPath = 'https://sandbox.partner.api.bri.co.id/snap/v1.0/access-token/b2b';
-    $stringToSign = "{$clientID}|{$timeStamp}";
-    $publicKeyContent = "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB\n-----END PUBLIC KEY-----";
-    $publicKey = openssl_pkey_get_public($publicKeyContent);
-    if ($publicKey === false) {
-        return 'Error loading public key: ' . openssl_error_string();
-    }
-    $signature = "FmdvyEAcJLlaBsxh0EIgNn0N0025ySKQUWNc1TjZrorB4aWdZ1VUsmOK2t7SGtJ+r0/LZr592vGx7iISy5EMEFOU7oGJDJ4iq9r9Xpg7e/sQBycAiz5WakDCEfupGWW7KKsSc8HFHy+z5JSiiMRBFB0EWuult21lU/pbBrCJIM4ThlZvl3slX1h7Ju0jnLXlxcu0xuOr/g/mkQqbgZptIG9EmIOkuiWrUm6vIU/prFBqFFGTGli/71uQ+hjD7R/Jlzvz1qdZf9XE+Ju/U4eDqrHebBQFI7lSLITVYqihLo5InQ+QgtrbcPL5UKQXXHVt0w6SVZ0CMPwN4PIL2KdYQQ==";
+    $path = '/snap/v1.0/access-token/b2b';
+    $url = 'https://sandbox.partner.api.bri.co.id' . $path;
+    $timestamp = date('Y-m-d\TH:i:s.vP');
+    $body = json_encode(array(
+        'grantType' => 'client_credentials'
+    ));
+    $stringToSign = $this->client_id . '|' . $timestamp;
+    $publicKey = <<<EOD
+    -----BEGIN PUBLIC KEY-----
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOwe
+    HhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jy
+    VzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2Xs
+    B9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+k
+    zVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOk
+    AxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB
+    -----END PUBLIC KEY-----
+    EOD;
+    $signature = hash_hmac('SHA256', $stringToSign, $publicKey,true);
     $result = openssl_verify($stringToSign, base64_decode($signature), $publicKey, OPENSSL_ALGO_SHA256);
-    openssl_free_key($publicKey);
-
-    if ($result !== 1) {
-        return $result === 0 ? 'Signature is invalid.' : 'Error verifying signature: ' . openssl_error_string();
+    if ($result === 1) {
+        echo 'Signature is valid.';
+    } elseif ($result === 0) {
+        echo 'Signature is invalid.';
+    } else {
+        echo 'Error verifying signature: ' . openssl_error_string();
     }
-    echo 'Signature is valid.';
-    $bodyContent = '{"key":"value"}';
-    $hashedBody = hash('sha256', strtolower(bin2hex($bodyContent)));
-    $payload = "{$httpMethod}:{$endpointPath}:{$accessToken}:{$hashedBody}:{$timeStamp}";
-    $hmacSignature = hash_hmac('sha512', $payload, $clientSecret);
-    echo 'HMAC Signature: ' . $hmacSignature;
-    return $hmacSignature;
+    $headers = array(
+        'X-SIGNATURE: ' . $result,
+        'X-CLIENT-KEY: ' . $this->client_id,
+        'X-TIMESTAMP: ' . $timestamp,
+        'Content-Type: application/json',
+    );
+
+    // Mengirim request dan mengambil response
+    $response = $this->send_api_request($url, 'POST', $headers, $body);
+    $json = json_decode($response, true);
+    echo json_encode($json);
+    return isset($json['accessToken']) ? $json['accessToken'] : null;
 }
 
-
+public function get_push_notif_token_test()
+{
+    $clientID = $this->client_id;
+    $timeStamp = gmdate('Y-m-d\TH:i:s\Z', time());
+    $data = $clientID . "|" . $timeStamp;
+    
+    $publicKey = <<<EOD
+    -----BEGIN PUBLIC KEY-----
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOwe
+    HhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jy
+    VzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2Xs
+    B9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+k
+    zVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOk
+    AxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB
+    -----END PUBLIC KEY-----
+    EOD;
+    $signature = "FmdvyEAcJLlaBsxh0EIgNn0N0025ySKQUWNc1TjZrorB4aWdZ1VUsmOK2t7SGtJ+r0/LZr592vGx7iISy5EMEFOU7oGJDJ4iq9r9Xpg7e/sQBycAiz5WakDCEfupGWW7KKsSc8HFHy+z5JSiiMRBFB0EWuult21lU/pbBrCJIM4ThlZvl3slX1h7Ju0jnLXlxcu0xuOr/g/mkQqbgZptIG9EmIOkuiWrUm6vIU/prFBqFFGTGli/71uQ+hjD7R/Jlzvz1qdZf9XE+Ju/U4eDqrHebBQFI7lSLITVYqihLo5InQ+QgtrbcPL5UKQXXHVt0w6SVZ0CMPwN4PIL2KdYQQ==";
+    $signatureDecoded = base64_decode($signature);
+    $result = openssl_verify($data, $signatureDecoded, $publicKey, OPENSSL_ALGO_SHA256);
+    if ($result === 1) {
+        echo 'Signature is valid.';
+    } elseif ($result === 0) {
+        echo 'Signature is invalid.';
+    } else {
+        echo 'Error verifying signature: ' . openssl_error_string();
+    }
+}
 
 
 
@@ -137,6 +177,7 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     }
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
+    $publicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB";
     $body = array(
         'partnerServiceId' => $partnerServiceId,
         'customerNo' => $customerNo,
@@ -148,7 +189,8 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
             'passApp' => '354324134',
             'paymentAmount' => $paymentAmount,
             'terminalId' => '9',
-            'bankId' => '002'
+            'bankId' => '002',
+            'publicKey' => $publicKey
         )
     );
     $body_json = json_encode($body);
