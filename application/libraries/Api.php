@@ -282,7 +282,7 @@ EOD;
     $headers = [
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
-        'X-SIGNATURE: ' . $signatureFromBRI,
+        'X-SIGNATURE: ' . $verification,
         'Content-Type: application/json',
         'X-PARTNER-ID: ' . $this->partner_id,
         'CHANNEL-ID: ' . 'TRFLA',
