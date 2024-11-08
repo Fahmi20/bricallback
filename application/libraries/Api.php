@@ -105,22 +105,27 @@ EOD;
         'grantType' => 'client_credentials'
     ));
     $stringToSign = $this->client_id . '|' . $timestamp;
-    $publicKeyPath = APPPATH . 'keys/pubkey.pem';
-    $publicKey = file_get_contents($publicKeyPath);
-    $keyResource = openssl_pkey_get_public($publicKey);
+    $privateKey = $this->private_key;
+    $keyResource = openssl_pkey_get_private($privateKey);
     if ($keyResource === false) {
-        echo 'Error loading public key: ' . openssl_error_string();
+        echo 'Error loading private key: ' . openssl_error_string();
         return null;
     }
-    $signature = base64_encode($stringToSign);
-    $result = openssl_verify($stringToSign, base64_decode($signature), $keyResource, OPENSSL_ALGO_SHA256);
+    $signature = '';
+    $success = openssl_sign($stringToSign, $signature, $keyResource, OPENSSL_ALGO_SHA256);
     openssl_free_key($keyResource);
-    if ($result === 1) {
-        echo 'Signature is valid.';
-    } elseif ($result === 0) {
-        echo 'Signature is invalid.';
-    } else {
-        echo 'Error verifying signature: ' . openssl_error_string();
+    if (!$success) {
+        echo 'Error signing string using private key: ' . openssl_error_string();
+        return null;
+    }
+    $signature = base64_encode($signature);
+    $publicKeyPath = APPPATH . 'keys/pubkey.pem';
+    $publicKey = file_get_contents($publicKeyPath);
+    $keyResourcePub = openssl_pkey_get_public($publicKey);
+    if ($keyResourcePub !== false) {
+        $isVerified = openssl_verify($stringToSign, base64_decode($signature), $keyResourcePub, OPENSSL_ALGO_SHA256);
+        openssl_free_key($keyResourcePub);
+        echo 'Signature verification result: ' . ($isVerified === 1 ? 'Valid' : ($isVerified === 0 ? 'Invalid' : 'Error verifying')) . '<br>';
     }
     $headers = array(
         'X-SIGNATURE: ' . $signature,
@@ -133,6 +138,9 @@ EOD;
     echo json_encode($json);
     return isset($json['accessToken']) ? $json['accessToken'] : null;
 }
+
+
+
 
 
 public function get_push_notif_token_test()
