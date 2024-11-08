@@ -226,66 +226,53 @@ EOD;
 
     public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
 {
-    $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
-    $tokenResponse = $this->get_push_notif_token(); // Mengambil respon dari fungsi `get_push_notif_token()`
+    $tokenResponse = $this->get_push_notif_token();
     if (is_array($tokenResponse) && isset($tokenResponse['accessToken'])) {
-        $token = $tokenResponse['accessToken']; // Menggunakan `accessToken` sebagai token
+        $token = $tokenResponse['accessToken'];
     } else {
         throw new Exception("Gagal memperoleh token push notifikasi");
     }
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
-
-    $body = array(
+    $body = [
         'partnerServiceId' => $partnerServiceId,
         'customerNo' => $customerNo,
         'virtualAccountNo' => $virtualAccountNo,
         'paymentRequestId' => $paymentRequestId,
         'trxDateTime' => $trxDateTime,
-        'additionalInfo' => array(
+        'additionalInfo' => [
             'idApp' => 'YPGS',
             'passApp' => '354324134',
             'paymentAmount' => $paymentAmount,
             'terminalId' => '9',
             'bankId' => '002'
-        )
-    );
-    $body_json = json_encode($body);
-
-    // Memuat kunci publik dari file
-    $publicKeyPath = APPPATH . 'keys/pubkey.pem';
-    if (!file_exists($publicKeyPath)) {
-        throw new Exception("File kunci publik tidak ditemukan di: " . $publicKeyPath);
+        ]
+    ];
+    $bodyJson = json_encode($body);
+    $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
+    $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $bodyJson;
+    $privateKeyPath = $this->private_key;
+    if (!file_exists($privateKeyPath)) {
+        throw new Exception("File kunci privat tidak ditemukan di: " . $privateKeyPath);
     }
-    $publicKey = file_get_contents($publicKeyPath);
-    if ($publicKey === false) {
-        throw new Exception("Gagal membaca kunci publik dari file: " . $publicKeyPath);
+    $privateKey = file_get_contents($privateKeyPath);
+    if ($privateKey === false) {
+        throw new Exception("Gagal membaca kunci privat dari file: " . $privateKeyPath);
     }
-
-    $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $body_json;
-
-    // Perhatikan: Kunci publik digunakan untuk verifikasi, bukan untuk membuat tanda tangan.
-    // Jika Anda bermaksud menggunakan kunci publik untuk tanda tangan, pastikan logika sesuai dengan kebutuhan Anda.
-
-    $signature = hash_hmac('sha512', $stringToSign, $publicKey);
+    $signature = hash_hmac('sha512', $stringToSign, $privateKey, true);
     $signatureBase64 = base64_encode($signature);
-
-    $headers = array(
-        'Authorization: Bearer ' . $token, // Menggunakan `accessToken` di header `Authorization`
+    $headers = [
+        'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
         'X-SIGNATURE: ' . $signatureBase64,
-        'Content-type: application/json',
+        'Content-Type: application/json',
         'X-PARTNER-ID: ' . $this->partner_id,
         'CHANNEL-ID: ' . 'TRFLA',
         'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
-    );
-
-    $response = $this->send_api_request($url, 'POST', $headers, $body_json);
+    ];
+    $response = $this->send_api_request($url, 'POST', $headers, $bodyJson);
     return json_decode($response, true);
 }
-
-
-
 
     public function send_api_request_push_notif($url, $method, $headers, $body, $callback = null)
     {
