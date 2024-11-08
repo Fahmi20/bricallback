@@ -227,9 +227,9 @@ EOD;
     public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
 {
     $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
-    $tokenResponse = $this->get_push_notif_token();
+    $tokenResponse = $this->get_push_notif_token(); // Mengambil respon dari fungsi `get_push_notif_token()`
     if (is_array($tokenResponse) && isset($tokenResponse['accessToken'])) {
-        $token = $tokenResponse['accessToken'];
+        $token = $tokenResponse['accessToken']; // Menggunakan `accessToken` sebagai token
     } else {
         throw new Exception("Gagal memperoleh token push notifikasi");
     }
@@ -251,29 +251,27 @@ EOD;
         )
     );
     $body_json = json_encode($body);
-    $privateKeyPath = $this->private_key;
-    if (!file_exists($privateKeyPath)) {
-        throw new Exception("File kunci privat tidak ditemukan di: " . $privateKeyPath);
-    }
-    $privateKey = file_get_contents($privateKeyPath);
-    if ($privateKey === false) {
-        throw new Exception("Gagal membaca kunci privat dari file: " . $privateKeyPath);
-    }
-    $keyResource = openssl_pkey_get_private($privateKey);
-    if ($keyResource === false) {
-        throw new Exception("Gagal memuat kunci privat: " . openssl_error_string());
-    }
-    $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $body_json;
-    $signature = '';
-    $result = openssl_sign($stringToSign, $signature, $keyResource, OPENSSL_ALGO_SHA256);
-    openssl_free_key($keyResource);
 
-    if (!$result) {
-        throw new Exception("Gagal membuat tanda tangan: " . openssl_error_string());
+    // Memuat kunci publik dari file
+    $publicKeyPath = APPPATH . 'keys/pubkey.pem';
+    if (!file_exists($publicKeyPath)) {
+        throw new Exception("File kunci publik tidak ditemukan di: " . $publicKeyPath);
     }
+    $publicKey = file_get_contents($publicKeyPath);
+    if ($publicKey === false) {
+        throw new Exception("Gagal membaca kunci publik dari file: " . $publicKeyPath);
+    }
+
+    $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $body_json;
+
+    // Perhatikan: Kunci publik digunakan untuk verifikasi, bukan untuk membuat tanda tangan.
+    // Jika Anda bermaksud menggunakan kunci publik untuk tanda tangan, pastikan logika sesuai dengan kebutuhan Anda.
+
+    $signature = hash_hmac('sha512', $stringToSign, $publicKey);
     $signatureBase64 = base64_encode($signature);
+
     $headers = array(
-        'Authorization: Bearer ' . $token,
+        'Authorization: Bearer ' . $token, // Menggunakan `accessToken` di header `Authorization`
         'X-TIMESTAMP: ' . $timestamp,
         'X-SIGNATURE: ' . $signatureBase64,
         'Content-type: application/json',
@@ -281,9 +279,11 @@ EOD;
         'CHANNEL-ID: ' . 'TRFLA',
         'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
     );
+
     $response = $this->send_api_request($url, 'POST', $headers, $body_json);
     return json_decode($response, true);
 }
+
 
 
 
