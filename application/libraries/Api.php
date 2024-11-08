@@ -251,8 +251,8 @@ EOD;
     $bodyJson = json_encode($body);
     $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
     $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $bodyJson;
-    
-    // Menggunakan kunci publik untuk verifikasi
+    $signature = hash_hmac('sha512', $stringToSign, $this->private_key, true);
+    $signatureBase64 = base64_encode($signature);
     $publicKeyPath = APPPATH . 'keys/pubkey.pem';
     if (!file_exists($publicKeyPath)) {
         throw new Exception("File kunci publik tidak ditemukan di: " . $publicKeyPath);
@@ -265,13 +265,8 @@ EOD;
     if ($publicKeyResource === false) {
         throw new Exception("Gagal memuat kunci publik: " . openssl_error_string());
     }
-
-    // Asumsikan tanda tangan diberikan dari luar atau dari sumber terpercaya
-    // Contoh asumsi untuk verifikasi - Anda mungkin perlu mengganti sumbernya
-    $signatureBase64 = 'FmdvyEAcJLlaBsxh0EIgNn0N0025ySKQUWNc1TjZrorB4aWdZ1VUsmOK2t7SGtJ+r0/LZr592vGx7iISy5EMEFOU7oGJDJ4iq9r9Xpg7e/sQBycAiz5WakDCEfupGWW7KKsSc8HFHy+z5JSiiMRBFB0EWuult21lU/pbBrCJIM4ThlZvl3slX1h7Ju0jnLXlxcu0xuOr/g/mkQqbgZptIG9EmIOkuiWrUm6vIU/prFBqFFGTGli/71uQ+hjD7R/Jlzvz1qdZf9XE+Ju/U4eDqrHebBQFI7lSLITVYqihLo5InQ+QgtrbcPL5UKQXXHVt0w6SVZ0CMPwN4PIL2KdYQQ=='; // Ganti ini dengan tanda tangan yang ingin diverifikasi
     $verification = openssl_verify($stringToSign, base64_decode($signatureBase64), $publicKeyResource, OPENSSL_ALGO_SHA256);
     openssl_free_key($publicKeyResource);
-
     if ($verification === 1) {
         error_log("Verifikasi tanda tangan berhasil.");
     } elseif ($verification === 0) {
@@ -279,7 +274,6 @@ EOD;
     } else {
         throw new Exception("Kesalahan verifikasi tanda tangan: " . openssl_error_string());
     }
-
     $headers = [
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
@@ -292,7 +286,6 @@ EOD;
     $response = $this->send_api_request($url, 'POST', $headers, $bodyJson);
     return json_decode($response, true);
 }
-
 
 
 
