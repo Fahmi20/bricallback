@@ -276,7 +276,7 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     $body_json = json_encode($body);
 
     // Memuat kunci privat dari file
-    $privateKeyPath = APPPATH . 'keys/pubkey.pem';
+    $privateKeyPath = $this->private_key;
     if (!file_exists($privateKeyPath)) {
         throw new Exception("File kunci privat tidak ditemukan di: " . $privateKeyPath);
     }
@@ -300,6 +300,33 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     }
 
     $signatureBase64 = base64_encode($signature);
+
+    // Memuat kunci publik (untuk verifikasi tanda tangan)
+    $publicKeyPath = APPPATH . 'keys/pubkey.pem';
+    if (!file_exists($publicKeyPath)) {
+        throw new Exception("File kunci publik tidak ditemukan di: " . $publicKeyPath);
+    }
+    $publicKey = file_get_contents($publicKeyPath);
+    if ($publicKey === false) {
+        throw new Exception("Gagal membaca kunci publik dari file: " . $publicKeyPath);
+    }
+    $publicKeyResource = openssl_pkey_get_public($publicKey);
+    if ($publicKeyResource === false) {
+        throw new Exception("Gagal memuat kunci publik: " . openssl_error_string());
+    }
+
+    // Verifikasi tanda tangan (opsional, dapat disesuaikan jika diperlukan)
+    $verification = openssl_verify($stringToSign, base64_decode($signatureBase64), $publicKeyResource, OPENSSL_ALGO_SHA256);
+    if ($verification === 1) {
+        // Tanda tangan valid
+        error_log("Verifikasi tanda tangan berhasil.");
+    } elseif ($verification === 0) {
+        // Tanda tangan tidak valid
+        throw new Exception("Verifikasi tanda tangan gagal.");
+    } else {
+        throw new Exception("Kesalahan verifikasi tanda tangan: " . openssl_error_string());
+    }
+    openssl_free_key($publicKeyResource);
 
     // Header untuk permintaan
     $headers = array(
