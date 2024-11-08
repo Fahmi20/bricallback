@@ -226,14 +226,19 @@ EOD;
 
     public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
 {
+    // Mengambil token push notifikasi
     $tokenResponse = $this->get_push_notif_token();
     if (is_array($tokenResponse) && isset($tokenResponse['accessToken'])) {
         $token = $tokenResponse['accessToken'];
     } else {
         throw new Exception("Gagal memperoleh token push notifikasi");
     }
+
+    // Membentuk URL dan path
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
+
+    // Membuat body JSON
     $body = [
         'partnerServiceId' => $partnerServiceId,
         'customerNo' => $customerNo,
@@ -249,11 +254,41 @@ EOD;
         ]
     ];
     $bodyJson = json_encode($body);
+
+    // Membuat timestamp
     $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
+
+    // Membuat string untuk ditandatangani
     $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $bodyJson;
-    $privateKeyPath = $this->private_key;
-    $signature = hash_hmac('sha512', $stringToSign, $privateKeyPath, true);
+
+    // Memuat kunci privat dari file
+    $privateKeyPath = $this->private_key; // Sesuaikan dengan jalur yang benar untuk kunci privat
+    if (!file_exists($privateKeyPath)) {
+        throw new Exception("File kunci privat tidak ditemukan di: " . $privateKeyPath);
+    }
+    $privateKey = file_get_contents($privateKeyPath);
+    if ($privateKey === false) {
+        throw new Exception("Gagal membaca kunci privat dari file: " . $privateKeyPath);
+    }
+
+    // Menggunakan openssl untuk menandatangani string
+    $keyResource = openssl_pkey_get_private($privateKey);
+    if ($keyResource === false) {
+        throw new Exception("Gagal memuat kunci privat: " . openssl_error_string());
+    }
+
+    $signature = '';
+    $result = openssl_sign($stringToSign, $signature, $keyResource, OPENSSL_ALGO_SHA256);
+    openssl_free_key($keyResource);
+
+    if (!$result) {
+        throw new Exception("Gagal membuat tanda tangan: " . openssl_error_string());
+    }
+
+    // Encoding tanda tangan ke base64
     $signatureBase64 = base64_encode($signature);
+
+    // Header untuk permintaan
     $headers = [
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
@@ -263,9 +298,12 @@ EOD;
         'CHANNEL-ID: ' . 'TRFLA',
         'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
     ];
+
+    // Mengirim permintaan
     $response = $this->send_api_request($url, 'POST', $headers, $bodyJson);
     return json_decode($response, true);
 }
+
 
     public function send_api_request_push_notif($url, $method, $headers, $body, $callback = null)
     {
