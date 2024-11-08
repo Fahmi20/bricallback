@@ -98,46 +98,75 @@ EOD;
 
     public function get_push_notif_token()
 {
+    // Endpoint dan URL permintaan
     $path = '/snap/v1.0/access-token/b2b';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
-    $timestamp = date('Y-m-d\TH:i:s.vP');
+    $timestamp = date('Y-m-d\TH:i:s.vP'); // Timestamp dalam format ISO 8601 dengan milidetik
     $body = json_encode(array(
         'grantType' => 'client_credentials'
     ));
+
+    // Data yang akan ditandatangani
     $stringToSign = $this->client_id . '|' . $timestamp;
-    $privateKey = $this->private_key;
+
+    // Memuat kunci privat untuk menandatangani data
+    $privateKey = $this->private_key; // Pastikan kunci privat Anda benar
     $keyResource = openssl_pkey_get_private($privateKey);
     if ($keyResource === false) {
         echo 'Error loading private key: ' . openssl_error_string();
         return null;
     }
+
+    // Tanda tangan string menggunakan kunci privat
     $signature = '';
     $success = openssl_sign($stringToSign, $signature, $keyResource, OPENSSL_ALGO_SHA256);
-    openssl_free_key($keyResource);
+    openssl_free_key($keyResource); // Membebaskan resource setelah selesai
+
+    // Periksa apakah proses penandatanganan berhasil
     if (!$success) {
         echo 'Error signing string using private key: ' . openssl_error_string();
         return null;
     }
+
+    // Encode hasil tanda tangan ke Base64
     $signature = base64_encode($signature);
-    $publicKeyPath = APPPATH . 'keys/pubkey.pem';
+
+    // Memuat kunci publik yang diberikan BRI untuk verifikasi (opsional jika diperlukan)
+    $publicKeyPath = APPPATH . 'keys/pubkey.pem'; // Pastikan path sesuai
     $publicKey = file_get_contents($publicKeyPath);
+    if ($publicKey === false) {
+        echo 'Error reading public key file.';
+        return null;
+    }
+
     $keyResourcePub = openssl_pkey_get_public($publicKey);
     if ($keyResourcePub !== false) {
         $isVerified = openssl_verify($stringToSign, base64_decode($signature), $keyResourcePub, OPENSSL_ALGO_SHA256);
         openssl_free_key($keyResourcePub);
         echo 'Signature verification result: ' . ($isVerified === 1 ? 'Valid' : ($isVerified === 0 ? 'Invalid' : 'Error verifying')) . '<br>';
+    } else {
+        echo 'Error loading public key: ' . openssl_error_string();
     }
+
+    // Header untuk permintaan
     $headers = array(
         'X-SIGNATURE: ' . $signature,
         'X-CLIENT-KEY: ' . $this->client_id,
         'X-TIMESTAMP: ' . $timestamp,
         'Content-Type: application/json',
     );
+
+    // Mengirim permintaan ke API menggunakan fungsi pengirim request
     $response = $this->send_api_request($url, 'POST', $headers, $body);
     $json = json_decode($response, true);
+
+    // Menampilkan hasil respons
     echo json_encode($json);
     return isset($json['accessToken']) ? $json['accessToken'] : null;
 }
+
+
+
 
 
 public function set_pubkey()
@@ -208,9 +237,11 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     if (!$token) {
         throw new Exception("Gagal memperoleh token push notifikasi");
     }
+
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
-    $publicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB";
+
+    // Mempersiapkan body data
     $body = array(
         'partnerServiceId' => $partnerServiceId,
         'customerNo' => $customerNo,
@@ -223,13 +254,17 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
             'paymentAmount' => $paymentAmount,
             'terminalId' => '9',
             'bankId' => '002',
-            'publicKey' => $publicKey
+            'publicKey' => '' // kosong jika tidak dibutuhkan
         )
     );
     $body_json = json_encode($body);
+
+    // Membuat string untuk ditandatangani
     $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $body_json;
     $signature = hash_hmac('sha512', $stringToSign, $this->private_key);
     $signatureBase64 = base64_encode($signature);
+
+    // Header untuk permintaan
     $headers = array(
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
@@ -239,9 +274,12 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
         'CHANNEL-ID: ' . 'TRFLA',
         'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
     );
+
+    // Mengirim permintaan ke API
     $response = $this->send_api_request($url, 'POST', $headers, $body_json);
     return json_decode($response, true);
 }
+
 
 
 
