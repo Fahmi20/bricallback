@@ -105,9 +105,16 @@ EOD;
         'grantType' => 'client_credentials'
     ));
     $stringToSign = $this->client_id . '|' . $timestamp;
-    $publicKey = file_get_contents('keys/pubkey.pem');
+    $publicKeyPath = APPPATH . 'keys/pubkey.pem';
+    $publicKey = file_get_contents($publicKeyPath);
+    $keyResource = openssl_pkey_get_public($publicKey);
+    if ($keyResource === false) {
+        echo 'Error loading public key: ' . openssl_error_string();
+        return null;
+    }
     $signature = base64_encode($stringToSign);
-    $result = openssl_verify($stringToSign, base64_decode($signature), $publicKey, OPENSSL_ALGO_SHA256);
+    $result = openssl_verify($stringToSign, base64_decode($signature), $keyResource, OPENSSL_ALGO_SHA256);
+    openssl_free_key($keyResource);
     if ($result === 1) {
         echo 'Signature is valid.';
     } elseif ($result === 0) {
@@ -126,6 +133,7 @@ EOD;
     echo json_encode($json);
     return isset($json['accessToken']) ? $json['accessToken'] : null;
 }
+
 
 public function get_push_notif_token_test()
 {
