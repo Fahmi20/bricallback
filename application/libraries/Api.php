@@ -251,7 +251,7 @@ EOD;
         )
     );
     $body_json = json_encode($body);
-    $privateKeyPath = APPPATH . 'keys/privkey.pem';
+    $privateKeyPath = $this->private_key;
     if (!file_exists($privateKeyPath)) {
         throw new Exception("File kunci privat tidak ditemukan di: " . $privateKeyPath);
     }
