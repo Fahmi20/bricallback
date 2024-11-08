@@ -103,13 +103,11 @@ EOD;
     $clientID = isset($headers['X-CLIENT-ID']) ? $headers['X-CLIENT-ID'] : null;
     $timeStamp = isset($headers['X-TIMESTAMP']) ? $headers['X-TIMESTAMP'] : null;
     $signature = isset($headers['X-SIGNATURE']) ? $headers['X-SIGNATURE'] : null;
-
     if (!$clientID || !$timeStamp || !$signature) {
         header('HTTP/1.1 400 Bad Request');
         echo json_encode(array('error' => 'Missing required headers'));
         return;
     }
-
     $publicKeyPath = APPPATH . 'keys/pubkey.pem';
     $publicKey = file_get_contents($publicKeyPath);
     if (!$publicKey) {
@@ -126,11 +124,9 @@ EOD;
     }
     $result = openssl_verify($data, base64_decode($signature), $keyResource, OPENSSL_ALGO_SHA256);
     openssl_free_key($keyResource);
-
     if ($result === 1) {
         $notificationData = json_decode($input, true);
         $this->save_to_database($clientID, $timeStamp, $input, true);
-
         header('HTTP/1.1 200 OK');
         echo json_encode(array('message' => 'Notification received and signature valid'));
     } elseif ($result === 0) {
@@ -160,7 +156,6 @@ private function save_to_database($clientID, $timeStamp, $notificationData, $isV
     // Eksekusi query
     $stmt->execute();
 }
-
 
 
     public function get_push_notif_token()
@@ -237,10 +232,15 @@ public function get_push_notif_token_test()
 public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
 {
     $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
-    $token = $this->get_push_notif_token();
-    if (!$token) {
+    $tokenResponse = $this->get_push_notif_token(); // Mengambil respon dari fungsi `get_push_notif_token()`
+    
+    // Pastikan `accessToken` diekstrak dengan benar
+    if (is_array($tokenResponse) && isset($tokenResponse['accessToken'])) {
+        $token = $tokenResponse['accessToken']; // Menggunakan `accessToken` sebagai token
+    } else {
         throw new Exception("Gagal memperoleh token push notifikasi");
     }
+
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
     
@@ -263,7 +263,7 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     $signature = hash_hmac('sha512', $stringToSign, $this->private_key);
     $signatureBase64 = base64_encode($signature);
     $headers = array(
-        'Authorization: Bearer ' . $token,
+        'Authorization: Bearer ' . $token, // Menggunakan `accessToken` di header `Authorization`
         'X-TIMESTAMP: ' . $timestamp,
         'X-SIGNATURE: ' . $signatureBase64,
         'Content-type: application/json',
