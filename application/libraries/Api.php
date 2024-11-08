@@ -226,14 +226,19 @@ EOD;
 
     public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
 {
+    // Mengambil token push notifikasi
     $tokenResponse = $this->get_push_notif_token();
     if (is_array($tokenResponse) && isset($tokenResponse['accessToken'])) {
         $token = $tokenResponse['accessToken'];
     } else {
         throw new Exception("Gagal memperoleh token push notifikasi");
     }
+
+    // Menentukan path dan URL
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
+
+    // Menyiapkan body JSON
     $body = [
         'partnerServiceId' => $partnerServiceId,
         'customerNo' => $customerNo,
@@ -249,23 +254,63 @@ EOD;
         ]
     ];
     $bodyJson = json_encode($body);
+
+    // Membuat timestamp
     $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
+
+    // Membuat string untuk ditandatangani
     $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $bodyJson;
+
+    // Membuat tanda tangan menggunakan HMAC-SHA512 dengan kunci rahasia
     $signature = hash_hmac('sha512', $stringToSign, $this->private_key, true);
-    $publicKey = APPPATH .'keys/pubkey.pem';
-    $signatureresult = openssl_verify($stringToSign, base64_decode($signature), $publicKey, OPENSSL_ALGO_SHA256);
+    $signatureBase64 = base64_encode($signature);
+
+    // Memuat kunci publik dari file
+    $publicKeyPath = APPPATH . 'keys/pubkey.pem';
+    if (!file_exists($publicKeyPath)) {
+        throw new Exception("File kunci publik tidak ditemukan di: " . $publicKeyPath);
+    }
+    $publicKey = file_get_contents($publicKeyPath);
+    if ($publicKey === false) {
+        throw new Exception("Gagal membaca kunci publik dari file: " . $publicKeyPath);
+    }
+
+    // Mengubah kunci publik menjadi resource OpenSSL
+    $publicKeyResource = openssl_pkey_get_public($publicKey);
+    if ($publicKeyResource === false) {
+        throw new Exception("Gagal memuat kunci publik: " . openssl_error_string());
+    }
+
+    // Verifikasi tanda tangan menggunakan kunci publik
+    $verification = openssl_verify($stringToSign, base64_decode($signatureBase64), $publicKeyResource, OPENSSL_ALGO_SHA256);
+    openssl_free_key($publicKeyResource);
+
+    if ($verification === 1) {
+        // Tanda tangan valid
+        error_log("Verifikasi tanda tangan berhasil.");
+    } elseif ($verification === 0) {
+        // Tanda tangan tidak valid
+        throw new Exception("Verifikasi tanda tangan gagal.");
+    } else {
+        throw new Exception("Kesalahan verifikasi tanda tangan: " . openssl_error_string());
+    }
+
+    // Menyiapkan header
     $headers = [
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
-        'X-SIGNATURE: ' . $signatureresult,
+        'X-SIGNATURE: ' . $signatureBase64,
         'Content-Type: application/json',
         'X-PARTNER-ID: ' . $this->partner_id,
         'CHANNEL-ID: ' . 'TRFLA',
         'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
     ];
+
+    // Mengirim permintaan
     $response = $this->send_api_request($url, 'POST', $headers, $bodyJson);
     return json_decode($response, true);
 }
+
 
 
     public function send_api_request_push_notif($url, $method, $headers, $body, $callback = null)
