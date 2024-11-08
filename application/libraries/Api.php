@@ -202,12 +202,12 @@ EOD;
         $url = 'https://sandbox.partner.api.bri.co.id' . $path;
         $timestamp = date('Y-m-d\TH:i:s.vP');
         $body = json_encode(['grantType' => 'client_credentials']);
-        $clientID = $this->client_id_push_notif;
+        $client_ID = $this->client_id_push_notif;
         $publicKeyPath = APPPATH . 'keys/pubkey.pem';
         $publicKey = file_get_contents($publicKeyPath);
-        $signature = base64_encode($publicKey);  // BRI Always base64
-        $data = $clientID . "|" . $timestamp;
-        $result = openssl_verify($data, base64_decode($signature), $publicKey, OPENSSL_ALGO_SHA256);
+        $stringToSign = $client_ID . "|" . $timestamp;
+        $stringToSignBase64 = base64_encode($stringToSign);
+        $result = openssl_verify($stringToSign, base64_decode($stringToSignBase64), $publicKey, OPENSSL_ALGO_SHA256);
         if ($result === 1) {
             echo 'Signature is valid.';
         } elseif ($result === 0) {
@@ -216,7 +216,7 @@ EOD;
             echo 'Error verifying signature: ' . openssl_error_string();
         }
         $headers = [
-            'X-SIGNATURE: ' . $signature,
+            'X-SIGNATURE: ' . $result,
             'X-CLIENT-KEY: ' . $this->client_id_push_notif,
             'X-TIMESTAMP: ' . $timestamp,
             'Content-Type: application/json'
