@@ -251,15 +251,16 @@ EOD;
     $bodyJson = json_encode($body);
     $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
     $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $bodyJson;
-    $privateKeyPath = $this->private_key;
-    if (!file_exists($privateKeyPath)) {
-        throw new Exception("File kunci privat tidak ditemukan di: " . $privateKeyPath);
+    $privateKeyPath = APPPATH . 'keys/pubkey.pem';
+    $signature = hash_hmac('sha512', $stringToSign, $privateKeyPath, true);
+    $result = openssl_verify($stringToSign, base64_decode($signature), $privateKeyPath, OPENSSL_ALGO_SHA256);
+    if ($result === 1) {
+        echo 'Signature is valid.';
+    } elseif ($result === 0) {
+        echo 'Signature is invalid.';
+    } else {
+        echo 'Error verifying signature: ' . openssl_error_string();
     }
-    $privateKey = file_get_contents($privateKeyPath);
-    if ($privateKey === false) {
-        throw new Exception("Gagal membaca kunci privat dari file: " . $privateKeyPath);
-    }
-    $signature = hash_hmac('sha512', $stringToSign, $privateKey, true);
     $signatureBase64 = base64_encode($signature);
     $headers = [
         'Authorization: Bearer ' . $token,
