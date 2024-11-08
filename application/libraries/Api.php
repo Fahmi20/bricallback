@@ -223,12 +223,7 @@ EOD;
         ];
         $response = $this->send_api_request($url, 'POST', $headers, $body);
         $json = json_decode($response, true);
-
-        if ($json === null && json_last_error() !== JSON_ERROR_NONE) {
-            error_log('Error decoding JSON response: ' . json_last_error_msg());
-            return null;
-        }
-        return $json;
+        echo json_encode($json);
     }
 
     public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
