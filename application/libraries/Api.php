@@ -251,7 +251,7 @@ EOD;
     $bodyJson = json_encode($body);
     $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
     $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $bodyJson;
-    $privateKeyPath = APPPATH . 'keys/pubkey.pem';
+    $privateKeyPath = $this->private_key;
     $signature = hash_hmac('sha512', $stringToSign, $privateKeyPath, true);
     $result = openssl_verify($stringToSign, base64_decode($signature), $privateKeyPath, OPENSSL_ALGO_SHA256);
     if ($result === 1) {
