@@ -160,7 +160,7 @@ EOD;
         $url = 'https://sandbox.partner.api.bri.co.id' . $path;
         $timestamp = date('Y-m-d\TH:i:s.vP');
         $body = json_encode(['grantType' => 'client_credentials']);
-        $stringToSign = $this->client_id_push_notif . '|' . $timestamp;
+        $stringToSign = $this->client_id . '|' . $timestamp;
         $privateKey = $this->private_key;
         if ($privateKey === false) {
             error_log('Error loading private key.');
@@ -182,7 +182,7 @@ EOD;
         $base64Signature = base64_encode($signature);
         $headers = [
             'X-SIGNATURE: ' . $base64Signature,
-            'X-CLIENT-KEY: ' . $this->client_id_push_notif,
+            'X-CLIENT-KEY: ' . $this->client_id,
             'X-TIMESTAMP: ' . $timestamp,
             'Content-Type: application/json',
         ];
