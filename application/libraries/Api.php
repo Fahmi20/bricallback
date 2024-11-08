@@ -140,6 +140,34 @@ EOD;
 }
 
 
+public function set_pubkey()
+{
+    $publicKeyPath = APPPATH . 'keys/pubkey.pem';
+    $publicKey = file_get_contents($publicKeyPath);
+    if ($publicKey === false) {
+        echo 'Error reading public key file.';
+        return null;
+    }
+    $keyResource = openssl_pkey_get_public($publicKey);
+    if ($keyResource === false) {
+        echo 'Error loading public key: ' . openssl_error_string();
+        return null;
+    }
+    $stringToSign = 'Sample string for verification';
+    $encryptedData = '';
+    $result = openssl_public_encrypt($stringToSign, $encryptedData, $keyResource);
+    openssl_free_key($keyResource);
+
+    if (!$result) {
+        echo 'Error encrypting string using public key: ' . openssl_error_string();
+        return null;
+    }
+    $signature = base64_encode($encryptedData);
+    echo 'Public key encryption successful. Encrypted Data (Base64 encoded): ' . $signature . '<br>';
+    return true;
+}
+
+
 
 
 
