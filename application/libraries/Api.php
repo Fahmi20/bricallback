@@ -6,7 +6,7 @@ class Api
     private $baseUrl = 'https://sandbox.partner.api.bri.co.id';
 
     private $public_key;
-    private $public_key_path = '/mnt/data/pubkey.pem'; // Path ke public key yang disediakan BRI
+    private $public_key_path = '/mnt/data/pubkey.pem';
     private $client_id_push_notif = 'G6bDFAAbwTUhqhMGa9qOsydLGBexH6bh';
     private $client_secret_push_notif = 'MNfGscq4w6XUmAp3';
     private $token_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/access-token/b2b";
@@ -97,133 +97,112 @@ EOD;
     }
 
     function handle_bri_notification()
-{
-    $input = file_get_contents('php://input');
-    $headers = apache_request_headers();
-    $clientID = isset($headers['X-CLIENT-ID']) ? $headers['X-CLIENT-ID'] : null;
-    $timeStamp = isset($headers['X-TIMESTAMP']) ? $headers['X-TIMESTAMP'] : null;
-    $signature = isset($headers['X-SIGNATURE']) ? $headers['X-SIGNATURE'] : null;
-    if (!$clientID || !$timeStamp || !$signature) {
-        header('HTTP/1.1 400 Bad Request');
-        echo json_encode(array('error' => 'Missing required headers'));
-        return;
+    {
+        $input = file_get_contents('php://input');
+        $headers = apache_request_headers();
+        $clientID = isset($headers['X-CLIENT-ID']) ? $headers['X-CLIENT-ID'] : null;
+        $timeStamp = isset($headers['X-TIMESTAMP']) ? $headers['X-TIMESTAMP'] : null;
+        $signature = isset($headers['X-SIGNATURE']) ? $headers['X-SIGNATURE'] : null;
+        if (!$clientID || !$timeStamp || !$signature) {
+            header('HTTP/1.1 400 Bad Request');
+            echo json_encode(array('error' => 'Missing required headers'));
+            return;
+        }
+        $publicKeyPath = APPPATH . 'keys/pubkey.pem';
+        $publicKey = file_get_contents($publicKeyPath);
+        if (!$publicKey) {
+            header('HTTP/1.1 500 Internal Server Error');
+            echo json_encode(array('error' => 'Failed to load public key'));
+            return;
+        }
+        $data = $clientID . "|" . $timeStamp;
+        $keyResource = openssl_get_publickey($publicKey);
+        if (!$keyResource) {
+            header('HTTP/1.1 500 Internal Server Error');
+            echo json_encode(array('error' => 'Invalid public key'));
+            return;
+        }
+        $result = openssl_verify($data, base64_decode($signature), $keyResource, OPENSSL_ALGO_SHA256);
+        openssl_free_key($keyResource);
+        if ($result === 1) {
+            $notificationData = json_decode($input, true);
+            $this->save_to_database($clientID, $timeStamp, $input, true);
+            header('HTTP/1.1 200 OK');
+            echo json_encode(array('message' => 'Notification received and signature valid'));
+        } elseif ($result === 0) {
+            $this->save_to_database($clientID, $timeStamp, $input, false);
+            header('HTTP/1.1 400 Bad Request');
+            echo json_encode(array('error' => 'Invalid signature'));
+        } else {
+            header('HTTP/1.1 500 Internal Server Error');
+            echo json_encode(array('error' => 'Error verifying signature: ' . openssl_error_string()));
+        }
     }
-    $publicKeyPath = APPPATH . 'keys/pubkey.pem';
-    $publicKey = file_get_contents($publicKeyPath);
-    if (!$publicKey) {
-        header('HTTP/1.1 500 Internal Server Error');
-        echo json_encode(array('error' => 'Failed to load public key'));
-        return;
-    }
-    $data = $clientID . "|" . $timeStamp;
-    $keyResource = openssl_get_publickey($publicKey);
-    if (!$keyResource) {
-        header('HTTP/1.1 500 Internal Server Error');
-        echo json_encode(array('error' => 'Invalid public key'));
-        return;
-    }
-    $result = openssl_verify($data, base64_decode($signature), $keyResource, OPENSSL_ALGO_SHA256);
-    openssl_free_key($keyResource);
-    if ($result === 1) {
-        $notificationData = json_decode($input, true);
-        $this->save_to_database($clientID, $timeStamp, $input, true);
-        header('HTTP/1.1 200 OK');
-        echo json_encode(array('message' => 'Notification received and signature valid'));
-    } elseif ($result === 0) {
-        $this->save_to_database($clientID, $timeStamp, $input, false);
-        header('HTTP/1.1 400 Bad Request');
-        echo json_encode(array('error' => 'Invalid signature'));
-    } else {
-        header('HTTP/1.1 500 Internal Server Error');
-        echo json_encode(array('error' => 'Error verifying signature: ' . openssl_error_string()));
-    }
-}
 
-private function save_to_database($clientID, $timeStamp, $notificationData, $isValid)
-{
-    $pdo = new PDO('mysql:host=103.167.35.206:8000;dbname=inventory', 'root', '');
-    $sql = "INSERT INTO bri_notifications (client_id, timestamp, notification_data, signature_valid)
+    private function save_to_database($clientID, $timeStamp, $notificationData, $isValid)
+    {
+        $pdo = new PDO('mysql:host=103.167.35.206:8000;dbname=inventory', 'root', '');
+        $sql = "INSERT INTO bri_notifications (client_id, timestamp, notification_data, signature_valid)
             VALUES (:client_id, :timestamp, :notification_data, :signature_valid)";
 
-    $stmt = $pdo->prepare($sql);
-
-    // Bind parameter
-    $stmt->bindParam(':client_id', $clientID);
-    $stmt->bindParam(':timestamp', $timeStamp);
-    $stmt->bindParam(':notification_data', $notificationData);
-    $stmt->bindParam(':signature_valid', $isValid, PDO::PARAM_BOOL);
-
-    // Eksekusi query
-    $stmt->execute();
-}
-
-
-public function get_push_notif_token()
-{
-    $path = '/snap/v1.0/access-token/b2b';
-    $url = 'https://sandbox.partner.api.bri.co.id' . $path;
-    $timestamp = date('Y-m-d\TH:i:s.vP');
-    $body = json_encode(['grantType' => 'client_credentials']);
-
-    // String to be signed
-    $stringToSign = $this->client_id_push_notif . '|' . $timestamp;
-
-    // Load private key
-    $privateKey = $this->private_key;
-    if ($privateKey === false) {
-        error_log('Error loading private key.');
-        return null;
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':client_id', $clientID);
+        $stmt->bindParam(':timestamp', $timeStamp);
+        $stmt->bindParam(':notification_data', $notificationData);
+        $stmt->bindParam(':signature_valid', $isValid, PDO::PARAM_BOOL);
+        $stmt->execute();
     }
 
-    $keyResource = openssl_pkey_get_private($privateKey);
-    if ($keyResource === false) {
-        error_log('Error loading private key: ' . openssl_error_string());
-        return null;
+
+    public function get_push_notif_token()
+    {
+        $path = '/snap/v1.0/access-token/b2b';
+        $url = 'https://sandbox.partner.api.bri.co.id' . $path;
+        $timestamp = date('Y-m-d\TH:i:s.vP');
+        $body = json_encode(['grantType' => 'client_credentials']);
+        $stringToSign = $this->client_id_push_notif . '|' . $timestamp;
+        $privateKey = $this->private_key;
+        if ($privateKey === false) {
+            error_log('Error loading private key.');
+            return null;
+        }
+        $keyResource = openssl_pkey_get_private($privateKey);
+        if ($keyResource === false) {
+            error_log('Error loading private key: ' . openssl_error_string());
+            return null;
+        }
+        $signature = '';
+        $result = openssl_sign($stringToSign, $signature, $keyResource, OPENSSL_ALGO_SHA256);
+        openssl_free_key($keyResource);
+
+        if (!$result) {
+            error_log('Error signing string: ' . openssl_error_string());
+            return null;
+        }
+        $base64Signature = base64_encode($signature);
+        $headers = [
+            'X-SIGNATURE: ' . $base64Signature,
+            'X-CLIENT-KEY: ' . $this->client_id_push_notif,
+            'X-TIMESTAMP: ' . $timestamp,
+            'Content-Type: application/json',
+        ];
+        $response = $this->send_api_request($url, 'POST', $headers, $body);
+        $json = json_decode($response, true);
+
+        if ($json === null && json_last_error() !== JSON_ERROR_NONE) {
+            error_log('Error decoding JSON response: ' . json_last_error_msg());
+            return null;
+        }
+        return $json;
     }
 
-    // Sign the string
-    $signature = '';
-    $result = openssl_sign($stringToSign, $signature, $keyResource, OPENSSL_ALGO_SHA256);
-    openssl_free_key($keyResource);
+    public function get_push_notif_token_test()
+    {
+        $clientID = $this->client_id;
+        $timeStamp = gmdate('Y-m-d\TH:i:s\Z', time());
+        $data = $clientID . "|" . $timeStamp;
 
-    if (!$result) {
-        error_log('Error signing string: ' . openssl_error_string());
-        return null;
-    }
-
-    $base64Signature = base64_encode($signature);
-
-    // Headers for the request
-    $headers = [
-        'X-SIGNATURE: ' . $base64Signature,
-        'X-CLIENT-KEY: ' . $this->client_id_push_notif,
-        'X-TIMESTAMP: ' . $timestamp,
-        'Content-Type: application/json',
-    ];
-
-    // Send the request and decode response
-    $response = $this->send_api_request($url, 'POST', $headers, $body);
-    $json = json_decode($response, true);
-
-    if ($json === null && json_last_error() !== JSON_ERROR_NONE) {
-        error_log('Error decoding JSON response: ' . json_last_error_msg());
-        return null;
-    }
-
-    return $json;
-}
-
-
-
-
-
-public function get_push_notif_token_test()
-{
-    $clientID = $this->client_id;
-    $timeStamp = gmdate('Y-m-d\TH:i:s\Z', time());
-    $data = $clientID . "|" . $timeStamp;
-    
-    $publicKey = <<<EOD
+        $publicKey = <<<EOD
     -----BEGIN PUBLIC KEY-----
     MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOwe
     HhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jy
@@ -233,26 +212,24 @@ public function get_push_notif_token_test()
     AxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB
     -----END PUBLIC KEY-----
     EOD;
-    $signature = "FmdvyEAcJLlaBsxh0EIgNn0N0025ySKQUWNc1TjZrorB4aWdZ1VUsmOK2t7SGtJ+r0/LZr592vGx7iISy5EMEFOU7oGJDJ4iq9r9Xpg7e/sQBycAiz5WakDCEfupGWW7KKsSc8HFHy+z5JSiiMRBFB0EWuult21lU/pbBrCJIM4ThlZvl3slX1h7Ju0jnLXlxcu0xuOr/g/mkQqbgZptIG9EmIOkuiWrUm6vIU/prFBqFFGTGli/71uQ+hjD7R/Jlzvz1qdZf9XE+Ju/U4eDqrHebBQFI7lSLITVYqihLo5InQ+QgtrbcPL5UKQXXHVt0w6SVZ0CMPwN4PIL2KdYQQ==";
-    $signatureDecoded = base64_decode($signature);
-    $result = openssl_verify($data, $signatureDecoded, $publicKey, OPENSSL_ALGO_SHA256);
-    if ($result === 1) {
-        echo 'Signature is valid.';
-    } elseif ($result === 0) {
-        echo 'Signature is invalid.';
-    } else {
-        echo 'Error verifying signature: ' . openssl_error_string();
+        $signature = "FmdvyEAcJLlaBsxh0EIgNn0N0025ySKQUWNc1TjZrorB4aWdZ1VUsmOK2t7SGtJ+r0/LZr592vGx7iISy5EMEFOU7oGJDJ4iq9r9Xpg7e/sQBycAiz5WakDCEfupGWW7KKsSc8HFHy+z5JSiiMRBFB0EWuult21lU/pbBrCJIM4ThlZvl3slX1h7Ju0jnLXlxcu0xuOr/g/mkQqbgZptIG9EmIOkuiWrUm6vIU/prFBqFFGTGli/71uQ+hjD7R/Jlzvz1qdZf9XE+Ju/U4eDqrHebBQFI7lSLITVYqihLo5InQ+QgtrbcPL5UKQXXHVt0w6SVZ0CMPwN4PIL2KdYQQ==";
+        $signatureDecoded = base64_decode($signature);
+        $result = openssl_verify($data, $signatureDecoded, $publicKey, OPENSSL_ALGO_SHA256);
+        if ($result === 1) {
+            echo 'Signature is valid.';
+        } elseif ($result === 0) {
+            echo 'Signature is invalid.';
+        } else {
+            echo 'Error verifying signature: ' . openssl_error_string();
+        }
     }
-}
 
-
-
-public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
+    public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
 {
     $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
-    $tokenResponse = $this->get_push_notif_token(); // Mengambil respon dari fungsi `get_push_notif_token()`
+    $tokenResponse = $this->get_push_notif_token();
     if (is_array($tokenResponse) && isset($tokenResponse['accessToken'])) {
-        $token = $tokenResponse['accessToken']; // Menggunakan `accessToken` sebagai token
+        $token = $tokenResponse['accessToken'];
     } else {
         throw new Exception("Gagal memperoleh token push notifikasi");
     }
@@ -274,9 +251,7 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
         )
     );
     $body_json = json_encode($body);
-
-    // Memuat kunci privat dari file
-    $privateKeyPath = $this->private_key;
+    $privateKeyPath = APPPATH . 'keys/privkey.pem';
     if (!file_exists($privateKeyPath)) {
         throw new Exception("File kunci privat tidak ditemukan di: " . $privateKeyPath);
     }
@@ -288,8 +263,6 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     if ($keyResource === false) {
         throw new Exception("Gagal memuat kunci privat: " . openssl_error_string());
     }
-
-    // Membuat string yang akan ditandatangani
     $stringToSign = $path . 'POST' . $timestamp . '|' . $token . '|' . $body_json;
     $signature = '';
     $result = openssl_sign($stringToSign, $signature, $keyResource, OPENSSL_ALGO_SHA256);
@@ -298,39 +271,9 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     if (!$result) {
         throw new Exception("Gagal membuat tanda tangan: " . openssl_error_string());
     }
-
     $signatureBase64 = base64_encode($signature);
-
-    // Memuat kunci publik (untuk verifikasi tanda tangan)
-    $publicKeyPath = APPPATH . 'keys/pubkey.pem';
-    if (!file_exists($publicKeyPath)) {
-        throw new Exception("File kunci publik tidak ditemukan di: " . $publicKeyPath);
-    }
-    $publicKey = file_get_contents($publicKeyPath);
-    if ($publicKey === false) {
-        throw new Exception("Gagal membaca kunci publik dari file: " . $publicKeyPath);
-    }
-    $publicKeyResource = openssl_pkey_get_public($publicKey);
-    if ($publicKeyResource === false) {
-        throw new Exception("Gagal memuat kunci publik: " . openssl_error_string());
-    }
-
-    // Verifikasi tanda tangan (opsional, dapat disesuaikan jika diperlukan)
-    $verification = openssl_verify($stringToSign, base64_decode($signatureBase64), $publicKeyResource, OPENSSL_ALGO_SHA256);
-    if ($verification === 1) {
-        // Tanda tangan valid
-        error_log("Verifikasi tanda tangan berhasil.");
-    } elseif ($verification === 0) {
-        // Tanda tangan tidak valid
-        throw new Exception("Verifikasi tanda tangan gagal.");
-    } else {
-        throw new Exception("Kesalahan verifikasi tanda tangan: " . openssl_error_string());
-    }
-    openssl_free_key($publicKeyResource);
-
-    // Header untuk permintaan
     $headers = array(
-        'Authorization: Bearer ' . $token, // Menggunakan `accessToken` di header `Authorization`
+        'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
         'X-SIGNATURE: ' . $signatureBase64,
         'Content-type: application/json',
@@ -338,15 +281,9 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
         'CHANNEL-ID: ' . 'TRFLA',
         'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
     );
-
     $response = $this->send_api_request($url, 'POST', $headers, $body_json);
     return json_decode($response, true);
 }
-
-
-
-
-
 
 
 
@@ -360,13 +297,13 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
         $headers[] = "Connection: keep-alive";
         $headers[] = "Accept-Language: en-US,en;q=0.8,id;q=0.6";
         curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);  // Set method POST
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);    // Set headers
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);       // Set body JSON
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);    // Kembalikan respons sebagai string
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);    // Ikuti redirect (--location)
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);   // Nonaktifkan verifikasi SSL (untuk testing sandbox)
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);   // Nonaktifkan verifikasi host (untuk testing sandbox)
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
         curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36");
         $response = curl_exec($ch);
         if (curl_errno($ch)) {
@@ -479,8 +416,6 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     }
 
 
-
-
     public function payment_va($partnerServiceId, $customerNo, $virtualAccountNo, $virtualAccountName, $sourceAccountNo, $partnerReferenceNo, $paidAmount, $trxDateTime)
     {
         $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
@@ -532,8 +467,8 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
         $token = $this->get_valid_access_token();
         $partnerUrl = 'http://103.167.35.206:8000/bricallback/backend/inquiry_payment_va_callback';
         $endTime = (new DateTime('now', new DateTimeZone('Asia/Jakarta')))
-            ->add(new DateInterval('P1D'))  // Tambahkan 1 hari
-            ->format('Y-m-d\TH:i:sP');  // Format ISO-8601 dengan offset zona waktu
+            ->add(new DateInterval('P1D'))
+            ->format('Y-m-d\TH:i:sP');
         $body = [
             'partnerServiceId' => $partnerServiceId,
             'customerNo' => $customerNo,
@@ -568,9 +503,6 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
         $response = $this->send_api_request($url, 'POST', $headers, $body_json);
         return json_decode($response, true);
     }
-
-
-
 
     public function payment_va_briva($partnerServiceId, $customerNo, $virtualAccountNo, $virtualAccountName, $sourceAccountNo, $partnerReferenceNo, $paidAmount, $trxDateTime)
     {
@@ -609,11 +541,6 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
         $response = $this->send_api_request($url, 'POST', $headers, $body_json);
         return json_decode($response, true);
     }
-
-
-
-
-
 
     public function create_virtual_account($partnerServiceId, $customerNo, $virtualAccountNo, $virtualAccountName, $totalAmountValue, $totalAmountCurrency, $expiredDate, $trxId, $additionalInfo = null)
     {
@@ -705,11 +632,6 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
 
         return json_decode($response, true);
     }
-
-
-
-
-
     public function update_status_va($partnerServiceId, $customerNo, $virtualAccountNo, $trxId, $paidStatus)
     {
         $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
@@ -906,11 +828,9 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
             'startTime' => $startTime,
             'endTime' => $endTime
         ];
-
         $body_json = json_encode($body);
         $external_id = rand(100000000, 999999999);
         $signature = $this->generate_hmac_signature($path, 'POST', $timestamp, $access_token, $body_json);
-
         $headers = [
             'Authorization: Bearer ' . $access_token,
             'X-SIGNATURE: ' . $signature,
@@ -920,10 +840,8 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
             'X-EXTERNAL-ID: ' . $external_id,
             'Content-Type: application/json'
         ];
-
         $url = $this->baseUrl . $path;
         $response = $this->send_api_request($url, 'POST', $headers, $body_json);
-
         return json_decode($response, true);
     }
 
@@ -932,21 +850,16 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
     {
         $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
         $access_token = $this->get_access_token();
-
         $path = '/snap/v1.0/transfer-va/status';
-
         $body = [
             'partnerServiceId' => $partnerServiceId,
             'customerNo' => $customerNo,
             'virtualAccountNo' => $virtualAccountNo,
             'inquiryRequestId' => $inquiryRequestId
         ];
-
-
         $body_json = json_encode($body);
         $external_id = rand(100000000, 999999999);
         $signature = $this->generate_hmac_signature($path, 'POST', $timestamp, $access_token, $body_json);
-
         $headers = [
             'Authorization: Bearer ' . $access_token,
             'X-SIGNATURE: ' . $signature,
@@ -956,10 +869,8 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
             'X-EXTERNAL-ID: ' . $external_id,
             'Content-Type: application/json'
         ];
-
         $url = $this->baseUrl . $path;
         $response = $this->send_api_request($url, 'POST', $headers, $body_json);
-
         return json_decode($response, true);
     }
 
@@ -992,40 +903,27 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-        // Tambahan: Menangani cookie
         $cookieFile = __DIR__ . "/cookie.txt";
         curl_setopt($ch, CURLOPT_COOKIEJAR, $cookieFile);
         curl_setopt($ch, CURLOPT_COOKIEFILE, $cookieFile);
-
-        // Tambahan: Pengaturan User Agent
         curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36");
-
-        // Tambahan: Timeout agar permintaan tidak menggantung
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);  // 30 detik timeout
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);  // 10 detik timeout koneksi
-
-        // Tambahan: Opsi untuk mengikuti redirect jika ada
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_MAXREDIRS, 5);  // Maksimal 5 redirect
-
-        // Metode HTTP
+        curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
         switch (strtoupper($method)) {
             case 'POST':
                 curl_setopt($ch, CURLOPT_POST, true);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
                 break;
-
             case 'PUT':
                 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
                 break;
-
             case 'PATCH':
                 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
                 break;
-
             case 'DELETE':
                 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
@@ -1037,30 +935,18 @@ public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountN
             default:
                 return ['error' => 'Unsupported HTTP method'];
         }
-
-        // Tambahan: Verifikasi SSL dinonaktifkan untuk pengujian sandbox
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-
         $response = curl_exec($ch);
-
-        // Tambahan: Cek respons dan error
         if ($response === false) {
             $error = curl_error($ch);
             curl_close($ch);
             return ['error' => 'CURL Error: ' . $error];
         }
-
         curl_close($ch);
-
-        // Pemanggilan callback jika tersedia
         if (is_callable($callback)) {
             return call_user_func($callback, $response);
         }
-
         return $response;
     }
-
-
-
 }
