@@ -200,14 +200,13 @@ EOD;
     {
         $path = '/snap/v1.0/access-token/b2b';
         $url = 'https://sandbox.partner.api.bri.co.id' . $path;
-        $timestamp = date('Y-m-d\TH:i:s.vP');
-        $body = json_encode(['grantType' => 'client_credentials']);
-        $client_ID = $this->client_id_push_notif;
+        $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
+        $client_ID = $this->client_id;
         $publicKeyPath = APPPATH . 'keys/pubkey.pem';
         $publicKey = file_get_contents($publicKeyPath);
         $stringToSign = $client_ID . "|" . $timestamp;
-        $stringToSignBase64 = base64_encode($stringToSign);
-        $result = openssl_verify($stringToSign, base64_decode($stringToSignBase64), $publicKey, OPENSSL_ALGO_SHA256);
+        $signature = base64_encode($stringToSign);
+        $result = openssl_verify($stringToSign, base64_decode($signature), $publicKey, OPENSSL_ALGO_SHA256);
         if ($result === 1) {
             echo 'Signature is valid.';
         } elseif ($result === 0) {
@@ -216,68 +215,70 @@ EOD;
             echo 'Error verifying signature: ' . openssl_error_string();
         }
         $headers = [
-            'X-SIGNATURE: ' . $result,
-            'X-CLIENT-KEY: ' . $this->client_id_push_notif,
+            'X-SIGNATURE: ' . $signature,
+            'X-CLIENT-KEY: ' . $this->client_id,
             'X-TIMESTAMP: ' . $timestamp,
             'Content-Type: application/json'
         ];
+        $body = json_encode(['grantType' => 'client_credentials']);
         $response = $this->send_api_request($url, 'POST', $headers, $body);
         $json = json_decode($response, true);
         echo json_encode($json);
     }
 
-    public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
-{
-    $tokenResponse = $this->get_push_notif_token();
-    if (is_array($tokenResponse) && isset($tokenResponse['accessToken'])) {
-        $token = $tokenResponse['accessToken'];
-    } else {
-        throw new Exception("Gagal memperoleh token push notifikasi");
-    }
 
-    $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
-    $url = 'https://sandbox.partner.api.bri.co.id' . $path;
-    $body = [
-        'partnerServiceId' => $partnerServiceId,
-        'customerNo' => $customerNo,
-        'virtualAccountNo' => $virtualAccountNo,
-        'paymentRequestId' => $paymentRequestId,
-        'trxDateTime' => $trxDateTime,
-        'additionalInfo' => [
-            'idApp' => 'YPGS',
-            'passApp' => '354324134',
-            'paymentAmount' => $paymentAmount,
-            'terminalId' => '9',
-            'bankId' => '002'
-        ]
-    ];
-    $bodyJson = json_encode($body);
-    $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
-    $clientID = $this->client_id_push_notif;
-    $publicKeyPath = APPPATH . 'keys/pubkey.pem';
-    $publicKey = file_get_contents($publicKeyPath);
-    $signature = base64_encode($clientID);  // BRI Always base64
-    $data = $clientID . "|" . $timestamp;
-    $result = openssl_verify($data, base64_decode($signature), $publicKey, OPENSSL_ALGO_SHA256);
-    if ($result === 1) {
-        echo 'Signature is valid.';
-    } elseif ($result === 0) {
-        echo 'Signature is invalid.';
-    } else {
-        echo 'Error verifying signature: ' . openssl_error_string();
+    public function send_push_notif($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
+    {
+        $tokenResponse = $this->get_push_notif_token();
+        if (is_array($tokenResponse) && isset($tokenResponse['accessToken'])) {
+            $token = $tokenResponse['accessToken'];
+        } else {
+            throw new Exception("Gagal memperoleh token push notifikasi");
+        }
+
+        $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
+        $url = 'https://sandbox.partner.api.bri.co.id' . $path;
+        $body = [
+            'partnerServiceId' => $partnerServiceId,
+            'customerNo' => $customerNo,
+            'virtualAccountNo' => $virtualAccountNo,
+            'paymentRequestId' => $paymentRequestId,
+            'trxDateTime' => $trxDateTime,
+            'additionalInfo' => [
+                'idApp' => 'YPGS',
+                'passApp' => '354324134',
+                'paymentAmount' => $paymentAmount,
+                'terminalId' => '9',
+                'bankId' => '002'
+            ]
+        ];
+        $bodyJson = json_encode($body);
+        $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
+        $clientID = $this->client_id_push_notif;
+        $publicKeyPath = APPPATH . 'keys/pubkey.pem';
+        $publicKey = file_get_contents($publicKeyPath);
+        $signature = base64_encode($clientID);  // BRI Always base64
+        $data = $clientID . "|" . $timestamp;
+        $result = openssl_verify($data, base64_decode($signature), $publicKey, OPENSSL_ALGO_SHA256);
+        if ($result === 1) {
+            echo 'Signature is valid.';
+        } elseif ($result === 0) {
+            echo 'Signature is invalid.';
+        } else {
+            echo 'Error verifying signature: ' . openssl_error_string();
+        }
+        $headers = [
+            'Authorization: Bearer ' . $token,
+            'X-TIMESTAMP: ' . $timestamp,
+            'X-SIGNATURE: ' . $result,
+            'Content-Type: application/json',
+            'X-PARTNER-ID: ' . $this->partner_id,
+            'CHANNEL-ID: ' . 'TRFLA',
+            'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
+        ];
+        $response = $this->send_api_request($url, 'POST', $headers, $bodyJson);
+        return json_decode($response, true);
     }
-    $headers = [
-        'Authorization: Bearer ' . $token,
-        'X-TIMESTAMP: ' . $timestamp,
-        'X-SIGNATURE: ' . $result,
-        'Content-Type: application/json',
-        'X-PARTNER-ID: ' . $this->partner_id,
-        'CHANNEL-ID: ' . 'TRFLA',
-        'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
-    ];
-    $response = $this->send_api_request($url, 'POST', $headers, $bodyJson);
-    return json_decode($response, true);
-}
 
 
 
