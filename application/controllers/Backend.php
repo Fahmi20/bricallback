@@ -48,6 +48,17 @@ class Backend extends CI_Controller
         $this->api->get_push_notif_token_test();
     }
 
+    public function trigger_token() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            show_404();
+        }
+        $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
+        $clientKey = $this->input->get_request_header('X-CLIENT-KEY', TRUE);
+        $timestamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
+        $verificationResult = $this->api->verifySignature($clientKey, $timestamp, $signature);
+        echo json_encode($verificationResult);
+    }
+
 
     public function inquiry_payment_va_briva_controller()
     {

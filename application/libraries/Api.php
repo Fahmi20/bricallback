@@ -53,6 +53,9 @@ ophbwpAlJ8EBZxQqEQJAeE/dQXB7hICB8A5ZAIFAVWQHJPf/Ahj8VDdpIdVzWK0b
 -----END RSA PRIVATE KEY-----
 EOD;
 
+        $this->CI =& get_instance();
+        $this->publicKeyPath = APPPATH . 'keys/pubkey.pem';
+
 
     }
 
@@ -96,61 +99,21 @@ EOD;
         return $this->access_token;
     }
 
-    function handle_bri_notification()
-    {
-        $input = file_get_contents('php://input');
-        $headers = apache_request_headers();
-        $clientID = isset($headers['X-CLIENT-ID']) ? $headers['X-CLIENT-ID'] : null;
-        $timeStamp = isset($headers['X-TIMESTAMP']) ? $headers['X-TIMESTAMP'] : null;
-        $signature = isset($headers['X-SIGNATURE']) ? $headers['X-SIGNATURE'] : null;
-        if (!$clientID || !$timeStamp || !$signature) {
-            header('HTTP/1.1 400 Bad Request');
-            echo json_encode(array('error' => 'Missing required headers'));
-            return;
-        }
-        $publicKeyPath = APPPATH . 'keys/pubkey.pem';
-        $publicKey = file_get_contents($publicKeyPath);
+    public function verifySignature($clientKey, $timestamp, $signature) {
+        $publicKey = file_get_contents($this->publicKeyPath);
         if (!$publicKey) {
-            header('HTTP/1.1 500 Internal Server Error');
-            echo json_encode(array('error' => 'Failed to load public key'));
-            return;
+            return array('status' => 'error', 'message' => 'Public key not found');
         }
-        $data = $clientID . "|" . $timeStamp;
-        $keyResource = openssl_get_publickey($publicKey);
-        if (!$keyResource) {
-            header('HTTP/1.1 500 Internal Server Error');
-            echo json_encode(array('error' => 'Invalid public key'));
-            return;
-        }
-        $result = openssl_verify($data, base64_decode($signature), $keyResource, OPENSSL_ALGO_SHA256);
-        openssl_free_key($keyResource);
+        $stringToVerify = $clientKey . "|" . $timestamp;
+        $result = openssl_verify($stringToVerify, base64_decode($signature), $publicKey, OPENSSL_ALGO_SHA256);
+
         if ($result === 1) {
-            $notificationData = json_decode($input, true);
-            $this->save_to_database($clientID, $timeStamp, $input, true);
-            header('HTTP/1.1 200 OK');
-            echo json_encode(array('message' => 'Notification received and signature valid'));
+            return array('status' => 'success', 'message' => 'Signature is valid');
         } elseif ($result === 0) {
-            $this->save_to_database($clientID, $timeStamp, $input, false);
-            header('HTTP/1.1 400 Bad Request');
-            echo json_encode(array('error' => 'Invalid signature'));
+            return array('status' => 'error', 'message' => 'Signature is invalid');
         } else {
-            header('HTTP/1.1 500 Internal Server Error');
-            echo json_encode(array('error' => 'Error verifying signature: ' . openssl_error_string()));
+            return array('status' => 'error', 'message' => 'Error verifying signature: ' . openssl_error_string());
         }
-    }
-
-    private function save_to_database($clientID, $timeStamp, $notificationData, $isValid)
-    {
-        $pdo = new PDO('mysql:host=103.167.35.206:8000;dbname=inventory', 'root', '');
-        $sql = "INSERT INTO bri_notifications (client_id, timestamp, notification_data, signature_valid)
-            VALUES (:client_id, :timestamp, :notification_data, :signature_valid)";
-
-        $stmt = $pdo->prepare($sql);
-        $stmt->bindParam(':client_id', $clientID);
-        $stmt->bindParam(':timestamp', $timeStamp);
-        $stmt->bindParam(':notification_data', $notificationData);
-        $stmt->bindParam(':signature_valid', $isValid, PDO::PARAM_BOOL);
-        $stmt->execute();
     }
 
 
