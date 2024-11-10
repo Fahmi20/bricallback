@@ -106,7 +106,6 @@ EOD;
         }
         $stringToVerify = $clientKey . "|" . $timestamp;
         $result = openssl_verify($stringToVerify, base64_decode($signature), $publicKey, OPENSSL_ALGO_SHA256);
-
         if ($result === 1) {
             return array('status' => 'success', 'message' => 'Signature is valid');
         } elseif ($result === 0) {
