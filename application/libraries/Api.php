@@ -99,13 +99,14 @@ EOD;
         return $this->access_token;
     }
 
-    public function verifySignature($clientKey, $timestamp, $signature) {
+    public function verifySignature($clientID, $timeStamp, $signature) {
         $publicKey = file_get_contents($this->publicKeyPath);
         if (!$publicKey) {
             return array('status' => 'error', 'message' => 'Public key not found');
         }
-        $stringToVerify = $clientKey . "|" . $timestamp;
-        $result = openssl_verify($stringToVerify, base64_decode($signature), $publicKey, OPENSSL_ALGO_SHA256);
+        $data = $clientID . "|" . $timeStamp;
+        $result = openssl_verify($data, base64_decode($signature), $publicKey, OPENSSL_ALGO_SHA256);
+
         if ($result === 1) {
             return array('status' => 'success', 'message' => 'Signature is valid');
         } elseif ($result === 0) {
