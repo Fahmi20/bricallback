@@ -205,7 +205,7 @@ EOD;
         $publicKeyPath = APPPATH . 'keys/pubkey.pem';
         $publicKey = file_get_contents($publicKeyPath);
         $stringToSign = $client_ID . "|" . $timestamp;
-        $signature = base64_encode(hash_hmac('sha256', $stringToSign, $publicKey, true));
+        $signature = base64_encode($stringToSign);
         $result = openssl_verify($stringToSign, base64_decode($signature), $publicKey, OPENSSL_ALGO_SHA256);
         if ($result === 1) {
             echo 'Signature is valid.';
@@ -220,6 +220,7 @@ EOD;
             'X-TIMESTAMP: ' . $timestamp,
             'Content-Type: application/json'
         ];
+
         echo "X-SIGNATURE: $signature\n";
         echo "X-CLIENT-KEY: $client_ID\n";
         echo "X-TIMESTAMP: $timestamp\n";
