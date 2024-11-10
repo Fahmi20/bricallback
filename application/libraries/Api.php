@@ -201,11 +201,11 @@ EOD;
         $path = '/snap/v1.0/access-token/b2b';
         $url = 'https://sandbox.partner.api.bri.co.id' . $path;
         $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
-        $client_ID = $this->client_id;
+        $client_ID = $this->client_id_push_notif;
         $publicKeyPath = APPPATH . 'keys/pubkey.pem';
         $publicKey = file_get_contents($publicKeyPath);
         $stringToSign = $client_ID . "|" . $timestamp;
-        $signature = base64_encode($stringToSign);
+        $signature = base64_encode(hash_hmac('sha256', $stringToSign, $publicKey, true));
         $result = openssl_verify($stringToSign, base64_decode($signature), $publicKey, OPENSSL_ALGO_SHA256);
         if ($result === 1) {
             echo 'Signature is valid.';
@@ -216,10 +216,14 @@ EOD;
         }
         $headers = [
             'X-SIGNATURE: ' . $signature,
-            'X-CLIENT-KEY: ' . $this->client_id,
+            'X-CLIENT-KEY: ' . $this->client_id_push_notif,
             'X-TIMESTAMP: ' . $timestamp,
             'Content-Type: application/json'
         ];
+        echo "X-SIGNATURE: $signature\n";
+        echo "X-CLIENT-KEY: $client_ID\n";
+        echo "X-TIMESTAMP: $timestamp\n";
+        echo "Result: $result\n";
         $body = json_encode(['grantType' => 'client_credentials']);
         $response = $this->send_api_request($url, 'POST', $headers, $body);
         $json = json_decode($response, true);
