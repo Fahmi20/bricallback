@@ -73,22 +73,16 @@ class Backend extends CI_Controller
         if (strlen($virtualAccountNo) > 28) {
             throw new Exception("virtualAccountNo terlalu panjang. Maksimal 28 karakter.");
         }
-
-        // Debugging untuk memastikan format benar
-        var_dump($virtualAccountNo);  // Contoh: "    7777700000000000001"
-        echo "Panjang virtualAccountNo: " . strlen($virtualAccountNo);  // Harus <= 28
-
-        // Siapkan data untuk request
+        var_dump($virtualAccountNo);
+        echo "Panjang virtualAccountNo: " . strlen($virtualAccountNo);
         $postData = [
-            'partnerServiceId' => trim($partnerServiceId),  // Ditrim untuk dikirim tanpa spasi
+            'partnerServiceId' => trim($partnerServiceId),
             'customerNo' => $customerNo,
             'virtualAccountNo' => $virtualAccountNo,
             'amount' => '12345.00',
             'currency' => 'IDR',
             'inquiryRequestId' => uniqid('inq_')
         ];
-
-        // Panggil API untuk inquiry payment
         $response = $this->api->inquiry_payment_va_briva(
             $postData['partnerServiceId'],
             $postData['customerNo'],
@@ -96,8 +90,6 @@ class Backend extends CI_Controller
             $postData['amount'],
             $postData['inquiryRequestId']
         );
-
-        // Tampilkan respons dalam format JSON
         echo json_encode($response);
     }
 
@@ -360,48 +352,50 @@ class Backend extends CI_Controller
     }
 
     public function create_virtual_account_manual_sisfo()
-    {
-        $partnerServiceId = $this->input->post('partnerServiceId');
-        ;
-        $customerNo = $this->input->post('customerNo');
-        $partnerServiceIdWithSpaces = '   ' . $partnerServiceId;
-        $virtualAccountNo = '   ' . $partnerServiceId . $customerNo;
-        $customerNo = $this->input->post('customerNo');
-        $virtualAccountName = $this->input->post('virtualAccountName');
-        $totalAmount = $this->input->post('totalAmount');
-        $totalAmountCurrency = 'IDR';
-        $expiredDateInput = $this->input->post('expiredDate');
-        $trxId = $this->input->post('trxId');
-        $additionalInfo = $this->input->post('additionalInfo');
-        $trx_nim = $this->input->post('trx_nim');
-        $Jumlah = $this->input->post('Jumlah');
-        if ($Jumlah > 6) {
-            $Jumlah = 6;
-        }
-        $expiredDate = new DateTime($expiredDateInput, new DateTimeZone('Asia/Jakarta'));
-        $expiredDate->modify('+7 years');
-        $expiredDateWithTimezone = $expiredDate->format('Y-m-d\TH:i:sP');
-        $trxDateTime = new DateTime('now', new DateTimeZone('Asia/Jakarta'));
-        $trxDateTimeFormatted = $trxDateTime->format('Y-m-d\TH:i:sP');
-        $responses = [];
-        $errors = [];
-        for ($i = 1; $i <= $Jumlah; $i++) {
-            $partnerReferenceNo = $this->generate_unique_payment_id() . $i;
-            $data = [
-                'partnerServiceId' => $partnerServiceIdWithSpaces,
-                'customerNo' => $customerNo,
-                'virtualAccountNo' => $virtualAccountNo,
-                'virtualAccountName' => $virtualAccountName,
-                'totalAmount' => $totalAmount,
-                'totalAmountCurrency' => $totalAmountCurrency,
-                'expiredDate' => $expiredDateWithTimezone,
-                'trxId' => $trxId . '-' . $i,
-                'additionalInfo' => $additionalInfo,
-                'partnerReferenceNo' => $partnerReferenceNo,
-                'trxDateTime' => $trxDateTimeFormatted,
-                'trx_nim' => $trx_nim,
-                'partNumber' => $i
-            ];
+{
+    $partnerServiceId = $this->input->post('partnerServiceId');
+    $customerNo = $this->input->post('customerNo');
+    $partnerServiceIdWithSpaces = '   ' . $partnerServiceId;
+    $virtualAccountNo = '   ' . $partnerServiceId . $customerNo;
+    $virtualAccountName = $this->input->post('virtualAccountName');
+    $totalAmount = $this->input->post('totalAmount');
+    $totalAmountCurrency = 'IDR';
+    $expiredDateInput = $this->input->post('expiredDate');
+    $trxId = $this->input->post('trxId');
+    $additionalInfo = $this->input->post('additionalInfo');
+    $trx_nim = $this->input->post('trx_nim');
+    $Jumlah = $this->input->post('Jumlah');
+
+    if ($Jumlah > 6) {
+        $Jumlah = 6;
+    }
+    $expiredDate = new DateTime($expiredDateInput, new DateTimeZone('Asia/Jakarta'));
+    $expiredDate->modify('+7 years');
+    $expiredDateWithTimezone = $expiredDate->format('Y-m-d\TH:i:sP');
+    $trxDateTime = new DateTime('now', new DateTimeZone('Asia/Jakarta'));
+    $trxDateTimeFormatted = $trxDateTime->format('Y-m-d\TH:i:sP');
+    $responses = [];
+    $errors = [];
+
+    for ($i = 1; $i <= $Jumlah; $i++) {
+        $partnerReferenceNo = $this->generate_unique_payment_id() . $i;
+        $data = [
+            'partnerServiceId' => $partnerServiceIdWithSpaces,
+            'customerNo' => $customerNo,
+            'virtualAccountNo' => $virtualAccountNo,
+            'virtualAccountName' => $virtualAccountName,
+            'totalAmount' => $totalAmount,
+            'totalAmountCurrency' => $totalAmountCurrency,
+            'expiredDate' => $expiredDateWithTimezone,
+            'trxId' => $trxId . '-' . $i,
+            'additionalInfo' => $additionalInfo,
+            'partnerReferenceNo' => $partnerReferenceNo,
+            'trxDateTime' => $trxDateTimeFormatted,
+            'trx_nim' => $trx_nim,
+            'partNumber' => $i
+        ];
+
+        try {
             $response = $this->api->create_virtual_account(
                 $data['partnerServiceId'],
                 $data['customerNo'],
@@ -419,39 +413,48 @@ class Backend extends CI_Controller
                     'virtualAccountNo' => $virtualAccountNo,
                     'error' => $response['error']
                 ];
-            } else {
-                $save_status = $this->VirtualAccountModel->save_virtual_account($data);
-
-                if ($save_status) {
-                    $responses[] = [
-                        'virtualAccountNo' => $virtualAccountNo,
-                        'status' => 'success',
-                        'data' => $response
-                    ];
-                } else {
-                    $errors[] = [
-                        'virtualAccountNo' => $virtualAccountNo,
-                        'error' => 'Failed to save to database'
-                    ];
-                }
             }
+        } catch (Exception $e) {
+            // Handle server down or any API exception
+            $errors[] = [
+                'virtualAccountNo' => $virtualAccountNo,
+                'error' => 'API call failed: ' . $e->getMessage()
+            ];
+            $response = null;
         }
-        if (!empty($errors)) {
-            $this->output->set_status_header(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => 'Some Virtual Accounts failed to be created or saved',
-                'errors' => $errors,
-                'success_responses' => $responses
-            ]);
-        } else {
-            echo json_encode([
+        $save_status = $this->VirtualAccountModel->save_virtual_account($data);
+
+        if ($save_status) {
+            $responses[] = [
+                'virtualAccountNo' => $virtualAccountNo,
                 'status' => 'success',
-                'message' => 'All Virtual Accounts created and saved successfully',
-                'responses' => $responses
-            ]);
+                'data' => isset($response) ? $response : null
+            ];
+        } else {
+            $errors[] = [
+                'virtualAccountNo' => $virtualAccountNo,
+                'error' => 'Failed to save to database'
+            ];
         }
     }
+    if (!empty($errors)) {
+        $this->output->set_status_header(500);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Some Virtual Accounts failed to be created or saved',
+            'errors' => $errors,
+            'success_responses' => $responses
+        ]);
+    } else {
+        echo json_encode([
+            'status' => 'success',
+            'message' => 'All Virtual Accounts created and saved successfully',
+            'responses' => $responses
+        ]);
+    }
+}
+
+
 
     public function create_virtual_account_manual()
     {

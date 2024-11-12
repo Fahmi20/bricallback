@@ -7,8 +7,8 @@ class Api
 
     private $public_key;
     private $public_key_path = '/mnt/data/pubkey.pem';
-    private $client_id_push_notif = '4d4776a092ca457e89bd1436f67184a8';
-    private $client_secret_push_notif = 'LyV9XytLCLNOXbmdIaXh9zl4i+PI2mSsXaxU90QR94E=';
+    private $client_id_push_notif = '8kPf12Bc3HxY47RgQwZ5jT6UvRz1';
+    private $client_secret_push_notif = 'Bf45NzPq09XwSa1RtU6Vg8MjYt4R';
     private $token_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/access-token/b2b";
     private $notif_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/transfer-va/notify-payment-intrabank";
     private $public_key_pem = "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB-----END PUBLIC KEY-----";
