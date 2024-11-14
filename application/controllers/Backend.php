@@ -49,13 +49,13 @@ class Backend extends CI_Controller
     }
 
     public function trigger_token_test()
-{
-    // Pastikan request adalah POST
+    {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         echo json_encode(array('status' => 'error', 'message' => 'Invalid request method. Only POST is allowed.'));
         return;
     }
     $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
+    $clientID = $this->input->get_request_header('X-CLIENT-KEY', TRUE);
     $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
     if (empty($signature)) {
         echo json_encode(array('status' => 'error', 'message' => 'Signature not provided'));
@@ -65,9 +65,13 @@ class Backend extends CI_Controller
         echo json_encode(array('status' => 'error', 'message' => 'Timestamp not provided'));
         return;
     }
-    $response = $this->api->verifySignatureTest($signature, $timeStamp);
+    if (empty($clientID)) {
+        echo json_encode(array('status' => 'error', 'message' => 'Client not provided'));
+        return;
+    }
+    $response = $this->api->verifySignatureTest($signature, $timeStamp,$clientID);
     echo json_encode($response);
-}
+    }
 
 
     public function trigger_token() {

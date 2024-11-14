@@ -99,8 +99,7 @@ EOD;
         return $this->access_token;
     }
 
-    public function verifySignatureTest($signature,$timeStamp) {
-        $clientID = $this->client_id_push_notif;
+    public function verifySignatureTest($signature,$timeStamp,$clientID) {
         $publicKey = file_get_contents($this->publicKeyPath);
         if (!$publicKey) {
             return array('status' => 'error', 'message' => 'Public key not found');
