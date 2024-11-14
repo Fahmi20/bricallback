@@ -876,50 +876,30 @@ class Backend extends CI_Controller
     }
 
     public function push_notification_controller()
-{
-    // Mengambil data JSON dari body request
-    $jsonData = json_decode(file_get_contents('php://input'), true);
-
-    // Memeriksa apakah format JSON valid
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        echo json_encode(array('error' => 'Invalid JSON format'));
-        return;
+    {
+        $jsonData = json_decode(file_get_contents('php://input'), true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            echo json_encode(array('error' => 'Invalid JSON format'));
+            return;
+        }
+        $partnerServiceId = isset($jsonData['partnerServiceId']) ? $jsonData['partnerServiceId'] : null;
+        $customerNo = isset($jsonData['customerNo']) ? $jsonData['customerNo'] : null;
+        $virtualAccountNo = isset($jsonData['virtualAccountNo']) ? $jsonData['virtualAccountNo'] : null;
+        $trxDateTimeInput = isset($jsonData['trxDateTime']) ? $jsonData['trxDateTime'] : null;
+        $paymentRequestId = isset($jsonData['paymentRequestId']) ? $jsonData['paymentRequestId'] : null;
+        $paymentAmount = isset($jsonData['paymentAmount']) ? $jsonData['paymentAmount'] : null;
+        $trxDateTime = new DateTime($trxDateTimeInput, new DateTimeZone('Asia/Jakarta'));
+        $trxDateTimeWithTimezone = $trxDateTime->format('Y-m-d\TH:i:sP');
+        $response = $this->api->send_push_notif_test(
+            $partnerServiceId,
+            $customerNo,
+            $virtualAccountNo,
+            $trxDateTimeWithTimezone,
+            $paymentRequestId,
+            $paymentAmount
+        );
+        echo json_encode($response);
     }
-
-    // Mengambil nilai dari JSON request
-    $partnerServiceId = isset($jsonData['partnerServiceId']) ? $jsonData['partnerServiceId'] : null;
-    $customerNo = isset($jsonData['customerNo']) ? $jsonData['customerNo'] : null;
-    $virtualAccountNo = isset($jsonData['virtualAccountNo']) ? $jsonData['virtualAccountNo'] : null;
-    $trxDateTimeInput = isset($jsonData['trxDateTime']) ? $jsonData['trxDateTime'] : null;
-    $paymentRequestId = isset($jsonData['paymentRequestId']) ? $jsonData['paymentRequestId'] : null;
-    $paymentAmount = isset($jsonData['paymentAmount']) ? $jsonData['paymentAmount'] : null;
-
-    // Mengatur waktu transaksi dengan zona waktu Jakarta
-    $trxDateTime = new DateTime($trxDateTimeInput, new DateTimeZone('Asia/Jakarta'));
-    $trxDateTimeWithTimezone = $trxDateTime->format('Y-m-d\TH:i:sP');
-    
-    // Mengambil nilai clientID, timestamp dan signature untuk memanggil send_push_notif_test
-    $clientID = '8kPf12Bc3HxY47RgQwZ5jT6UvRz1';  // Ganti dengan nilai clientID Anda
-    $timeStamp = gmdate('Y-m-d\TH:i:s\Z', time());  // Mengambil timestamp dalam format UTC
-    $signature = 'FmdvyEAcJLlaBsxh0EIgNn0N0025ySKQUWNc1TjZrorB4aWdZ1VUsmOK2t7SGtJ+r0/LZr592vGx7iISy5EMEFOU7oGJDJ4iq9r9Xpg7e/sQBycAiz5WakDCEfupGWW7KKsSc8HFHy+z5JSiiMRBFB0EWuult21lU/pbBrCJIM4ThlZvl3slX1h7Ju0jnLXlxcu0xuOr/g/mkQqbgZptIG9EmIOkuiWrUm6vIU/prFBqFFGTGli/71uQ+hjD7R/Jlzvz1qdZf9XE+Ju/U4eDqrHebBQFI7lSLITVYqihLo5InQ+QgtrbcPL5UKQXXHVt0w6SVZ0CMPwN4PIL2KdYQQ==';  // Ganti dengan signature yang valid, misalnya dari perhitungan di server
-
-    // Memanggil fungsi send_push_notif_test dengan parameter yang sesuai
-    $response = $this->api->send_push_notif_test(
-        $clientID,           // clientID
-        $timeStamp,          // timeStamp
-        $signature,          // signature
-        $partnerServiceId,   // partnerServiceId
-        $customerNo,         // customerNo
-        $virtualAccountNo,   // virtualAccountNo
-        $trxDateTimeWithTimezone,  // trxDateTime
-        $paymentRequestId,   // paymentRequestId
-        $paymentAmount       // paymentAmount
-    );
-
-    // Mengirimkan respon ke client
-    echo json_encode($response);
-}
-
 
 
     public function get_virtual_account_data()

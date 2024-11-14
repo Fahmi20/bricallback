@@ -285,35 +285,14 @@ EOD;
         return json_decode($response, true);
     }
 
-    public function send_push_notif_test($clientID, $timeStamp, $signature, $partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
+    public function send_push_notif_test($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
 {
+    $clientID = $this->client_id_push_notif;
     $tokenResponse = $this->get_push_notif_token();
-        if (is_array($tokenResponse) && isset($tokenResponse['accessToken'])) {
-            $token = $tokenResponse['accessToken'];
-        } else {
-            throw new Exception("Gagal memperoleh token push notifikasi");
-        }
-    $publicKey = file_get_contents($this->publicKeyPath);
-    if (!$publicKey) {
-        return array('status' => 'error', 'message' => 'Public key not found');
-    }
-    $data = $clientID . "|" . $timeStamp;
-    $decodedSignature = base64_decode($signature);
-    if ($decodedSignature === false) {
-        return array('status' => 'error', 'message' => 'Invalid signature format');
-    }
-    $publicKeyResource = openssl_pkey_get_public($publicKey);
-    if (!$publicKeyResource) {
-        return array('status' => 'error', 'message' => 'Invalid public key');
-    }
-    $result = openssl_verify($data, $decodedSignature, $publicKeyResource, OPENSSL_ALGO_SHA256);
-    openssl_free_key($publicKeyResource);
-    if ($result === 1) {
-        $signatureStatus = 'Signature is valid';
-    } elseif ($result === 0) {
-        $signatureStatus = 'Signature is invalid';
+    if (is_array($tokenResponse) && isset($tokenResponse['accessToken'])) {
+        $token = $tokenResponse['accessToken'];
     } else {
-        return array('status' => 'error', 'message' => 'Error verifying signature: ' . openssl_error_string());
+        throw new Exception("Gagal memperoleh token push notifikasi");
     }
     $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
     $url = 'https://sandbox.partner.api.bri.co.id' . $path;
@@ -334,7 +313,7 @@ EOD;
     $bodyJson = json_encode($body);
     $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
     $dataForSignature = $clientID . "|" . $timestamp;
-    $generatedSignature = base64_encode($dataForSignature);
+    $generatedSignature = base64_encode(hash('sha256', $dataForSignature, true)); // Corrected signature generation
     $headers = [
         'Authorization: Bearer ' . $token,
         'X-TIMESTAMP: ' . $timestamp,
@@ -347,6 +326,8 @@ EOD;
     $response = $this->send_api_request($url, 'POST', $headers, $bodyJson);
     return json_decode($response, true);
 }
+
+
 
 
 
