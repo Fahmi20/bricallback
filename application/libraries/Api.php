@@ -99,6 +99,35 @@ EOD;
         return $this->access_token;
     }
 
+    public function verifySignatureTest($signature) {
+        $clientID = $this->client_id_push_notif;  // Client ID Anda
+        $timeStamp = date('Y-m-d\TH:i:s.vP');  // Timestamp sesuai format yang diperlukan
+        $publicKey = file_get_contents($this->publicKeyPath);  // Membaca public key dari path
+        if (!$publicKey) {
+            return array('status' => 'error', 'message' => 'Public key not found');
+        }
+        $data = $clientID . "|" . $timeStamp;
+        $decodedSignature = base64_decode($signature);
+        if ($decodedSignature === false) {
+            return array('status' => 'error', 'message' => 'Invalid signature format');
+        }
+        $publicKeyResource = openssl_get_publickey($publicKey);
+        if (!$publicKeyResource) {
+            return array('status' => 'error', 'message' => 'Invalid public key');
+        }
+        $result = openssl_verify($data, $decodedSignature, $publicKeyResource, OPENSSL_ALGO_SHA256);
+        openssl_free_key($publicKeyResource);
+        if ($result === 1) {
+            return array('status' => 'success', 'message' => 'Signature is valid');
+        } elseif ($result === 0) {
+            return array('status' => 'error', 'message' => 'Signature is invalid');
+        } else {
+            return array('status' => 'error', 'message' => 'Error verifying signature: ' . openssl_error_string());
+        }
+    }
+    
+    
+
     public function verifySignature($clientID, $timeStamp, $signature) {
         $publicKey = file_get_contents($this->publicKeyPath);
         if (!$publicKey) {
