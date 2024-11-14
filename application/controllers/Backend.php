@@ -3,9 +3,6 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 class Backend extends CI_Controller
 {
-    private $allowed_origins = [
-        'https://sandbox.bri.co.id'
-    ];
     public function __construct()
     {
         parent::__construct();
@@ -15,7 +12,6 @@ class Backend extends CI_Controller
         $this->load->library('form_validation');
         $this->load->library('session');
         $this->load->model('VirtualAccountModel');
-        $this->enable_cors();
         date_default_timezone_set('Asia/Jakarta');
     }
 
@@ -49,7 +45,7 @@ class Backend extends CI_Controller
     }
 
     public function trigger_token_test()
-{
+    {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         echo json_encode(array('status' => 'error', 'message' => 'Invalid request method. Only POST is allowed.'));
         return;
@@ -57,7 +53,6 @@ class Backend extends CI_Controller
     $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
     $clientID = $this->input->get_request_header('X-CLIENT-KEY', TRUE);
     $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
-
     if (empty($signature)) {
         echo json_encode(array('status' => 'error', 'message' => 'Signature not provided'));
         return;
@@ -890,7 +885,7 @@ class Backend extends CI_Controller
         $paymentAmount = isset($jsonData['paymentAmount']) ? $jsonData['paymentAmount'] : null;
         $trxDateTime = new DateTime($trxDateTimeInput, new DateTimeZone('Asia/Jakarta'));
         $trxDateTimeWithTimezone = $trxDateTime->format('Y-m-d\TH:i:sP');
-        $response = $this->api->send_push_notif_test(
+        $response = $this->api->send_push_notif(
             $partnerServiceId,
             $customerNo,
             $virtualAccountNo,
@@ -1121,24 +1116,6 @@ class Backend extends CI_Controller
             echo json_encode($response);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Gagal menyimpan data ke database']);
-        }
-    }
-
-    private function enable_cors()
-    {
-        $allowed_origins = ['https://sandbox.bri.co.id'];
-        $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
-        if (in_array($origin, $allowed_origins)) {
-            header('Access-Control-Allow-Origin: ' . $origin);
-        } else {
-            header('Access-Control-Allow-Origin: *');
-        }
-        header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
-        header('Access-Control-Allow-Headers: Authorization, Content-Type, X-Requested-With');
-        header('Access-Control-Allow-Credentials: true');
-        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-            header('HTTP/1.1 200 OK');
-            exit();
         }
     }
 

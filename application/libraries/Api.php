@@ -143,7 +143,6 @@ EOD;
         }
         $data = $clientID . "|" . $timeStamp;
         $result = openssl_verify($data, base64_decode($signature), $publicKey, OPENSSL_ALGO_SHA256);
-
         if ($result === 1) {
             return array('status' => 'success', 'message' => 'Signature is valid');
         } elseif ($result === 0) {
@@ -284,52 +283,6 @@ EOD;
         $response = $this->send_api_request($url, 'POST', $headers, $bodyJson);
         return json_decode($response, true);
     }
-
-    public function send_push_notif_test($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
-{
-    $clientID = $this->client_id_push_notif;
-    $tokenResponse = $this->get_push_notif_token();
-    if (is_array($tokenResponse) && isset($tokenResponse['accessToken'])) {
-        $token = $tokenResponse['accessToken'];
-    } else {
-        throw new Exception("Gagal memperoleh token push notifikasi");
-    }
-    $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
-    $url = 'https://sandbox.partner.api.bri.co.id' . $path;
-    $body = [
-        'partnerServiceId' => $partnerServiceId,
-        'customerNo' => $customerNo,
-        'virtualAccountNo' => $virtualAccountNo,
-        'paymentRequestId' => $paymentRequestId,
-        'trxDateTime' => $trxDateTime,
-        'additionalInfo' => [
-            'idApp' => 'YPGS',
-            'passApp' => '354324134',
-            'paymentAmount' => $paymentAmount,
-            'terminalId' => '9',
-            'bankId' => '002'
-        ]
-    ];
-    $bodyJson = json_encode($body);
-    $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
-    $dataForSignature = $clientID . "|" . $timestamp;
-    $generatedSignature = base64_encode(hash('sha256', $dataForSignature, true)); // Corrected signature generation
-    $headers = [
-        'Authorization: Bearer ' . $token,
-        'X-TIMESTAMP: ' . $timestamp,
-        'X-SIGNATURE: ' . $generatedSignature,
-        'Content-Type: application/json',
-        'X-PARTNER-ID: ' . $this->partner_id,
-        'CHANNEL-ID: ' . 'TRFLA',
-        'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
-    ];
-    $response = $this->send_api_request($url, 'POST', $headers, $bodyJson);
-    return json_decode($response, true);
-}
-
-
-
-
 
     public function send_api_request_push_notif($url, $method, $headers, $body, $callback = null)
     {
