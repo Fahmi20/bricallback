@@ -100,11 +100,13 @@ EOD;
     }
 
     public function verifySignatureTest($signature,$timeStamp,$clientID) {
+        
         $publicKey = file_get_contents($this->publicKeyPath);
         if (!$publicKey) {
             return array('status' => 'error', 'message' => 'Public key not found');
         }
         $data = $clientID . "|" . $timeStamp;
+        
         $decodedSignature = base64_decode($signature);
         if ($decodedSignature === false) {
             return array('status' => 'error', 'message' => 'Invalid signature format');
@@ -114,6 +116,7 @@ EOD;
             return array('status' => 'error', 'message' => 'Invalid public key');
         }
         $result = openssl_verify($data, $decodedSignature, $publicKeyResource, OPENSSL_ALGO_SHA256);
+        error_log("Verification Result: " . $result);  // Log hasil verifikasi
         openssl_free_key($publicKeyResource);
         if ($result === 1) {
             return array('status' => 'success', 'message' => 'Signature is valid');
