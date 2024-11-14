@@ -99,27 +99,36 @@ EOD;
         return $this->access_token;
     }
 
-    public function verifySignatureTest($signature,$timeStamp,$clientID) {
-        
+    public function verifySignatureTest($signature, $timeStamp, $clientID) {
         $publicKey = file_get_contents($this->publicKeyPath);
         if (!$publicKey) {
             return array('status' => 'error', 'message' => 'Public key not found');
         }
         $data = $clientID . "|" . $timeStamp;
-        
         $decodedSignature = base64_decode($signature);
         if ($decodedSignature === false) {
             return array('status' => 'error', 'message' => 'Invalid signature format');
         }
-        $publicKeyResource = openssl_get_publickey($publicKey);
+        $publicKeyResource = openssl_pkey_get_public($publicKey);
         if (!$publicKeyResource) {
             return array('status' => 'error', 'message' => 'Invalid public key');
         }
         $result = openssl_verify($data, $decodedSignature, $publicKeyResource, OPENSSL_ALGO_SHA256);
-        error_log("Verification Result: " . $result);  // Log hasil verifikasi
         openssl_free_key($publicKeyResource);
+        
         if ($result === 1) {
-            return array('status' => 'success', 'message' => 'Signature is valid');
+            $path = '/snap/v1.0/access-token/b2b';
+            $url = 'https://sandbox.partner.api.bri.co.id' . $path;
+            $body = json_encode(['grantType' => 'client_credentials']);
+            $headers = [
+                'X-SIGNATURE: ' . $signature,
+                'X-CLIENT-KEY: ' . $clientID,
+                'X-TIMESTAMP: ' . $timeStamp,
+                'Content-Type: application/json',
+            ];
+            $response = $this->send_api_request($url, 'POST', $headers, $body);
+            $json = json_decode($response, true);
+            return $json;
         } elseif ($result === 0) {
             return array('status' => 'error', 'message' => 'Signature is invalid');
         } else {
@@ -127,8 +136,6 @@ EOD;
         }
     }
     
-    
-
     public function verifySignature($clientID, $timeStamp, $signature) {
         $publicKey = file_get_contents($this->publicKeyPath);
         if (!$publicKey) {
@@ -278,7 +285,68 @@ EOD;
         return json_decode($response, true);
     }
 
-
+    public function send_push_notif_test($clientID, $timeStamp, $signature, $partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
+{
+    $tokenResponse = $this->get_push_notif_token();
+        if (is_array($tokenResponse) && isset($tokenResponse['accessToken'])) {
+            $token = $tokenResponse['accessToken'];
+        } else {
+            throw new Exception("Gagal memperoleh token push notifikasi");
+        }
+    $publicKey = file_get_contents($this->publicKeyPath);
+    if (!$publicKey) {
+        return array('status' => 'error', 'message' => 'Public key not found');
+    }
+    $data = $clientID . "|" . $timeStamp;
+    $decodedSignature = base64_decode($signature);
+    if ($decodedSignature === false) {
+        return array('status' => 'error', 'message' => 'Invalid signature format');
+    }
+    $publicKeyResource = openssl_pkey_get_public($publicKey);
+    if (!$publicKeyResource) {
+        return array('status' => 'error', 'message' => 'Invalid public key');
+    }
+    $result = openssl_verify($data, $decodedSignature, $publicKeyResource, OPENSSL_ALGO_SHA256);
+    openssl_free_key($publicKeyResource);
+    if ($result === 1) {
+        $signatureStatus = 'Signature is valid';
+    } elseif ($result === 0) {
+        $signatureStatus = 'Signature is invalid';
+    } else {
+        return array('status' => 'error', 'message' => 'Error verifying signature: ' . openssl_error_string());
+    }
+    $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
+    $url = 'https://sandbox.partner.api.bri.co.id' . $path;
+    $body = [
+        'partnerServiceId' => $partnerServiceId,
+        'customerNo' => $customerNo,
+        'virtualAccountNo' => $virtualAccountNo,
+        'paymentRequestId' => $paymentRequestId,
+        'trxDateTime' => $trxDateTime,
+        'additionalInfo' => [
+            'idApp' => 'YPGS',
+            'passApp' => '354324134',
+            'paymentAmount' => $paymentAmount,
+            'terminalId' => '9',
+            'bankId' => '002'
+        ]
+    ];
+    $bodyJson = json_encode($body);
+    $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
+    $dataForSignature = $clientID . "|" . $timestamp;
+    $generatedSignature = base64_encode($dataForSignature);
+    $headers = [
+        'Authorization: Bearer ' . $token,
+        'X-TIMESTAMP: ' . $timestamp,
+        'X-SIGNATURE: ' . $generatedSignature,
+        'Content-Type: application/json',
+        'X-PARTNER-ID: ' . $this->partner_id,
+        'CHANNEL-ID: ' . 'TRFLA',
+        'X-EXTERNAL-ID: ' . rand(100000000, 999999999)
+    ];
+    $response = $this->send_api_request($url, 'POST', $headers, $bodyJson);
+    return json_decode($response, true);
+}
 
 
 
