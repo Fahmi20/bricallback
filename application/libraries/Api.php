@@ -99,10 +99,9 @@ EOD;
         return $this->access_token;
     }
 
-    public function verifySignatureTest($signature) {
-        $clientID = $this->client_id_push_notif;  // Client ID Anda
-        $timeStamp = date('Y-m-d\TH:i:s.vP');  // Timestamp sesuai format yang diperlukan
-        $publicKey = file_get_contents($this->publicKeyPath);  // Membaca public key dari path
+    public function verifySignatureTest($signature,$timeStamp) {
+        $clientID = $this->client_id_push_notif;
+        $publicKey = file_get_contents($this->publicKeyPath);
         if (!$publicKey) {
             return array('status' => 'error', 'message' => 'Public key not found');
         }
