@@ -157,6 +157,20 @@ class VirtualAccountModel extends CI_Model
         }
     }
 
+    public function get_failed_virtual_accounts()
+    {
+        $this->db->where('resend', 1);
+        return $this->db->get('virtual_accounts')->result_array();
+    }
+
+    public function update_virtual_account_status($id, $data)
+    {
+        $this->db->where('virtualAccountNo', $id);
+        return $this->db->update('virtual_accounts', $data);
+    }
+
+
+
 
     public function get_all_virtual_accounts()
     {
@@ -212,6 +226,18 @@ class VirtualAccountModel extends CI_Model
 
         if ($query->num_rows() > 0) {
             return $query->row()->partnerReferenceNo;
+        }
+        return false;
+    }
+
+    public function get_Status($customerNo)
+    {
+        $this->db->select('Status');
+        $this->db->where('customerNo', $customerNo);
+        $query = $this->db->get('virtual_accounts'); // Sesuaikan nama tabel Anda
+
+        if ($query->num_rows() > 0) {
+            return $query->row()->Status;
         }
         return false;
     }

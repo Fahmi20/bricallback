@@ -9,19 +9,26 @@
     <div class="col-md-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <h6 class="card-title">Riwayat Status Create VA</h6>
+                <h6 class="card-title">WEBHOOK CREATE VA</h6>
                 <div class="table-responsive" style="margin-top: 10px;">
-                    <table id="table_va" style="width: 100%;" class="table table-bordered">
+                    <table id="table_va" style="width: 100%;" class="table">
                         <thead>
                             <tr>
                                 <th>No</th>
-                                <th style="text-align: center;"></th>
-                                <th style="text-align: center;"></th>
-                                <th style="text-align: center;"></th>
-                                <th style="text-align: center;"></th>
-                                <th style="text-align: center;"></th>
+                                <th>Nomor Partner Reference</th>
+                                <th>Nomor Virtual Account</th>
+                                <th>Status Pembayaran</th>
+                                <th>Nama</th>
+                                <th>Total Amount</th>
+                                <th>Expire Date</th>
+                                <th>Trx ID</th>
+                                <th>Deskripsi</th>
+                                <th>Status</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
+                        <tbody>
+                        </tbody>
                     </table>
                 </div>
             </div>

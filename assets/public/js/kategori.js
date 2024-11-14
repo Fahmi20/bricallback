@@ -101,6 +101,11 @@ $(document).ready(function () {
 				render: function (data, type, row) {
 					return `<div style="text-align:center;">${row.additionalInfo.description}</div>`;
 				},
+			},{
+				data: "Status",
+				render: function (data, type, row) {
+					return `<div style="text-align:center;">${row.Status}</div>`;
+				},
 			},
 			{
 				data: null,

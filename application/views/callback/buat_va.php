@@ -13,7 +13,6 @@
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambah">
                     <i data-feather="plus"></i> BUAT TAGIHAN
                 </button>
-
                 <div class="table-responsive" style="margin-top: 10px;">
                     <table id="table_va" style="width: 100%;" class="table">
                         <thead>
@@ -29,11 +28,11 @@
                                 <th>Expire Date</th>
                                 <th>Trx ID</th>
                                 <th>Deskripsi</th>
+                                <th>Status</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- DataTables will populate this section -->
                         </tbody>
                     </table>
                 </div>
@@ -42,9 +41,6 @@
     </div>
 </div>
 
-
-
-<!-- Modal for Creating Virtual Account -->
 <div class="modal fade" id="tambah" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="false">
     <div class="modal-dialog">
         <div class="modal-content">

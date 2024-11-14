@@ -392,7 +392,8 @@ class Backend extends CI_Controller
             'partnerReferenceNo' => $partnerReferenceNo,
             'trxDateTime' => $trxDateTimeFormatted,
             'trx_nim' => $trx_nim,
-            'partNumber' => $i
+            'partNumber' => $i,
+            'resend' => 0 
         ];
 
         try {
@@ -408,20 +409,30 @@ class Backend extends CI_Controller
                 $data['additionalInfo']
             );
 
-            if (isset($response['error'])) {
+            if ($response['responseCode'] === "2002700") {
+                $data['Status'] = 'success';
+                $data['Deskripsi_Va'] = 'Virtual Account berhasil dibuat';
+            } else {
+                $data['Status'] = 'error';
+                $data['Deskripsi_Va'] = $response['responseMessage'];
+                $data['resend'] = 1;
                 $errors[] = [
                     'virtualAccountNo' => $virtualAccountNo,
-                    'error' => $response['error']
+                    'error' => $response['responseMessage']
                 ];
             }
         } catch (Exception $e) {
-            // Handle server down or any API exception
+            $data['Status'] = 'error';
+            $data['Deskripsi_Va'] = 'API call gagal: ' . $e->getMessage();
+            $data['resend'] = 1;
             $errors[] = [
                 'virtualAccountNo' => $virtualAccountNo,
-                'error' => 'API call failed: ' . $e->getMessage()
+                'error' => 'API call gagal: ' . $e->getMessage()
             ];
             $response = null;
         }
+
+        // Simpan ke database
         $save_status = $this->VirtualAccountModel->save_virtual_account($data);
 
         if ($save_status) {
@@ -433,26 +444,123 @@ class Backend extends CI_Controller
         } else {
             $errors[] = [
                 'virtualAccountNo' => $virtualAccountNo,
-                'error' => 'Failed to save to database'
+                'error' => 'Gagal menyimpan ke database'
             ];
         }
     }
+
     if (!empty($errors)) {
         $this->output->set_status_header(500);
         echo json_encode([
             'status' => 'error',
-            'message' => 'Some Virtual Accounts failed to be created or saved',
+            'message' => 'Beberapa Virtual Account gagal dibuat atau disimpan',
             'errors' => $errors,
             'success_responses' => $responses
         ]);
     } else {
         echo json_encode([
             'status' => 'success',
-            'message' => 'All Virtual Accounts created and saved successfully',
+            'message' => 'Semua Virtual Account berhasil dibuat dan disimpan',
             'responses' => $responses
         ]);
     }
 }
+
+public function resend_failed_virtual_accounts()
+{
+    // Ambil semua entri virtual account dengan resend = 1 dari database
+    $failed_accounts = $this->VirtualAccountModel->get_failed_virtual_accounts();
+
+    $responses = [];
+    $errors = [];
+
+    foreach ($failed_accounts as $account) {
+        // Data virtual account yang gagal
+        $data = [
+            'partnerServiceId' => $account['partnerServiceId'],
+            'customerNo' => $account['customerNo'],
+            'virtualAccountNo' => $account['virtualAccountNo'],
+            'virtualAccountName' => $account['virtualAccountName'],
+            'totalAmount' => $account['totalAmount'],
+            'totalAmountCurrency' => $account['totalAmountCurrency'],
+            'expiredDate' => $account['expiredDate'],
+            'trxId' => $account['trxId'],
+            'additionalInfo' => $account['additionalInfo']
+        ];
+
+        try {
+            // Kirim ulang ke API
+            $response = $this->api->create_virtual_account(
+                $data['partnerServiceId'],
+                $data['customerNo'],
+                $data['virtualAccountNo'],
+                $data['virtualAccountName'],
+                $data['totalAmount'],
+                $data['totalAmountCurrency'],
+                $data['expiredDate'],
+                $data['trxId'],
+                $data['additionalInfo']
+            );
+
+            if ($response['responseCode'] === "2002700") {
+                // Update status di database sebagai berhasil
+                $update_data = [
+                    'Status' => 'success',
+                    'Deskripsi_Va' => 'Virtual Account berhasil dibuat pada percobaan ulang',
+                    'resend' => 0 // Hapus tanda untuk dikirim ulang
+                ];
+                $this->VirtualAccountModel->update_virtual_account_status($account['virtualAccountNo'], $update_data);
+                $responses[] = [
+                    'virtualAccountNo' => $data['virtualAccountNo'],
+                    'status' => 'success',
+                    'message' => 'Dikirim ulang dan berhasil'
+                ];
+            } else {
+                // Update dengan pesan error terbaru
+                $update_data = [
+                    'Status' => 'error',
+                    'Deskripsi_Va' => $response['responseMessage']
+                ];
+                $this->VirtualAccountModel->update_virtual_account_status($account['virtualAccountNo'], $update_data);
+                $errors[] = [
+                    'virtualAccountNo' => $data['virtualAccountNo'],
+                    'error' => $response['responseMessage']
+                ];
+            }
+        } catch (Exception $e) {
+            // Update dengan pesan error jika terjadi exception
+            $update_data = [
+                'Status' => 'error',
+                'Deskripsi_Va' => 'API call gagal pada percobaan ulang: ' . $e->getMessage()
+            ];
+            $this->VirtualAccountModel->update_virtual_account_status($account['virtualAccountNo'], $update_data);
+            $errors[] = [
+                'virtualAccountNo' => $data['virtualAccountNo'],
+                'error' => 'API call gagal pada percobaan ulang: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    // Tampilkan hasil pengiriman ulang
+    if (!empty($errors)) {
+        $this->output->set_status_header(500);
+        echo json_encode([
+            'status' => 'partial_success',
+            'message' => 'Beberapa Virtual Account berhasil dikirim ulang, namun ada yang masih gagal',
+            'errors' => $errors,
+            'success_responses' => $responses
+        ]);
+    } else {
+        echo json_encode([
+            'status' => 'success',
+            'message' => 'Semua Virtual Account yang gagal berhasil dikirim ulang',
+            'responses' => $responses
+        ]);
+    }
+}
+
+
+
 
 
 
@@ -504,7 +612,6 @@ class Backend extends CI_Controller
             $data['trxId'],
             $data['additionalInfo']
         );
-
         if (isset($response['error'])) {
             $this->output->set_status_header(500);
             echo json_encode([
@@ -538,7 +645,6 @@ class Backend extends CI_Controller
     {
         $virtualAccounts = $this->VirtualAccountModel->get_all_virtual_accounts();
         $responses = [];
-
         if ($virtualAccounts) {
             foreach ($virtualAccounts as $virtualAccount) {
                 $data = [
@@ -555,7 +661,9 @@ class Backend extends CI_Controller
                 );
                 $paidStatus = $this->VirtualAccountModel->get_paid_status($data['customerNo']);
                 $partnerReferenceNo = $this->VirtualAccountModel->get_partnerReferenceNo($data['customerNo']);
+                $Status = $this->VirtualAccountModel->get_Status($data['customerNo']);
                 $response['virtualAccountData']['paidStatus'] = $paidStatus ? $paidStatus : 'No Data';
+                $response['virtualAccountData']['Status'] = $Status ? $Status : 'No Data';
                 $response['virtualAccountData']['partnerReferenceNo'] = $partnerReferenceNo ? $partnerReferenceNo : 'No Data';
                 $responses[] = $response;
             }
@@ -777,7 +885,8 @@ class Backend extends CI_Controller
             "trxId" => $virtualAccount->trxId,
             "totalAmountCurrency" => 'IDR',
             "additionalInfo" => $virtualAccount->additionalInfo,
-            "partnerReferenceNo" => $virtualAccount->partnerReferenceNo
+            "partnerReferenceNo" => $virtualAccount->partnerReferenceNo,
+            "Status" => $virtualAccount->Status
         ]);
     }
 
