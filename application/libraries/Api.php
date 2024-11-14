@@ -100,7 +100,8 @@ EOD;
     }
 
     public function verifySignatureTest($signature, $timeStamp, $clientID) {
-        $publicKey = file_get_contents($this->publicKeyPath);
+        $publicKeyPath = $this->publicKeyPath;
+        $publicKey = file_get_contents($publicKeyPath);
         if (!$publicKey) {
             return array('status' => 'error', 'message' => 'Public key not found');
         }
@@ -111,30 +112,19 @@ EOD;
         }
         $publicKeyResource = openssl_pkey_get_public($publicKey);
         if (!$publicKeyResource) {
-            return array('status' => 'error', 'message' => 'Invalid public key');
+            return array('status' => 'error', 'message' => 'Invalid public key format');
         }
         $result = openssl_verify($data, $decodedSignature, $publicKeyResource, OPENSSL_ALGO_SHA256);
         openssl_free_key($publicKeyResource);
-        
         if ($result === 1) {
-            $path = '/snap/v1.0/access-token/b2b';
-            $url = 'https://sandbox.partner.api.bri.co.id' . $path;
-            $body = json_encode(['grantType' => 'client_credentials']);
-            $headers = [
-                'X-SIGNATURE: ' . $signature,
-                'X-CLIENT-KEY: ' . $clientID,
-                'X-TIMESTAMP: ' . $timeStamp,
-                'Content-Type: application/json',
-            ];
-            $response = $this->send_api_request($url, 'POST', $headers, $body);
-            $json = json_decode($response, true);
-            return $json;
+            return array('status' => 'success', 'message' => 'Signature is valid');
         } elseif ($result === 0) {
             return array('status' => 'error', 'message' => 'Signature is invalid');
         } else {
             return array('status' => 'error', 'message' => 'Error verifying signature: ' . openssl_error_string());
         }
     }
+    
     
     public function verifySignature($clientID, $timeStamp, $signature) {
         $publicKey = file_get_contents($this->publicKeyPath);

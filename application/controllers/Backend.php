@@ -45,10 +45,13 @@ class Backend extends CI_Controller
     }
 
     public function trigger_token_test()
-    {
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        echo json_encode(array('status' => 'error', 'message' => 'Invalid request method. Only POST is allowed.'));
-        return;
+{
+    header("Access-Control-Allow-Origin: *");
+    header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+    header("Access-Control-Allow-Headers: X-SIGNATURE, X-CLIENT-KEY, X-TIMESTAMP, Content-Type");
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        http_response_code(200);
+        exit();
     }
     $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
     $clientID = $this->input->get_request_header('X-CLIENT-KEY', TRUE);
@@ -68,6 +71,7 @@ class Backend extends CI_Controller
     $response = $this->api->verifySignatureTest($signature, $timeStamp, $clientID);
     echo json_encode($response);
 }
+
 
 
 
