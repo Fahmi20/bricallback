@@ -102,20 +102,12 @@ EOD;
     public function verifySignatureTest($signature, $timeStamp, $clientID) {
         $publicKeyPath = $this->publicKeyPath;
         $publicKey = file_get_contents($publicKeyPath);
-        if (!$publicKey) {
-            return array('status' => 'error', 'message' => 'Public key not found');
-        }
         $data = $clientID . "|" . $timeStamp;
         $decodedSignature = base64_decode($signature);
         if ($decodedSignature === false) {
             return array('status' => 'error', 'message' => 'Invalid signature format');
         }
-        $publicKeyResource = openssl_pkey_get_public($publicKey);
-        if (!$publicKeyResource) {
-            return array('status' => 'error', 'message' => 'Invalid public key format');
-        }
-        $result = openssl_verify($data, $decodedSignature, $publicKeyResource, OPENSSL_ALGO_SHA256);
-        openssl_free_key($publicKeyResource);
+        $result = openssl_verify($data, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA256);
         if ($result === 1) {
             return array('status' => 'success', 'message' => 'Signature is valid');
         } elseif ($result === 0) {
