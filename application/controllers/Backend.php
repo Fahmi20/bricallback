@@ -34,11 +34,6 @@ class Backend extends CI_Controller
         }
     }
 
-    public function notifikasi()
-    {
-        $this->api->handle_bri_notification();
-    }
-
     public function get_access_token_push_notif()
     {
         $this->api->get_push_notif_token_test();
@@ -878,7 +873,7 @@ public function trigger_token()
         }
     }
 
-    public function push_notification_controller()
+    public function notifikasi()
     {
         $jsonData = json_decode(file_get_contents('php://input'), true);
         if (json_last_error() !== JSON_ERROR_NONE) {
