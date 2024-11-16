@@ -99,7 +99,8 @@ EOD;
         return $this->access_token;
     }
 
-    public function verifySignatureTest($signature, $timeStamp, $clientID) {
+    public function verifySignatureTest($signature, $timeStamp, $clientID)
+    {
         $publicKeyPath = $this->publicKeyPath;
         $publicKey = file_get_contents($publicKeyPath);
         $data = $clientID . "|" . $timeStamp;
@@ -116,15 +117,16 @@ EOD;
             return array('status' => 'error', 'message' => 'Error verifying signature: ' . openssl_error_string());
         }
     }
-    
-    
-    public function verifySignature($clientID, $timeStamp, $signature) {
+
+
+    public function verifySignature($clientID, $timeStamp, $base64signature)
+    {
         $publicKey = file_get_contents($this->publicKeyPath);
         if (!$publicKey) {
             return array('status' => 'error', 'message' => 'Public key not found');
         }
         $data = $clientID . "|" . $timeStamp;
-        $result = openssl_verify($data, base64_decode($signature), $publicKey, OPENSSL_ALGO_SHA256);
+        $result = openssl_verify($data, base64_decode($base64signature), $publicKey, OPENSSL_ALGO_SHA256);
         if ($result === 1) {
             return array('status' => 'success', 'message' => 'Signature is valid');
         } elseif ($result === 0) {
@@ -132,6 +134,17 @@ EOD;
         } else {
             return array('status' => 'error', 'message' => 'Error verifying signature: ' . openssl_error_string());
         }
+        $headers = [
+            'X-CLIENT-KEY: ' . $clientID,
+            'X-TIMESTAMP: ' . $timestamp,
+            'X-SIGNATURE: ' . $base64signature,
+            'Content-Type: application/json'
+        ];
+        $body = json_encode(['grantType' => 'client_credentials']);
+        $path = '/snap/v1.0/access-token/b2b';
+        $url = 'https://sandbox.partner.api.bri.co.id' . $path;
+        $response = $this->send_api_request($url, 'POST', $headers, $body);
+        $json = json_decode($response, true);
     }
 
 
