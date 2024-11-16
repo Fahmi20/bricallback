@@ -34,7 +34,7 @@ class Backend extends CI_Controller
         }
     }
 
-    public function handle_bri_notification()
+    public function notifikasi()
     {
         $this->api->handle_bri_notification();
     }
