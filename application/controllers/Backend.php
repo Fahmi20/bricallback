@@ -75,21 +75,25 @@ class Backend extends CI_Controller
 
 
 
-    public function trigger_token()
-    {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            show_404();
-        }
-        $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
-        $clientID = $this->input->get_request_header('X-CLIENT-KEY', TRUE);
-        $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
-        if (!$signature || !$clientID || !$timeStamp) {
-            echo json_encode(array('status' => 'error', 'message' => 'Invalid headers'));
-            return;
-        }
-        $verificationResult = $this->api->verifySignature($clientID, $timeStamp, $signature);
-        echo json_encode($verificationResult);
+public function trigger_token()
+{
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        show_404();
     }
+    $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
+    $clientID = $this->input->get_request_header('X-CLIENT-KEY', TRUE);
+    $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
+
+    if (!$signature || !$clientID || !$timeStamp) {
+        echo json_encode(array('status' => 'error', 'message' => 'Invalid headers'));
+        return;
+    }
+    $base64signature = base64_encode($signature);
+    $verificationResult = $this->api->verifySignature($clientID, $timeStamp, $base64signature);
+
+    echo json_encode($verificationResult);
+}
+
 
 
     public function inquiry_payment_va_briva_controller()
