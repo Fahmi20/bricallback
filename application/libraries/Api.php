@@ -120,32 +120,31 @@ EOD;
 
 
     public function verifySignature($clientID, $timeStamp, $base64signature)
-    {
-        $publicKey = file_get_contents($this->publicKeyPath);
-        if (!$publicKey) {
-            return array('status' => 'error', 'message' => 'Public key not found');
-        }
-        $data = $clientID . "|" . $timeStamp;
-        $result = openssl_verify($data, base64_decode($base64signature), $publicKey, OPENSSL_ALGO_SHA256);
-        if ($result === 1) {
-            return array('status' => 'success', 'message' => 'Signature is valid');
-        } elseif ($result === 0) {
-            return array('status' => 'error', 'message' => 'Signature is invalid');
-        } else {
-            return array('status' => 'error', 'message' => 'Error verifying signature: ' . openssl_error_string());
-        }
-        $headers = [
-            'X-CLIENT-KEY: ' . $clientID,
-            'X-TIMESTAMP: ' . $timestamp,
-            'X-SIGNATURE: ' . $base64signature,
-            'Content-Type: application/json'
-        ];
-        $body = json_encode(['grantType' => 'client_credentials']);
-        $path = '/snap/v1.0/access-token/b2b';
-        $url = 'https://sandbox.partner.api.bri.co.id' . $path;
-        $response = $this->send_api_request($url, 'POST', $headers, $body);
-        $json = json_decode($response, true);
+{
+    $publicKey = file_get_contents($this->publicKeyPath);
+    if (!$publicKey) {
+        return array('status' => 'error', 'message' => 'Public key not found');
     }
+
+    $data = $clientID . "|" . $timeStamp;
+    $decodedSignature = base64_decode($base64signature);
+    $result = openssl_verify($data, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA256);
+    return array(
+        'status' => $result === 1 ? 'success' : 'error',
+        'message' => $result === 1 ? 'Signature is valid' : ($result === 0 ? 'Signature is invalid' : 'Error verifying signature: ' . openssl_error_string()),
+        'result' => $result,
+        'debug' => array(
+            'clientID' => $clientID,
+            'timeStamp' => $timeStamp,
+            'data' => $data,
+            'base64signature' => $base64signature,
+            'decodedSignature' => bin2hex($decodedSignature),
+            'publicKey' => $publicKey
+        )
+    );
+}
+
+
 
 
     public function get_push_notif_token()
