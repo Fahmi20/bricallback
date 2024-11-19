@@ -101,17 +101,27 @@ EOD;
 
     public function verifySignatureTest($accessToken, $tokenType, $expiresIn, $clientID, $timeStamp, $signature)
 {
-    $publicKeyPath = $this->publicKeyPath;
-    $publicKey = file_get_contents($publicKeyPath);
+    // Public key dalam format PEM
+    $publicKeyPem = "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApncPPyhdHq5P5Cz89+B5WkqxoXAlZyusHa1HC59MRH2n9UNZCJktFe9iaQjpHN0OKXxMnoXbOI/BdVK9xDvpH2WKErks8TTT5xK0bYkdoSVJxlrTOviLRIDqCE2jsKrstK3xCcseAOlNIORZGXw9P+fBr44AAZ44h84H4O0VnjvfHUYhQSSKzcj7rrpMfAwas/6+x7No6v5GWAdpct2jdPkiONZd81xfstDBREhF00EpNFGGhWul2olihXzqI+69kg/mw7LSUnTYh49O9wIaBD7KoBA4m7fZomjqKVw0lKHCRWGGELaip4LREvhwEJLvokR609v924buGGh+P+Mu5QIDAQAB\n-----END PUBLIC KEY-----";
+    $publicKeyResource = openssl_pkey_get_public($publicKeyPem);
+    if ($publicKeyResource === false) {
+        return array('status' => 'error', 'message' => 'Invalid public key format');
+    }
+
+    // Data yang ditandatangani
     $data = $clientID . "|" . $timeStamp;
+
+    // Decode signature dari Base64
     $decodedSignature = base64_decode($signature);
     if ($decodedSignature === false) {
         return array('status' => 'error', 'message' => 'Invalid signature format');
     }
-    $result = openssl_verify($data, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA256);
+
+    // Verifikasi tanda tangan
+    $result = openssl_verify($data, $decodedSignature, $publicKeyResource, OPENSSL_ALGO_SHA256);
     if ($result === 1) {
         return array(
-            'status' => 'Sukses',
+            'status' => 'success',
             'message' => 'Signature is valid',
             'accessToken' => $accessToken,
             'tokenType' => $tokenType,
@@ -123,6 +133,9 @@ EOD;
         return array('status' => 'error', 'message' => 'Error verifying signature: ' . openssl_error_string());
     }
 }
+
+
+
 
 
 
