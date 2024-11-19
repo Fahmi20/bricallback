@@ -83,7 +83,7 @@ public function trigger_token()
         echo json_encode(array('status' => 'error', 'message' => 'Invalid headers'));
         return;
     }
-    $verificationResult = $this->api->verifySignature($clientID, $timeStamp, $signature);
+    $verificationResult = $this->api->verifySignatureTest($clientID, $timeStamp, $signature);
     echo json_encode($verificationResult);
 }
 
