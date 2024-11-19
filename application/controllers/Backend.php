@@ -85,7 +85,6 @@ public function trigger_token()
     }
     $base64signature = base64_encode($signature);
     $verificationResult = $this->api->verifySignature($clientID, $timeStamp, $base64signature);
-
     echo json_encode($verificationResult);
 }
 

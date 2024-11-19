@@ -104,7 +104,7 @@ EOD;
         $publicKeyPath = $this->publicKeyPath;
         $publicKey = file_get_contents($publicKeyPath);
         $data = $clientID . "|" . $timeStamp;
-        $decodedSignature = base64_decode($signature);
+        $decodedSignature = base64_decode($signature); //signature sudah base64 encode
         if ($decodedSignature === false) {
             return array('status' => 'error', 'message' => 'Invalid signature format');
         }
@@ -120,29 +120,25 @@ EOD;
 
 
     public function verifySignature($clientID, $timeStamp, $base64signature)
-{
-    $publicKey = file_get_contents($this->publicKeyPath);
-    if (!$publicKey) {
-        return array('status' => 'error', 'message' => 'Public key not found');
+    {
+        $publicKey = file_get_contents($this->publicKeyPath);
+        $data = $clientID . "|" . $timeStamp;
+        $decodedSignature = base64_decode($base64signature);
+        $result = openssl_verify($data, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA256);
+        return array(
+            'status' => $result === 1 ? 'success' : 'error',
+            'message' => $result === 1 ? 'Signature is valid' : ($result === 0 ? 'Signature is invalid' : 'Error verifying signature: ' . openssl_error_string()),
+            'result' => $result,
+            'body' => array(
+                'clientID' => $clientID,
+                'timeStamp' => $timeStamp,
+                'data' => $data,
+                'base64signature' => $base64signature,
+                'decodedSignature' => $decodedSignature,
+                'publicKey' => $publicKey
+            )
+        );
     }
-
-    $data = $clientID . "|" . $timeStamp;
-    $decodedSignature = base64_decode($base64signature);
-    $result = openssl_verify($data, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA256);
-    return array(
-        'status' => $result === 1 ? 'success' : 'error',
-        'message' => $result === 1 ? 'Signature is valid' : ($result === 0 ? 'Signature is invalid' : 'Error verifying signature: ' . openssl_error_string()),
-        'result' => $result,
-        'debug' => array(
-            'clientID' => $clientID,
-            'timeStamp' => $timeStamp,
-            'data' => $data,
-            'base64signature' => $base64signature,
-            'decodedSignature' => bin2hex($decodedSignature),
-            'publicKey' => $publicKey
-        )
-    );
-}
 
 
 

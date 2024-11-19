@@ -22,6 +22,12 @@ $(document).ready(function () {
 				},
 			},
 			{
+				data: "trxDateTime",
+				render: function (data, type, row) {
+					return `<div style="text-align:center;">${row.trxDateTime}</div>`;
+				},
+			},
+			{
 				data: "partnerReferenceNo",
 				render: function (data, type, row) {
 					return `<div style="text-align:center;">${row.partnerReferenceNo}</div>`;
@@ -32,17 +38,25 @@ $(document).ready(function () {
 				render: function (data, type, row) {
 					return `<div style="text-align:center;">${row.virtualAccountNo}</div>`;
 				},
+			},{
+				data: "Url",
+				render: function (data, type, row) {
+					return `<div style="text-align:center;">${row.Url}</div>`;
+				},
+			},{
+				data: "Status",
+				render: function (data, type, row) {
+					return `<div style="text-align:center;">${row.Status}</div>`;
+				},
 			},
 			{
 				data: "paidStatus",
 				render: function (data, type, row) {
 					let statusText, statusColor, statusIcon;
-
-					// Mengatur ikon dan warna berdasarkan status pembayaran
 					if (row.paidStatus === "Y") {
 						statusText = "Paid";
 						statusColor = "green";
-						statusIcon = "✔️"; // Ikon centang
+						statusIcon = "✔️";
 					} else if (row.paidStatus === "N") {
 						statusText = "Pending";
 						statusColor = "orange";
@@ -92,11 +106,10 @@ $(document).ready(function () {
 				render: function (data, type, row) {
 					return `<div style="text-align:center;">${row.additionalInfo.description}</div>`;
 				},
-			},
-			{
-				data: "Status",
+			},{
+				data: "Remark",
 				render: function (data, type, row) {
-					return `<div style="text-align:center;">${row.Status}</div>`;
+					return `<div style="text-align:center;">${row.Remark}</div>`;
 				},
 			},
 			{

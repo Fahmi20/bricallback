@@ -15,15 +15,18 @@
                         <thead>
                             <tr>
                                 <th>No</th>
-                                <th>Nomor Partner Reference</th>
-                                <th>Nomor Virtual Account</th>
+                                <th>Tanggal</th>
+                                <th>Reference</th>
+                                <th>Nomor Pembayaran</th>
+                                <th>URL</th>
+                                <th>Status</th>
                                 <th>Status Pembayaran</th>
                                 <th>Nama</th>
                                 <th>Total Amount</th>
                                 <th>Expire Date</th>
                                 <th>Trx ID</th>
                                 <th>Deskripsi</th>
-                                <th>Status</th>
+                                <th>Remark</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
