@@ -101,21 +101,27 @@ EOD;
 
     public function verifySignatureTest($accessToken, $tokenType, $expiresIn, $clientID, $timeStamp, $signature)
 {
-    // Public key dalam format PEM
+    // Public key dalam format PEM (pastikan ini sesuai dengan public key yang diberikan oleh BRI)
     $publicKeyPem = "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApncPPyhdHq5P5Cz89+B5WkqxoXAlZyusHa1HC59MRH2n9UNZCJktFe9iaQjpHN0OKXxMnoXbOI/BdVK9xDvpH2WKErks8TTT5xK0bYkdoSVJxlrTOviLRIDqCE2jsKrstK3xCcseAOlNIORZGXw9P+fBr44AAZ44h84H4O0VnjvfHUYhQSSKzcj7rrpMfAwas/6+x7No6v5GWAdpct2jdPkiONZd81xfstDBREhF00EpNFGGhWul2olihXzqI+69kg/mw7LSUnTYh49O9wIaBD7KoBA4m7fZomjqKVw0lKHCRWGGELaip4LREvhwEJLvokR609v924buGGh+P+Mu5QIDAQAB\n-----END PUBLIC KEY-----";
     $publicKeyResource = openssl_pkey_get_public($publicKeyPem);
     if ($publicKeyResource === false) {
         return array('status' => 'error', 'message' => 'Invalid public key format');
     }
 
-    // Data yang ditandatangani
+    // Data yang ditandatangani (sesuaikan format data ini sesuai dengan dokumentasi dari BRI)
     $data = $clientID . "|" . $timeStamp;
+
+    // Debugging: Log data yang ditandatangani
+    // echo "Data to verify: " . $data . "\n"; 
 
     // Decode signature dari Base64
     $decodedSignature = base64_decode($signature);
     if ($decodedSignature === false) {
         return array('status' => 'error', 'message' => 'Invalid signature format');
     }
+
+    // Debugging: Log tanda tangan yang didekode
+    // echo "Decoded Signature: " . bin2hex($decodedSignature) . "\n";
 
     // Verifikasi tanda tangan
     $result = openssl_verify($data, $decodedSignature, $publicKeyResource, OPENSSL_ALGO_SHA256);
@@ -133,6 +139,7 @@ EOD;
         return array('status' => 'error', 'message' => 'Error verifying signature: ' . openssl_error_string());
     }
 }
+
 
 
 
