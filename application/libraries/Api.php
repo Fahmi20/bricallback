@@ -99,24 +99,31 @@ EOD;
         return $this->access_token;
     }
 
-    public function verifySignatureTest($clientID, $timeStamp, $signature)
-    {
-        $publicKeyPath = $this->publicKeyPath;
-        $publicKey = file_get_contents($publicKeyPath);
-        $data = $clientID . "|" . $timeStamp;
-        $decodedSignature = base64_decode($signature);
-        if ($decodedSignature === false) {
-            return array('status' => 'error', 'message' => 'Invalid signature format');
-        }
-        $result = openssl_verify($data, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA256);
-        if ($result === 1) {
-            return array('status' => 'success', 'message' => 'Signature is valid');
-        } elseif ($result === 0) {
-            return array('status' => 'error', 'message' => 'Signature is invalid');
-        } else {
-            return array('status' => 'error', 'message' => 'Error verifying signature: ' . openssl_error_string());
-        }
+    public function verifySignatureTest($accessToken, $tokenType, $expiresIn, $clientID, $timeStamp, $signature)
+{
+    $publicKeyPath = $this->publicKeyPath;
+    $publicKey = file_get_contents($publicKeyPath);
+    $data = $clientID . "|" . $timeStamp;
+    $decodedSignature = base64_decode($signature);
+    if ($decodedSignature === false) {
+        return array('status' => 'error', 'message' => 'Invalid signature format');
     }
+    $result = openssl_verify($data, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA256);
+    if ($result === 1) {
+        return array(
+            'status' => 'success',
+            'message' => 'Signature is valid',
+            'accessToken' => $accessToken,
+            'tokenType' => $tokenType,
+            'expiresIn' => $expiresIn
+        );
+    } elseif ($result === 0) {
+        return array('status' => 'error', 'message' => 'Signature is invalid');
+    } else {
+        return array('status' => 'error', 'message' => 'Error verifying signature: ' . openssl_error_string());
+    }
+}
+
 
 
     public function verifySignature($clientID, $timeStamp, $base64signature)
