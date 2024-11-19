@@ -36,7 +36,7 @@ class Backend extends CI_Controller
 
     public function get_access_token_push_notif()
     {
-        $this->api->get_push_notif_token_test();
+        $this->api->get_push_notif_token();
     }
 
     public function trigger_token_test()
@@ -83,11 +83,9 @@ public function trigger_token()
         echo json_encode(array('status' => 'error', 'message' => 'Invalid headers'));
         return;
     }
-    $base64signature = base64_encode($signature);
-    $verificationResult = $this->api->verifySignature($clientID, $timeStamp, $base64signature);
+    $verificationResult = $this->api->verifySignature($clientID, $timeStamp, $signature);
     echo json_encode($verificationResult);
 }
-
 
 
     public function inquiry_payment_va_briva_controller()

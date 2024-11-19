@@ -119,26 +119,47 @@ EOD;
     }
 
 
-    public function verifySignature($clientID, $timeStamp, $base64signature)
-    {
+    public function verifySignature($clientID, $timeStamp, $signature)
+{
+    try {
+        if (!file_exists($this->publicKeyPath)) {
+            throw new Exception("File kunci publik tidak ditemukan: {$this->publicKeyPath}");
+        }
         $publicKey = file_get_contents($this->publicKeyPath);
+        if ($publicKey === false) {
+            throw new Exception("Gagal membaca kunci publik.");
+        }
         $data = $clientID . "|" . $timeStamp;
-        $decodedSignature = base64_decode($base64signature);
+        $decodedSignature = base64_decode($signature);
+        if ($decodedSignature === false) {
+            throw new Exception("Format tanda tangan Base64 tidak valid.");
+        }
         $result = openssl_verify($data, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA256);
-        return array(
+        if ($result === -1) {
+            throw new Exception("Kesalahan saat memverifikasi tanda tangan: " . openssl_error_string());
+        }
+        return [
             'status' => $result === 1 ? 'success' : 'error',
-            'message' => $result === 1 ? 'Signature is valid' : ($result === 0 ? 'Signature is invalid' : 'Error verifying signature: ' . openssl_error_string()),
+            'message' => $result === 1 ? 'Tanda tangan valid' : 'Tanda tangan tidak valid',
             'result' => $result,
-            'body' => array(
+            'body' => [
                 'clientID' => $clientID,
                 'timeStamp' => $timeStamp,
                 'data' => $data,
-                'base64signature' => $base64signature,
+                'base64signature' => $signature,
                 'decodedSignature' => $decodedSignature,
-                'publicKey' => $publicKey
-            )
-        );
+                'publicKey' => $publicKey,
+            ]
+        ];
+    } catch (Exception $e) {
+        return [
+            'status' => 'error',
+            'message' => $e->getMessage(),
+        ];
     }
+}
+
+
 
 
 
