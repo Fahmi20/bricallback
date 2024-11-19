@@ -111,7 +111,7 @@ EOD;
     $result = openssl_verify($data, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA256);
     if ($result === 1) {
         return array(
-            'status' => 'success',
+            'status' => 'Sukses',
             'message' => 'Signature is valid',
             'accessToken' => $accessToken,
             'tokenType' => $tokenType,
