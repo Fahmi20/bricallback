@@ -75,21 +75,22 @@ public function trigger_token()
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         show_404();
     }
-    $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
-    $clientID = $this->input->get_request_header('X-CLIENT-KEY', TRUE);
-    $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
     $rawInput = file_get_contents('php://input');
     $requestBody = json_decode($rawInput, true);
+    $signature = isset($requestBody['signature']) ? $requestBody['signature'] : null;
+    $clientID = isset($requestBody['clientID']) ? $requestBody['clientID'] : null;
+    $timeStamp = isset($requestBody['timeStamp']) ? $requestBody['timeStamp'] : null;
     $accessToken = isset($requestBody['accessToken']) ? $requestBody['accessToken'] : null;
     $tokenType = isset($requestBody['tokenType']) ? $requestBody['tokenType'] : null;
     $expiresIn = isset($requestBody['expiresIn']) ? $requestBody['expiresIn'] : null;
     if (!$signature || !$clientID || !$timeStamp) {
-        echo json_encode(array('status' => 'error', 'message' => 'Invalid headers'));
+        echo json_encode(array('status' => 'error', 'message' => 'Invalid body parameters'));
         return;
     }
     $verificationResult = $this->api->verifySignatureTest($clientID, $timeStamp, $signature, $accessToken, $tokenType, $expiresIn);
     echo json_encode($verificationResult);
 }
+
 
 
 
