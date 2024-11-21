@@ -78,11 +78,6 @@ public function trigger_token()
     $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
     $clientID = $this->input->get_request_header('X-CLIENT-KEY', TRUE);
     $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
-    $rawInput = file_get_contents('php://input');
-    $requestBody = json_decode($rawInput, true);
-    $accessToken = isset($requestBody['accessToken']) ? $requestBody['accessToken'] : null;
-    $tokenType = isset($requestBody['tokenType']) ? $requestBody['tokenType'] : null;
-    $expiresIn = isset($requestBody['expiresIn']) ? $requestBody['expiresIn'] : null;
     if (!$signature || !$clientID || !$timeStamp) {
         echo json_encode(array('status' => 'error', 'message' => 'Invalid headers'));
         return;
@@ -90,10 +85,7 @@ public function trigger_token()
     $verificationResult = $this->api->verifySignatureTest(
         $clientID, 
         $timeStamp, 
-        $signature,
-        $accessToken, 
-        $tokenType, 
-        $expiresIn
+        $signature
     );
     echo json_encode($verificationResult, JSON_PRETTY_PRINT);
 }
