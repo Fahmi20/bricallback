@@ -107,32 +107,34 @@ EOD;
 
 
     public function verifySignatureTest($clientID, $timeStamp, $signature)
-    {
-        $publicKeyPem = <<<EOD
------BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApncPPyhdHq5P5Cz89+B5WkqxoXAlZyusHa1HC59MRH2n9UNZCJktFe9iaQjpHN0OKXxMnoXbOI/BdVK9xDvpH2WKErks8TTT5xK0bYkdoSVJxlrTOviLRIDqCE2jsKrstK3xCcseAOlNIORZGXw9P+fBr44AAZ44h84H4O0VnjvfHUYhQSSKzcj7rrpMfAwas/6+x7No6v5GWAdpct2jdPkiONZd81xfstDBREhF00EpNFGGhWul2olihXzqI+69kg/mw7LSUnTYh49O9wIaBD7KoBA4m7fZomjqKVw0lKHCRWGGELaip4LREvhwEJLvokR609v924buGGh+P+Mu5QIDAQAB
------END PUBLIC KEY-----
-EOD;
-        $data = $clientID . "|" . $timeStamp;
-        $accessToken = '12345';
-        $expiresIn = '899';
-        $decodedSignature = base64_decode($signature);
-        $result = openssl_verify($data, $decodedSignature, $publicKeyPem, OPENSSL_ALGO_SHA256);
-        if ($result === 1) {
-            $accessToken = $this->generateAccessToken(32);
-            return array(
-                'status' => 'success',
-                'message' => 'Signature is valid',
-                'accessToken' => $accessToken,
-                'tokenType' => 'Bearer',
-                'expiresIn' => '899'
-            );
-        } elseif ($result === 0) {
-            return array('status' => 'error', 'message' => 'Signature is invalid');
-        } else {
-            return array('status' => 'error', 'message' => 'Error verifying signature: ' . openssl_error_string());
-        }
+{
+    $publicKeyBase64 = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApncPPyhdHq5P5Cz89+B5WkqxoXAlZyusHa1HC59MRH2n9UNZCJktFe9iaQjpHN0OKXxMnoXbOI/BdVK9xDvpH2WKErks8TTT5xK0bYkdoSVJxlrTOviLRIDqCE2jsKrstK3xCcseAOlNIORZGXw9P+fBr44AAZ44h84H4O0VnjvfHUYhQSSKzcj7rrpMfAwas/6+x7No6v5GWAdpct2jdPkiONZd81xfstDBREhF00EpNFGGhWul2olihXzqI+69kg/mw7LSUnTYh49O9wIaBD7KoBA4m7fZomjqKVw0lKHCRWGGELaip4LREvhwEJLvokR609v924buGGh+P+Mu5QIDAQAB";
+    $publicKeyPem = "-----BEGIN PUBLIC KEY-----\n" .
+        chunk_split($publicKeyBase64, 64, "\n") .
+        "-----END PUBLIC KEY-----\n";
+    $data = $clientID . "|" . $timeStamp;
+    $decodedSignature = base64_decode($signature);
+    if ($decodedSignature === false) {
+        return array('status' => 'error', 'message' => 'Invalid Base64 encoding for signature');
     }
+    $result = openssl_verify($data, $decodedSignature, $publicKeyPem, OPENSSL_ALGO_SHA256);
+
+    if ($result === 1) {
+        $accessToken = $this->generateAccessToken(32);
+        return array(
+            'status' => 'success',
+            'message' => 'Signature is valid',
+            'accessToken' => $accessToken,
+            'tokenType' => 'Bearer',
+            'expiresIn' => '899'
+        );
+    } elseif ($result === 0) {
+        return array('status' => 'error', 'message' => 'Signature is invalid');
+    } else {
+        return array('status' => 'error', 'message' => 'Error verifying signature: ' . openssl_error_string());
+    }
+}
+
 
     public function verifySignature($clientID, $timeStamp, $base64signature)
     {
