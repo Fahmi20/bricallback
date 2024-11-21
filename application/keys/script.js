@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const clientID = '8kPf12Bc3HxY47RgQwZ5jT6UvRz1';
-const timeStamp = new Date().toISOString();
+const now = new Date();
+const timeStamp = now.toISOString();
 const privateKey = `-----BEGIN RSA PRIVATE KEY-----
 MIIEowIBAAKCAQEAhXzayvOyZ/u00vohd9jUoxtK3H86/4rmo6nF0kTO8/sT7H3c
 KI6cY7nAj440LPpb5IDL+xJ5ojSBQSWAqU4RiT4xiYqpupcr5M/KznI+eI9jxkFW
