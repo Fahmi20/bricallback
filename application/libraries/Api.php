@@ -108,7 +108,7 @@ EOD;
 
     public function verifySignatureTest($clientID, $timeStamp, $signature)
     {
-        $publicKeyPemPath = APPPATH . 'keys/pubkey.pem.';
+        $publicKeyPemPath = 'application/keys/pubkey.pem';
         if (!file_exists($publicKeyPemPath)) {
             return array('status' => 'error', 'message' => 'Public key file not found');
         }
@@ -128,13 +128,13 @@ EOD;
             $accessToken = $this->generateAccessToken(32);
             return array(
                 'status' => 'success',
-                'message' => 'Signature is valid',
+                'message' => 'Signature valid',
                 'accessToken' => $accessToken,
                 'tokenType' => 'Bearer',
                 'expiresIn' => '899'
             );
         } elseif ($result === 0) {
-            return array('status' => 'error', 'message' => 'Signature is invalid');
+            return array('status' => 'error', 'message' => 'Signature invalid');
         } else {
             return array('status' => 'error', 'message' => 'Error verifying signature: ' . openssl_error_string());
         }
