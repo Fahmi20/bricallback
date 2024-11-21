@@ -102,12 +102,11 @@ EOD;
     public function verifySignatureTest($clientID, $timeStamp, $signature)
 {
     $publicKeyPem = "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApncPPyhdHq5P5Cz89+B5WkqxoXAlZyusHa1HC59MRH2n9UNZCJktFe9iaQjpHN0OKXxMnoXbOI/BdVK9xDvpH2WKErks8TTT5xK0bYkdoSVJxlrTOviLRIDqCE2jsKrstK3xCcseAOlNIORZGXw9P+fBr44AAZ44h84H4O0VnjvfHUYhQSSKzcj7rrpMfAwas/6+x7No6v5GWAdpct2jdPkiONZd81xfstDBREhF00EpNFGGhWul2olihXzqI+69kg/mw7LSUnTYh49O9wIaBD7KoBA4m7fZomjqKVw0lKHCRWGGELaip4LREvhwEJLvokR609v924buGGh+P+Mu5QIDAQAB\n-----END PUBLIC KEY-----";
-    $publicKeyResource = openssl_pkey_get_public($publicKeyPem);
     $data = $clientID . "|" . $timeStamp;
     $accessToken = '12345';
     $expiresIn = '899';
     $decodedSignature = base64_decode($signature);
-    $result = openssl_verify($data, $decodedSignature, $publicKeyResource, OPENSSL_ALGO_SHA256);
+    $result = openssl_verify($data, $decodedSignature, $publicKeyPem, OPENSSL_ALGO_SHA256);
     if ($result === 1) {
         return array(
             'status' => 'success',
