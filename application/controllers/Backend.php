@@ -87,22 +87,6 @@ public function trigger_token()
         echo json_encode(array('status' => 'error', 'message' => 'Invalid headers'));
         return;
     }
-    $requestHeader = [
-        'Header' => [
-            'X-SIGNATURE' => $signature,
-            'X-CLIENT-KEY' => $clientID,
-            'X-TIMESTAMP' => $timeStamp
-        ]
-    ];
-    echo json_encode($requestHeader, JSON_PRETTY_PRINT);
-    $requestBodyFormatted = [
-        'Body' => [
-            'accessToken' => $accessToken,
-            'tokenType' => $tokenType,
-            'expiresIn' => $expiresIn
-        ]
-    ];
-    echo json_encode($requestBodyFormatted, JSON_PRETTY_PRINT);
     $verificationResult = $this->api->verifySignatureTest(
         $clientID, 
         $timeStamp, 
