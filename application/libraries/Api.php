@@ -108,7 +108,7 @@ EOD;
 
     public function verifySignatureTest($clientID, $timeStamp, $signature)
 {
-    $publicKeyPemPath = 'application/keys/pubkey.pem';
+    $publicKeyPemPath = 'application/keys/pubkey1.pem';
     if (!file_exists($publicKeyPemPath)) {
         return array('status' => 'error', 'message' => 'File kunci publik tidak ditemukan');
     }
@@ -127,8 +127,6 @@ EOD;
     if ($result === 1) {
         $accessToken = $this->generateAccessToken(32);
         return array(
-            'status' => 'success',
-            'message' => 'Tanda tangan valid',
             'accessToken' => $accessToken,
             'tokenType' => 'Bearer',
             'expiresIn' => '899'
