@@ -107,38 +107,39 @@ EOD;
 
 
     public function verifySignatureTest($clientID, $timeStamp, $signature)
-    {
-        $publicKeyPemPath = 'application/keys/pubkey.pem';
-        if (!file_exists($publicKeyPemPath)) {
-            return array('status' => 'error', 'message' => 'Public key file not found');
-        }
-        $publicKeyPem = file_get_contents($publicKeyPemPath);
-        $publicKey = openssl_pkey_get_public($publicKeyPem);
-        if (!$publicKey) {
-            return array('status' => 'error', 'message' => 'Invalid public key: ' . openssl_error_string());
-        }
-        $data = $clientID . "|" . $timeStamp;
-        $decodedSignature = base64_decode($signature);
-        if ($decodedSignature === false) {
-            return array('status' => 'error', 'message' => 'Invalid Base64 encoding for signature');
-        }
-        $result = openssl_verify($data, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA256);
-        openssl_free_key($publicKey);
-        if ($result === 1) {
-            $accessToken = $this->generateAccessToken(32);
-            return array(
-                'status' => 'success',
-                'message' => 'Signature valid',
-                'accessToken' => $accessToken,
-                'tokenType' => 'Bearer',
-                'expiresIn' => '899'
-            );
-        } elseif ($result === 0) {
-            return array('status' => 'error', 'message' => 'Signature invalid');
-        } else {
-            return array('status' => 'error', 'message' => 'Error verifying signature: ' . openssl_error_string());
-        }
+{
+    $publicKeyPemPath = 'application/keys/pubkey.pem';
+    if (!file_exists($publicKeyPemPath)) {
+        return array('status' => 'error', 'message' => 'File kunci publik tidak ditemukan');
     }
+    $publicKeyPem = file_get_contents($publicKeyPemPath);
+    $publicKey = openssl_pkey_get_public($publicKeyPem);
+    if (!$publicKey) {
+        return array('status' => 'error', 'message' => 'Kunci publik tidak valid: ' . openssl_error_string());
+    }
+    $data = $clientID . "|" . $timeStamp;
+    $decodedSignature = base64_decode($signature);
+    if ($decodedSignature === false) {
+        return array('status' => 'error', 'message' => 'Format Base64 tanda tangan tidak valid');
+    }
+    $result = openssl_verify($data, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA256);
+    openssl_free_key($publicKey);
+    if ($result === 1) {
+        $accessToken = $this->generateAccessToken(32);
+        return array(
+            'status' => 'success',
+            'message' => 'Tanda tangan valid',
+            'accessToken' => $accessToken,
+            'tokenType' => 'Bearer',
+            'expiresIn' => '899'
+        );
+    } elseif ($result === 0) {
+        return array('status' => 'error', 'message' => 'Tanda tangan tidak valid');
+    } else {
+        return array('status' => 'error', 'message' => 'Kesalahan saat memverifikasi tanda tangan: ' . openssl_error_string());
+    }
+}
+
     
 
 
