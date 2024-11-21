@@ -114,7 +114,6 @@ EOD;
         }
         $publicKeyPem = file_get_contents($publicKeyPemPath);
         $publicKey = openssl_pkey_get_public($publicKeyPem);
-        
         if (!$publicKey) {
             return array('status' => 'error', 'message' => 'Invalid public key: ' . openssl_error_string());
         }
