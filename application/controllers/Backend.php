@@ -589,6 +589,77 @@ public function trigger_token()
         }
     }
 
+    public function create_virtual_account_manual_siarraafi()
+    {
+        $partnerServiceId = '03636';//03636
+        $customerNo = $this->input->post('customerNo');
+        $partnerServiceIdWithSpaces = '   ' . $partnerServiceId;
+        $virtualAccountNo = '   ' . $partnerServiceId . $customerNo;
+        $virtualAccountName = $this->input->post('virtualAccountName');
+        $totalAmount = $this->input->post('totalAmount');
+        $totalAmountCurrency = 'IDR';
+        $trxId = $this->input->post('trxId');
+        $additionalInfo = $this->input->post('additionalInfo');
+        $expiredDate = new DateTime('now', new DateTimeZone('Asia/Jakarta'));
+        $expiredDate->modify('+7 years');
+        $expiredDateWithTimezone = $expiredDate->format('Y-m-d\TH:i:sP');
+        $trxDateTime = new DateTime('now', new DateTimeZone('Asia/Jakarta'));
+        $trxDateTimeFormatted = $trxDateTime->format('Y-m-d\TH:i:sP');
+        $currentDateTime = new DateTime('now', new DateTimeZone('Asia/Jakarta'));
+        $startDate = $currentDateTime->format('Y-m-d');
+        $existingAccountData = $this->VirtualAccountModel->get_existing_partnumber();
+        $partNumber = $existingAccountData ? $existingAccountData->partNumber + 1 : 1;
+        $partnerReferenceNo = $this->generate_unique_payment_id() . $partNumber;
+        $data = [
+            'partnerServiceId' => $partnerServiceIdWithSpaces,
+            'customerNo' => $customerNo,
+            'virtualAccountNo' => $virtualAccountNo,
+            'virtualAccountName' => $virtualAccountName,
+            'totalAmount' => $totalAmount,
+            'totalAmountCurrency' => $totalAmountCurrency,
+            'startDate' => $startDate,
+            'expiredDate' => $expiredDateWithTimezone,
+            'trxId' => $trxId,
+            'additionalInfo' => $additionalInfo,
+            'trxDateTime' => $trxDateTimeFormatted,
+            'partnerReferenceNo' => $partnerReferenceNo,
+            'partNumber' => $partNumber
+        ];
+
+        $response = $this->api->create_virtual_account(
+            $data['partnerServiceId'],
+            $data['customerNo'],
+            $data['virtualAccountNo'],
+            $data['virtualAccountName'],
+            $data['totalAmount'],
+            $data['totalAmountCurrency'],
+            $data['expiredDate'],
+            $data['trxId'],
+            $data['additionalInfo']
+        );
+        if (isset($response['error'])) {
+            $this->output->set_status_header(500);
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Failed to create Virtual Account: ' . $response['error'],
+                'response' => $response
+            ]);
+        } else {
+            $save_status = $this->VirtualAccountModel->save_virtual_account($data);
+
+            if ($save_status) {
+                echo json_encode(['status' => 'success', 'data' => $response]);
+            } else {
+                $this->output->set_status_header(500);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Failed to save Virtual Account to database'
+                ]);
+            }
+        }
+    }
+
+
 
 
 
