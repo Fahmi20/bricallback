@@ -1,11 +1,8 @@
 const crypto = require('crypto');
 
-// Data untuk notifikasi
-const authorization = 'PFl0YhcgZWuZ6fn32mkTxbL+b2qDv3dm8Qq+MAUSQ2g=';
-const timestamp = new Date().toISOString();
-const partnerId = '77777';
-const channelId = '12345';
-const externalId = 'externalId123';
+// Data untuk tanda tangan
+const authorization = 'Bearer exampleAccessToken123456'; // Authorization header
+const timestamp = new Date().toISOString();             // X-TIMESTAMP header
 const body = JSON.stringify({
     partnerServiceId: '77777',
     customerNo: '08577508881',
@@ -48,8 +45,8 @@ n79KUlCM/B/9924GMwxcQiFDwd6BZoJrM92yqGo9SogzRvT/iokJRgr2YRVVMxAK
 uimSjqmsEW3lz2qQaRVkoOM=
 -----END PRIVATE KEY-----`;
 
-// Gabungkan data yang akan ditandatangani
-const stringToSign = authorization + '|' + timestamp + '|' + partnerId + '|' + channelId + '|' + externalId + '|' + body;
+// Gabungkan data untuk ditandatangani
+const stringToSign = authorization + '|' + timestamp + '|' + body;
 
 // Buat signature
 const sign = crypto.createSign('SHA512');
@@ -60,8 +57,5 @@ const signature = sign.sign(privateKey, 'base64');
 // Tampilkan header dan body untuk Postman
 console.log('Authorization:', authorization);
 console.log('X-TIMESTAMP:', timestamp);
-console.log('X-PARTNER-ID:', partnerId);
-console.log('CHANNEL-ID:', channelId);
-console.log('X-EXTERNAL-ID:', externalId);
 console.log('X-SIGNATURE:', signature);
 console.log('Body:', body);
