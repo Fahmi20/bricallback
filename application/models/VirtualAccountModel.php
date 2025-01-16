@@ -6,6 +6,17 @@ class VirtualAccountModel extends CI_Model
         return $this->db->insert('virtual_accounts', $data);
     }
 
+    public function saveAccessToken($clientID, $accessToken, $expiresIn) {
+        $data = [
+            'client_id' => $clientID,
+            'access_token' => $accessToken,
+            'expires_in' => $expiresIn,
+            'created_at' => date('Y-m-d H:i:s')
+        ];
+        $this->db->insert('access_tokens', $data);
+        return $this->db->insert_id();
+    }
+
 
     public function save_notification($data)
     {

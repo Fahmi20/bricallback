@@ -70,11 +70,11 @@ class Backend extends CI_Controller
 
 
 
-public function trigger_token()
-{
+public function trigger_token() {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         show_404();
     }
+
     $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
     $clientID = $this->input->get_request_header('X-CLIENT-KEY', TRUE);
     $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
@@ -82,13 +82,22 @@ public function trigger_token()
         echo json_encode(array('status' => 'error', 'message' => 'Invalid headers'));
         return;
     }
-    $verificationResult = $this->api->verifySignatureTest(
-        $clientID, 
-        $timeStamp, 
-        $signature
-    );
-    echo json_encode($verificationResult, JSON_PRETTY_PRINT);
+    $verificationResult = $this->api->verifySignatureTest($clientID, $timeStamp, $signature);
+    if (isset($verificationResult['accessToken'])) {
+        $accessToken = $verificationResult['accessToken'];
+        $expiresIn = $verificationResult['expiresIn'];
+        $this->load->model('TokenModel');
+        $tokenId = $this->TokenModel->saveAccessToken($clientID, $accessToken, $expiresIn);
+        echo json_encode([
+            'status' => 'success',
+            'message' => 'Access token saved successfully',
+            'tokenId' => $tokenId
+        ], JSON_PRETTY_PRINT);
+    } else {
+        echo json_encode($verificationResult, JSON_PRETTY_PRINT);
+    }
 }
+
 
 public function notifikasi()
 {
