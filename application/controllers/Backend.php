@@ -86,8 +86,7 @@ public function trigger_token() {
     if (isset($verificationResult['accessToken'])) {
         $accessToken = $verificationResult['accessToken'];
         $expiresIn = $verificationResult['expiresIn'];
-        $this->load->model('TokenModel');
-        $tokenId = $this->TokenModel->saveAccessToken($clientID, $accessToken, $expiresIn);
+        $tokenId = $this->VirtualAccountModel->saveAccessToken($clientID, $accessToken, $expiresIn);
         echo json_encode([
             'status' => 'success',
             'message' => 'Access token saved successfully',
