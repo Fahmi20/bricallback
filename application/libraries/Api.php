@@ -138,6 +138,65 @@ EOD;
     }
 }
 
+public function validateSignature($authorization, $timestamp, $signature, $body)
+{
+    // Lokasi kunci publik
+    $publicKeyPemPath = APPPATH . 'keys/pubkey1.pem';
+
+    if (!file_exists($publicKeyPemPath)) {
+        return [
+            'status' => 'error',
+            'message' => 'File kunci publik tidak ditemukan'
+        ];
+    }
+
+    // Muat kunci publik
+    $publicKeyPem = file_get_contents($publicKeyPemPath);
+    $publicKey = openssl_pkey_get_public($publicKeyPem);
+
+    if (!$publicKey) {
+        return [
+            'status' => 'error',
+            'message' => 'Kunci publik tidak valid: ' . openssl_error_string()
+        ];
+    }
+
+    // Data untuk diverifikasi
+    $data = $authorization . "|" . $timestamp . "|" . $body;
+
+    // Decode tanda tangan
+    $decodedSignature = base64_decode($signature);
+
+    if ($decodedSignature === false) {
+        return [
+            'status' => 'error',
+            'message' => 'Format Base64 tanda tangan tidak valid'
+        ];
+    }
+
+    // Verifikasi tanda tangan
+    $result = openssl_verify($data, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA512);
+    openssl_free_key($publicKey);
+
+    if ($result === 1) {
+        return [
+            'status' => 'success',
+            'message' => 'Signature valid'
+        ];
+    } elseif ($result === 0) {
+        return [
+            'status' => 'error',
+            'message' => 'Signature tidak valid'
+        ];
+    } else {
+        return [
+            'status' => 'error',
+            'message' => 'Kesalahan saat memverifikasi signature: ' . openssl_error_string()
+        ];
+    }
+}
+
+
     
 
 
@@ -296,38 +355,7 @@ EOD;
         return json_decode($response, true);
     }
 
-    public function send_api_request_push_notif($url, $method, $headers, $body, $callback = null)
-    {
-        $ch = curl_init();
-        $content_length = strlen($body);
-        $headers[] = "Content-Length: " . $content_length;
-        $headers[] = "Accept-Encoding: gzip, deflate";
-        $headers[] = "Cache-Control: max-age=0";
-        $headers[] = "Connection: keep-alive";
-        $headers[] = "Accept-Language: en-US,en;q=0.8,id;q=0.6";
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36");
-        $response = curl_exec($ch);
-        if (curl_errno($ch)) {
-            $error_msg = curl_error($ch);
-            log_message('error', 'cURL error: ' . $error_msg);
-            curl_close($ch);
-            return false;
-        }
-        curl_close($ch);
-        if ($callback && is_callable($callback)) {
-            call_user_func($callback, json_decode($response, true));
-        }
 
-        return $response;
-    }
 
     public function push_notification($partnerServiceId, $customerNo, $virtualAccountNo, $trxDateTime, $paymentRequestId, $paymentAmount)
     {

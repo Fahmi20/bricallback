@@ -90,6 +90,59 @@ public function trigger_token()
     echo json_encode($verificationResult, JSON_PRETTY_PRINT);
 }
 
+public function notifikasi()
+{
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        show_404();
+    }
+
+    $authorization = $this->input->get_request_header('Authorization', TRUE);
+    $timestamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
+    $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
+    $partnerId = $this->input->get_request_header('X-PARTNER-ID', TRUE);
+    $channelId = $this->input->get_request_header('CHANNEL-ID', TRUE);
+    $externalId = $this->input->get_request_header('X-EXTERNAL-ID', TRUE);
+
+    // Validasi Header
+    if (!$authorization || !$timestamp || !$signature || !$partnerId || !$channelId || !$externalId) {
+        $this->output
+            ->set_content_type('application/json')
+            ->set_status_header(400)
+            ->set_output(json_encode([
+                'responseCode' => '400',
+                'responseMessage' => 'Invalid headers'
+            ]));
+        return;
+    }
+
+    // Ambil Body Request
+    $body = file_get_contents('php://input');
+
+    // Proses Validasi Signature
+    $validationResult = $this->api->validateSignature($authorization, $timestamp, $signature, $body);
+
+    if ($validationResult['status'] === 'success') {
+        // Signature valid, kirim respons success ke BRI
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'responseCode' => '200',
+                'responseMessage' => 'Success'
+            ]));
+    } else {
+        // Signature tidak valid, kirim respons error ke BRI
+        $this->output
+            ->set_content_type('application/json')
+            ->set_status_header(400)
+            ->set_output(json_encode([
+                'responseCode' => '400',
+                'responseMessage' => $validationResult['message']
+            ]));
+    }
+}
+
+
+
 
 
 
@@ -947,31 +1000,7 @@ public function trigger_token()
         }
     }
 
-    public function notifikasi()
-    {
-        $jsonData = json_decode(file_get_contents('php://input'), true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            echo json_encode(array('error' => 'Invalid JSON format'));
-            return;
-        }
-        $partnerServiceId = isset($jsonData['partnerServiceId']) ? $jsonData['partnerServiceId'] : null;
-        $customerNo = isset($jsonData['customerNo']) ? $jsonData['customerNo'] : null;
-        $virtualAccountNo = isset($jsonData['virtualAccountNo']) ? $jsonData['virtualAccountNo'] : null;
-        $trxDateTimeInput = isset($jsonData['trxDateTime']) ? $jsonData['trxDateTime'] : null;
-        $paymentRequestId = isset($jsonData['paymentRequestId']) ? $jsonData['paymentRequestId'] : null;
-        $paymentAmount = isset($jsonData['paymentAmount']) ? $jsonData['paymentAmount'] : null;
-        $trxDateTime = new DateTime($trxDateTimeInput, new DateTimeZone('Asia/Jakarta'));
-        $trxDateTimeWithTimezone = $trxDateTime->format('Y-m-d\TH:i:sP');
-        $response = $this->api->send_push_notif(
-            $partnerServiceId,
-            $customerNo,
-            $virtualAccountNo,
-            $trxDateTimeWithTimezone,
-            $paymentRequestId,
-            $paymentAmount
-        );
-        echo json_encode($response);
-    }
+
 
 
     public function get_virtual_account_data()

@@ -1,39 +1,48 @@
 const crypto = require('crypto');
+
+// Data untuk signature
 const clientID = '8kPf12Bc3HxY47RgQwZ5jT6UvRz1';
 const now = new Date();
 const timeStamp = now.toISOString();
-const privateKey = `-----BEGIN RSA PRIVATE KEY-----
-MIIEowIBAAKCAQEAhXzayvOyZ/u00vohd9jUoxtK3H86/4rmo6nF0kTO8/sT7H3c
-KI6cY7nAj440LPpb5IDL+xJ5ojSBQSWAqU4RiT4xiYqpupcr5M/KznI+eI9jxkFW
-n2UHx0xqvVeyQ7GY4JOkN1Vjr2xDgdCsSnbc0addYispoFuathYsoFK7uhdoii85
-QS20T1YFpTdFWJtD55a4kLyCCnUxy9WjfjplgbnGS/OrhZUhVL4bYPC9+t3eXewJ
-GfWNh/yG9K5wLeWTCHz2skQL5Wr8zGf+wj7BUM1EcgNQcFWJb+B4ADppxCcOXYCp
-hfqvjYONIrgGgALX6abdoO1wtJVYzoqr4g2O6wIDAQABAoIBAFmQxakpTIpynAh3
-Zl9osHvkQx2hjK+LvmcP8bi9DHMuA1dJt5/K2GodZ3OrAZ0wOtoeBT+oTM6mFhfl
-FugChsekYE6eKHYXGo+DUNumUf5Ij7SlgH6gplB2GKSEpArBrgb5aVTrSWCZ7s26
-eu/XwyA1APZuaZa8ABmu1TCZcnZQZ/1m4ZkNHFMkqCvyN/k4xDF81+meN0WzA/+x
-KtRytRLG28eNWt9Qsm5oJSlUbGxh8PiAvh0SAf8myKFwoRx57QM4MTh+lF5JXVpD
-5rdTOfYR/qNymZ1bLdgZbEJhxpxr84mNZDe8RHQpw8Eq0KefsEGpN1ceMUWzzSs6
-GHlhi+kCgYEAxI9pjt5SgRWewMuYWmk/TzpPDY+AA69kLPiUp4HIw5FX14rtxp+Z
-frFCl7oUSqvHjnSlrjHh95McnkCz3MtJd1EsoBeKkZIm94pnFAqRn/XjKXecoDgS
-epcGo0s8wEbDeGGTekax2efixXdkKIALUEEbKyHB+mPji5eXXdXn3rcCgYEArdq5
-YDenmwOjQft12f26kwbwyaFhYAHmGMisvHMg/JG6H4a5Iz1YwXhSjJFmFACLMwPp
-OI2v7zV8WjnXvDHwkUMjt8J4hntbGZ5gOZPg77kTZpmi6IE3LjIS1GBUqZNzPyNX
-FuThqQtEzvDma1ODThu58fyjGk8O5eYStA2vHW0CgYB78isQCiVgfK+kxz2FFYT0
-gsJCvNBugnTa3s1uayqcF9SaeGLDsvRprYFeh9ov0+58aBXpqE7jfQK4z/gbLJ1g
-/fDz6qRYcx7bTYz+WEPH6JecGG7NoU4Vu5JV+iWO4ZB1IqKKonWYAN9Awa6I02VO
-8B8fraPSLpbX+XlblH0oNQKBgQChlH1h7Zf6vIDJXFqGBgmXiIXWAAUuY9VlB21z
-oFTyKMahcmczV1rcRWYDe0cyI+c7vNDPXPA9FKrEeKoHISsC9zGFIls+MfvTbZzl
-JomSg6KCYxxDl4SfjK5vcDB/gqlD7yaMAqGwqOaEpuSgr3eD6sUBINq+Iugnx5Nu
-gKFWaQKBgBOqb2OnM/YqShlNluip3Mj+h8QNT9bPV+UgwnyJO3ExCyptlXxaU0l+
-9D4IyZIUGN9fjMb6cfOo8r4q9go7Ssjobdcms9br64zBzfbQfdnzMuiF8D72xMBC
-DFK0ufIF7DjE0t/rQ6c1VKL5zzIMX3Wbndl/eddxJoOUfKxf3JFJ
------END RSA PRIVATE KEY-----`;
+const privateKey = `-----BEGIN PRIVATE KEY-----
+MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCmdw8/KF0erk/k
+LPz34HlaSrGhcCVnK6wdrUcLn0xEfaf1Q1kImS0V72JpCOkc3Q4pfEyehds4j8F1
+Ur3EO+kfZYoSuSzxNNPnErRtiR2hJUnGWtM6+ItEgOoITaOwquy0rfEJyx4A6U0g
+5FkZfD0/58GvjgABnjiHzgfg7RWeO98dRiFBJIrNyPuuukx8DBqz/r7Hs2jq/kZY
+B2ly3aN0+SI41l3zXF+y0MFESEXTQSk0UYaFa6XaiWKFfOoj7r2SD+bDstJSdNiH
+j073AhoEPsqgEDibt9miaOopXDSUocJFYYYQtqKngtES+HAQku+iRHrT2/3bhu4Y
+aH4/4y7lAgMBAAECggEARf17MJ/k/zhlKNftiL8d5uPO6cTARS+sj1HCtFVG+Oko
+TEwDzESzGyzqYKU5dkRPZwv3HxPCx3ZR7eVbGn3iF6xWsGahSc1fZyGLMR7ckVuf
+OEIJ3BqSW7wkKleSgn5rRdB4rxhyxglRv4mjGL8O9aaY3hpDUGrY8+ihkWW9mCiA
+grh6pjgOV5RNae6A6gLIanT/dFGwLQct0tN34vo6RaY7V4xK8B4IhZ8xlQpW8LG5
+QDNFQchIPXQ7QLSN82LCjjYfSOg0xnrhavGIcAC07s7N7Qyw5JdRrDsWNV9kdNDU
+9mstJ9hLXle+F8hOidbpgXSYwTamdwyeMXkvcCKSIQKBgQDHEx+6EMRZV8QrOuG1
+3LhzgbUVafqUY+RpHdOTEdkXpD7lmo189yk3I+lw0GP83cr1fF0w8PqlQHFz4GSs
+nZmL7vOFy7zSKwRZAaJw8jl4DIgyVKkxJk61nnBmL0VzxFCLH1sDuGxj9aZV1QEs
+Ssrf6CBFrwM1lN5Se+tMw2sdaQKBgQDWEM+4HLOBWn6MQgy4BrlCa4gyY44bmk99
+iPlY12o6fMO0MtDB4HCn2cdHWIgrdg4HLjohMK8n2PU+gbfdIICQAqqvqxFwPNkV
+FVpEzc0XvRezqA0NE6dr++ZIkbHz5ntSc3XlpEN9HJ4SsOnkiMHaJ5UrQFVq4Z1A
+qmcXjazKHQKBgC5A4D9ABA7qGHce4DB8DxMvUN6f2AvAReKyfmUOYY1fqQl55mPh
+nV7lZijDEmg/NBfjhFeJtgLNPU76FQoSOAnORCCTHNUMD5+KhK6PaRDegIqJJyJ3
+TxRdsqnbU9y5ASnB6EiuAekbu0D4E6Sx3/80FMN8DVfWte0eQ6Z7RRj5AoGBAKrb
+zj/gwLHtXfZrPaWg0DuggpvddG65stq6+nKbtZErRjVNHeyxTJncrD9Y/Y7a8oVu
+sz0Mk7FVbSHP/cZEi/jl+ACwpQGVv5shaORj82AQMJvX9VrLpiT9cSfZClVnUGVV
+/PMnMirpLY4zoOwk771FPL3B4qulmpMjr5dQIGtNAoGAa2MNrkK4n1m5p9moTgEa
+Klk4dycB03hHcgWmgqj5yhC/Fv5Pdzk+yfDqSGqZMYb3ERRqSZFjWVS+bboPsmn1
+n79KUlCM/B/9924GMwxcQiFDwd6BZoJrM92yqGo9SogzRvT/iokJRgr2YRVVMxAK
+uimSjqmsEW3lz2qQaRVkoOM=
+-----END PRIVATE KEY-----`;
+
+// Gabungkan string yang akan ditandatangani
 const stringToSign = clientID + '|' + timeStamp;
+
+// Buat signature
 const sign = crypto.createSign('SHA256');
 sign.update(stringToSign);
 sign.end();
 const signature = sign.sign(privateKey, 'base64');
+
+// Tampilkan hasil
 console.log('X-CLIENT-KEY:', clientID);
 console.log('X-TIMESTAMP:', timeStamp);
 console.log('X-SIGNATURE:', signature);
