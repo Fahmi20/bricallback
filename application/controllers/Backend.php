@@ -145,7 +145,15 @@ public function notifikasi() {
 
     // Validasi signature
     try {
-        $validationResult = $this->api->validateSignature($authorization, $timestamp, $signature, $body);
+        $validationResult = $this->api->validateSignature(
+            $authorization,
+            $timestamp,
+            $signature,
+            $body,
+            $partnerId,
+            $channelId,
+            $externalId
+        );
         if ($validationResult['status'] === 'success') {
             $requestData = json_decode($body, true);
             $saveResult = $this->VirtualAccountModel->savePaymentData($requestData);
