@@ -129,7 +129,7 @@ public function notifikasi() {
     $body = file_get_contents('php://input');
 
     // Validasi token
-    $accessToken = str_replace('Bearer', '', $authorization);
+    $accessToken = $authorization;
     $this->load->model('VirtualAccountModel');
     $storedToken = $this->VirtualAccountModel->getAccessTokenByToken($accessToken);
     if (!$storedToken) {
