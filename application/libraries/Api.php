@@ -138,7 +138,7 @@ EOD;
     }
 }
 
-public function validateSignature($authorization, $timestamp, $signature,$partnerId,$channelId,$externalId, $body)
+public function validateSignature($authorization, $timestamp, $signature,$partnerId,$channelId,$externalId)
 {
     // Path ke public key
     $publicKeyPemPath = 'application/keys/pubkey1.pem';
@@ -163,7 +163,7 @@ public function validateSignature($authorization, $timestamp, $signature,$partne
     }
 
     // Gabungkan data untuk validasi
-    $data = $authorization . "|" . $timestamp . "|" . $partnerId . "|" . $channelId . "|" . $externalId . "|" . $body;
+    $data = $authorization . "|" . $timestamp . "|" . $partnerId . "|" . $channelId . "|" . $externalId;
 
     // Decode tanda tangan dari Base64
     $decodedSignature = base64_decode($signature);
