@@ -86,16 +86,11 @@ public function trigger_token() {
     if (isset($verificationResult['accessToken'])) {
         $accessToken = $verificationResult['accessToken'];
         $expiresIn = $verificationResult['expiresIn'];
-        $tokenId = $this->VirtualAccountModel->saveAccessToken($clientID, $accessToken, $expiresIn);
-        echo json_encode([
-            'status' => 'success',
-            'message' => 'Access token saved successfully',
-            'tokenId' => $tokenId
-        ], JSON_PRETTY_PRINT);
-    } else {
+        $verificationResult = $this->VirtualAccountModel->saveAccessToken($clientID, $accessToken, $expiresIn);
         echo json_encode($verificationResult, JSON_PRETTY_PRINT);
     }
 }
+
 
 
 public function notifikasi()
