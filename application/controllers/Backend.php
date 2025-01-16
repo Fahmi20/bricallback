@@ -75,22 +75,34 @@ public function trigger_token() {
         show_404();
     }
 
+    // Ambil headers dari request
     $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
     $clientID = $this->input->get_request_header('X-CLIENT-KEY', TRUE);
     $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
+
+    // Validasi header
     if (!$signature || !$clientID || !$timeStamp) {
         echo json_encode(array('status' => 'error', 'message' => 'Invalid headers'));
         return;
     }
+
+    // Verifikasi signature dan mendapatkan access token
     $verificationResult = $this->api->verifySignatureTest($clientID, $timeStamp, $signature);
+
+    // Jika verifikasi berhasil dan ada accessToken
     if (isset($verificationResult['accessToken'])) {
+        // Simpan accessToken ke database
         $accessToken = $verificationResult['accessToken'];
         $expiresIn = $verificationResult['expiresIn'];
-        $verificationResult = $this->VirtualAccountModel->saveAccessToken($clientID, $accessToken, $expiresIn);
-        echo json_encode($verificationResult, JSON_PRETTY_PRINT);
+        
+        // Panggil model untuk menyimpan access token
+        $this->load->model('VirtualAccountModel');
+        $this->VirtualAccountModel->saveAccessToken($clientID, $accessToken, $expiresIn);
     }
-}
 
+    // Tampilkan hasil verifikasi signature tanpa tambahan response
+    echo json_encode($verificationResult, JSON_PRETTY_PRINT);
+}
 
 
 public function notifikasi()
