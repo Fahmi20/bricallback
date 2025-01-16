@@ -17,6 +17,15 @@ class VirtualAccountModel extends CI_Model
         return $this->db->insert_id();
     }
 
+    public function getAccessTokenByToken($accessToken) {
+        $this->db->where('access_token', $accessToken);
+        $query = $this->db->get('access_tokens');
+        if ($query->num_rows() > 0) {
+            return $query->row();
+        }
+        return false;
+    }
+
 
     public function save_notification($data)
     {
@@ -44,6 +53,21 @@ class VirtualAccountModel extends CI_Model
         );
 
         return $this->db->insert('virtual_account_payments', $insert_data);
+    }
+
+    public function savePaymentData($data) {
+        // Simpan ke tabel payments (sesuaikan dengan struktur tabel Anda)
+        $insertData = [
+            'virtual_account' => $data['virtualAccountNo'],
+            'customer_no' => $data['customerNo'],
+            'amount' => $data['additionalInfo']['paymentAmount'],
+            'trx_date' => $data['trxDateTime'],
+            'status' => 'PAID',
+            'created_at' => date('Y-m-d H:i:s')
+        ];
+
+        // Masukkan data ke database
+        return $this->db->insert('payments', $insertData);
     }
 
 

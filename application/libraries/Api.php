@@ -140,64 +140,51 @@ EOD;
 
 public function validateSignature($authorization, $timestamp, $signature, $body)
 {
-    // Lokasi kunci publik
-    $publicKeyPemPath = APPPATH . 'keys/pubkey1.pem';
-
+    $publicKeyPemPath = 'application/keys/pubkey1.pem';
     if (!file_exists($publicKeyPemPath)) {
         return [
             'status' => 'error',
             'message' => 'File kunci publik tidak ditemukan'
         ];
     }
-
-    // Muat kunci publik
     $publicKeyPem = file_get_contents($publicKeyPemPath);
     $publicKey = openssl_pkey_get_public($publicKeyPem);
-
     if (!$publicKey) {
         return [
             'status' => 'error',
             'message' => 'Kunci publik tidak valid: ' . openssl_error_string()
         ];
     }
-
-    // Data untuk diverifikasi
     $data = $authorization . "|" . $timestamp . "|" . $body;
-
-    // Decode tanda tangan
     $decodedSignature = base64_decode($signature);
-
     if ($decodedSignature === false) {
         return [
             'status' => 'error',
             'message' => 'Format Base64 tanda tangan tidak valid'
         ];
     }
-
-    // Verifikasi tanda tangan
     $result = openssl_verify($data, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA512);
     openssl_free_key($publicKey);
 
     if ($result === 1) {
         return [
             'status' => 'success',
-            'message' => 'Signature valid'
+            'message' => 'Tanda tangan valid'
         ];
     } elseif ($result === 0) {
         return [
             'status' => 'error',
-            'message' => 'Signature tidak valid'
+            'message' => 'Tanda tangan tidak valid'
         ];
     } else {
         return [
             'status' => 'error',
-            'message' => 'Kesalahan saat memverifikasi signature: ' . openssl_error_string()
+            'message' => 'Kesalahan saat memverifikasi tanda tangan: ' . openssl_error_string()
         ];
     }
 }
 
 
-    
 
 
     public function verifySignature($clientID, $timeStamp, $base64signature)
