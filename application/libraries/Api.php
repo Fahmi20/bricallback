@@ -141,6 +141,7 @@ EOD;
 public function validateSignature($authorization, $timestamp, $signature, $body)
 {
     $publicKeyPemPath = 'application/keys/pubkey1.pem';
+
     if (!file_exists($publicKeyPemPath)) {
         return [
             'status' => 'error',
@@ -185,6 +186,8 @@ public function validateSignature($authorization, $timestamp, $signature, $body)
 }
 
 
+
+    
 
 
     public function verifySignature($clientID, $timeStamp, $base64signature)
