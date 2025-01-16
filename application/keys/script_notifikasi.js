@@ -1,18 +1,19 @@
 const crypto = require('crypto');
 
 // Data untuk tanda tangan
-const authorization = 'Bearer exampleAccessToken123456'; // Authorization header
+const authorization = 'vegLqy1kT+s\/s5ppEcCQYCZsdF0fjwo1edP9lpI0UI4='; // Authorization header
 const timestamp = new Date().toISOString();             // X-TIMESTAMP header
+const partnerId = '77777';
+const channelId = '12345';
+const externalId = 'externalId123';
 const body = JSON.stringify({
     partnerServiceId: '77777',
     customerNo: '08577508881',
     virtualAccountNo: '7777708577508881',
     trxDateTime: '2025-01-16T14:00:00+07:00',
-    additionalInfo: {
-        paymentAmount: '100000',
-        bankId: '002',
-        terminalId: '123456'
-    }
+    paymentAmount: '100000',
+    bankId: '002',
+    terminalId: '1234567777'
 });
 
 // Private key
@@ -46,7 +47,7 @@ uimSjqmsEW3lz2qQaRVkoOM=
 -----END PRIVATE KEY-----`;
 
 // Gabungkan data untuk ditandatangani
-const stringToSign = authorization + '|' + timestamp + '|' + body;
+const stringToSign = authorization + '|' + timestamp + '|' + partnerId + '|' + channelId + '|' + externalId + '|' + body;
 
 // Buat signature
 const sign = crypto.createSign('SHA512');
@@ -58,4 +59,7 @@ const signature = sign.sign(privateKey, 'base64');
 console.log('Authorization:', authorization);
 console.log('X-TIMESTAMP:', timestamp);
 console.log('X-SIGNATURE:', signature);
+console.log('X-PARTNER-ID:', partnerId);
+console.log('CHANNEL-ID:', channelId);
+console.log('X-EXTERNAL-ID:', externalId);
 console.log('Body:', body);
