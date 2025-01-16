@@ -147,25 +147,7 @@ public function notifikasi() {
     try {
         $validationResult = $this->api->validateSignature($authorization, $timestamp, $signature, $partnerId,$channelId,$externalId);
         if ($validationResult['status'] === 'success') {
-            $requestData = json_decode($body, true);
-            $saveResult = $this->VirtualAccountModel->savePaymentData($requestData);
-            if ($saveResult) {
-                $this->output
-                    ->set_content_type('application/json')
-                    ->set_status_header(200)
-                    ->set_output(json_encode([
-                        'responseCode' => '200',
-                        'responseMessage' => 'Success'
-                    ]));
-            } else {
-                $this->output
-                    ->set_content_type('application/json')
-                    ->set_status_header(500)
-                    ->set_output(json_encode([
-                        'responseCode' => '500',
-                        'responseMessage' => 'Failed to save payment data'
-                    ]));
-            }
+            echo json_encode($validationResult, JSON_PRETTY_PRINT);
         } else {
             $this->output
                 ->set_content_type('application/json')
