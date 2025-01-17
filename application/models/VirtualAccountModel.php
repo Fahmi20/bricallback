@@ -58,10 +58,16 @@ class VirtualAccountModel extends CI_Model
     public function savePaymentData($data) {
         // Simpan ke tabel payments (sesuaikan dengan struktur tabel Anda)
         $insertData = [
-            'virtual_account' => $data['virtualAccountNo'],
+            'partner_serviceid' => $data['partnerServiceId'],
             'customer_no' => $data['customerNo'],
-            'amount' => $data['additionalInfo']['paymentAmount'],
+            'virtual_account' => $data['virtualAccountNo'],
             'trx_date' => $data['trxDateTime'],
+            'payment_requestid' => $data['paymentRequestId'],
+            'idapp' => $data['additionalInfo']['idApp'],
+            'passapp' => $data['additionalInfo']['passApp'],
+            'amount' => $data['additionalInfo']['paymentAmount'],
+            'terminalid' => $data['additionalInfo']['terminalId'],
+            'bankid' => $data['additionalInfo']['bankId'],
             'status' => 'PAID',
             'created_at' => date('Y-m-d H:i:s')
         ];

@@ -98,38 +98,37 @@ public function notifikasi() {
     }
 
     // Ambil semua header
-    $authorization = $this->input->get_request_header('Authorization', TRUE);
-    $timestamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
-    $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
-    $partnerId = $this->input->get_request_header('X-PARTNER-ID', TRUE);
-    $channelId = $this->input->get_request_header('CHANNEL-ID', TRUE);
-    $externalId = $this->input->get_request_header('X-EXTERNAL-ID', TRUE);
+    $headers = [
+        'Authorization' => $this->input->get_request_header('Authorization', TRUE),
+        'X-TIMESTAMP' => $this->input->get_request_header('X-TIMESTAMP', TRUE),
+        'X-SIGNATURE' => $this->input->get_request_header('X-SIGNATURE', TRUE),
+        'X-PARTNER-ID' => $this->input->get_request_header('X-PARTNER-ID', TRUE),
+        'CHANNEL-ID' => $this->input->get_request_header('CHANNEL-ID', TRUE),
+        'X-EXTERNAL-ID' => $this->input->get_request_header('X-EXTERNAL-ID', TRUE),
+    ];
 
     // Validasi keberadaan header
-    $missingHeaders = [];
-    if (!$authorization) $missingHeaders[] = 'Authorization';
-    if (!$timestamp) $missingHeaders[] = 'X-TIMESTAMP';
-    if (!$signature) $missingHeaders[] = 'X-SIGNATURE';
-    if (!$partnerId) $missingHeaders[] = 'X-PARTNER-ID';
-    if (!$channelId) $missingHeaders[] = 'CHANNEL-ID';
-    if (!$externalId) $missingHeaders[] = 'X-EXTERNAL-ID';
+    $missingHeaders = array_filter($headers, function($value) {
+        return !$value;
+    });
 
     if (!empty($missingHeaders)) {
         $this->output
             ->set_content_type('application/json')
             ->set_status_header(400)
-            ->set_output(json_encode([
+            ->set_output(json_encode([ 
                 'responseCode' => '400',
-                'responseMessage' => 'Missing headers: ' . implode(', ', $missingHeaders)
+                'responseMessage' => 'Missing headers: ' . implode(', ', array_keys($missingHeaders))
             ]));
         return;
     }
 
     // Ambil body request
     $body = file_get_contents('php://input');
+    $requestData = json_decode($body, true); // Decode body JSON menjadi array
 
     // Validasi token
-    $accessToken = $authorization;
+    $accessToken = $headers['Authorization'];
     $this->load->model('VirtualAccountModel');
     $storedToken = $this->VirtualAccountModel->getAccessTokenByToken($accessToken);
     if (!$storedToken) {
@@ -145,17 +144,46 @@ public function notifikasi() {
 
     // Validasi signature
     try {
-        $validationResult = $this->api->validateSignature($authorization, $timestamp, $signature, $partnerId,$channelId,$externalId);
+        $validationResult = $this->api->validateSignature(
+            $headers['Authorization'], 
+            $headers['X-TIMESTAMP'], 
+            $headers['X-SIGNATURE'], 
+            $headers['X-PARTNER-ID'], 
+            $headers['CHANNEL-ID'], 
+            $headers['X-EXTERNAL-ID']
+        );
+        
         if ($validationResult['status'] === 'success') {
-            $requestData = json_decode($body, true);
+            // Cek jika partnerServiceId ada dalam body request
+            if (empty($requestData['partnerServiceId'])) {
+                $this->output
+                    ->set_content_type('application/json')
+                    ->set_status_header(400)
+                    ->set_output(json_encode([
+                        'responseCode' => '400',
+                        'responseMessage' => 'Missing partnerServiceId in request body'
+                    ]));
+                return;
+            }
+
+            // Simpan data
             $saveResult = $this->VirtualAccountModel->savePaymentData($requestData);
+
             if ($saveResult) {
                 $this->output
                     ->set_content_type('application/json')
                     ->set_status_header(200)
                     ->set_output(json_encode([
                         'responseCode' => '200',
-                        'responseMessage' => 'Success'
+                        'responseMessage' => 'Successful',
+                        'virtualAccountData' => [
+                            'partnerServiceId' => $requestData['partnerServiceId'],  // Ambil dari body request
+                            'customerNo' => $requestData['customerNo'],
+                            'virtualAccountNo' => $requestData['virtualAccountNo'],
+                            'paymentRequestId' => $requestData['paymentRequestId'],
+                            'trxDateTime' => $requestData['trxDateTime'],
+                            'paymentStatus' => $requestData['paymentStatus'],
+                        ]
                     ]));
             } else {
                 $this->output
@@ -186,6 +214,7 @@ public function notifikasi() {
             ]));
     }
 }
+
 
 
 
