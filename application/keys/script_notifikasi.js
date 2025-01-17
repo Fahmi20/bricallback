@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 
 // Data untuk tanda tangan
-const authorization = 'lymy+K\/+KbblstqiWrQzLzKTru\/m+MnorNe9ls6vzpo='; // Authorization header
+const authorization = 'Bearer lymy+K\/+KbblstqiWrQzLzKTru\/m+MnorNe9ls6vzpo='; // Authorization header
 const timestamp = new Date().toISOString();             // X-TIMESTAMP header
 const partnerId = '77777';
 const channelId = '12345';
