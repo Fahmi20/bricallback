@@ -256,7 +256,6 @@ public function notifikasi() {
 
     public function get_inquiry_payment_va_briva_controller()
     {
-        // Mengambil parameter dari input GET
         $partnerServiceId = $this->input->get('partnerServiceId');
         $customerNo = $this->input->get('customerNo');
         $virtualAccountNo = $this->input->get('virtualAccountNo');
@@ -798,7 +797,7 @@ public function notifikasi() {
 
     public function create_virtual_account_manual()
     {
-        $partnerServiceId = '03636';//03636
+        $partnerServiceId = '22084';//03636
         $customerNo = $this->input->post('customerNo');
         $partnerServiceIdWithSpaces = '   ' . $partnerServiceId;
         $virtualAccountNo = '   ' . $partnerServiceId . $customerNo;
