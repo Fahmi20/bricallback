@@ -181,8 +181,7 @@ public function notifikasi() {
                             'customerNo' => $requestData['customerNo'],
                             'virtualAccountNo' => $requestData['virtualAccountNo'],
                             'paymentRequestId' => $requestData['paymentRequestId'],
-                            'trxDateTime' => $requestData['trxDateTime'],
-                            'paymentStatus' => $requestData['paymentStatus'],
+                            'trxDateTime' => $requestData['trxDateTime']
                         ]
                     ]));
             } else {
