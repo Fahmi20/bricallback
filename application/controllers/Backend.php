@@ -127,8 +127,20 @@ public function notifikasi() {
     $body = file_get_contents('php://input');
     $requestData = json_decode($body, true); // Decode body JSON menjadi array
 
+    $authorizationHeader = $headers['Authorization'];
+    if (empty($authorizationHeader) || strpos($authorizationHeader, 'Bearer ') !== 0) {
+        $this->output
+            ->set_content_type('application/json')
+            ->set_status_header(400)
+            ->set_output(json_encode([ 
+                'responseCode' => '400',
+                'responseMessage' => 'Invalid or missing Bearer token'
+            ]));
+        return;
+    }
+
     // Validasi token
-    $accessToken = $headers['Authorization'];
+    $accessToken = substr($authorizationHeader, 7);
     $this->load->model('VirtualAccountModel');
     $storedToken = $this->VirtualAccountModel->getAccessTokenByToken($accessToken);
     if (!$storedToken) {
