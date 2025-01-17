@@ -128,7 +128,7 @@ public function notifikasi() {
     $requestData = json_decode($body, true); // Decode body JSON menjadi array
 
     // Validasi token
-    $accessToken = 'Bearer'.$headers['Authorization'];
+    $accessToken = $headers['Authorization'];
     $this->load->model('VirtualAccountModel');
     $storedToken = $this->VirtualAccountModel->getAccessTokenByToken($accessToken);
     if (!$storedToken) {
