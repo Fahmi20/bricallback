@@ -155,7 +155,7 @@ public function validateSignature($authorization, $timestamp, $signature,$partne
             'message' => 'Kunci publik tidak valid: ' . openssl_error_string()
         ];
     }
-    $data = 'Bearer' . $authorization . "|" . $timestamp . "|" . $partnerId . "|" . $channelId . "|" . $externalId;
+    $data = $authorization . "|" . $timestamp . "|" . $partnerId . "|" . $channelId . "|" . $externalId;
     $decodedSignature = base64_decode($signature);
     if ($decodedSignature === false) {
         return [
