@@ -2,20 +2,11 @@ const crypto = require('crypto');
 
 // Data untuk tanda tangan
 const authorization = 'Bearer lymy+K\/+KbblstqiWrQzLzKTru\/m+MnorNe9ls6vzpo='; // Authorization header
-const timestamp = new Date().toISOString(); // X-TIMESTAMP header
+const timestamp = new Date().toISOString();             // X-TIMESTAMP header
 const partnerId = '77777';
 const channelId = '12345';
 const externalId = 'externalId123';
 const ContentType = 'application/json';
-
-// Body request yang akan dikirimkan
-const requestData = {
-    "partnerServiceId": "service123",
-    "customerNo": "customer001",
-    "virtualAccountNo": "1234567890",
-    "paymentRequestId": "req123456",
-    "trxDateTime": timestamp
-};
 
 // Private key
 const privateKey = `-----BEGIN PRIVATE KEY-----
@@ -47,11 +38,8 @@ n79KUlCM/B/9924GMwxcQiFDwd6BZoJrM92yqGo9SogzRvT/iokJRgr2YRVVMxAK
 uimSjqmsEW3lz2qQaRVkoOM=
 -----END PRIVATE KEY-----`;
 
-// Hitung SHA256 dari body request
-const bodySha256 = crypto.createHash('sha256').update(JSON.stringify(requestData)).digest('hex');
-
-// Gabungkan data untuk ditandatangani dengan format yang diinginkan
-const stringToSign = `POST:/bricallback/backend/notifikasi:${bodySha256}:${timestamp}`;
+// Gabungkan data untuk ditandatangani
+const stringToSign = authorization + '|' + timestamp + '|' + partnerId + '|' + channelId + '|' + externalId + '|' + ContentType;
 
 // Buat signature
 const sign = crypto.createSign('SHA512');
@@ -67,4 +55,3 @@ console.log('X-PARTNER-ID:', partnerId);
 console.log('CHANNEL-ID:', channelId);
 console.log('X-EXTERNAL-ID:', externalId);
 console.log('Content-Type:', ContentType);
-console.log('Request Body:', JSON.stringify(requestData));

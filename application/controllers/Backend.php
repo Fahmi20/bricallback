@@ -125,8 +125,8 @@ public function notifikasi() {
     }
 
     // Ambil body request
-    $body = file_get_contents('php://input');
-    $requestData = json_decode($body, true); // Decode body JSON menjadi array
+    $bodyInput = file_get_contents('php://input');
+    $requestData = json_decode($bodyInput, true); // Decode body JSON menjadi array
 
     $authorizationHeader = 'Bearer ' . $headers['Authorization'];
         $authorizationHeader = $headers['Authorization'];
@@ -165,7 +165,8 @@ public function notifikasi() {
             $headers['X-PARTNER-ID'], 
             $headers['CHANNEL-ID'], 
             $headers['X-EXTERNAL-ID'],
-            $headers['ContentType']
+            $headers['ContentType'],
+            $bodyInput
         );
         
         if ($validationResult['status'] === 'success') {
