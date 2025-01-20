@@ -3,9 +3,9 @@ const crypto = require('crypto');
 // Data untuk tanda tangan
 const clientSecret = 'SpPtPt6Oa7Cjf47XIUvn6gq6fVYEPPodzFgukfMdk/o='; // Client Secret
 const method = 'POST';
-const path = '/bricallback/backend/notifikasi';
+const path = 'https://briapi-dev.arraafi.id:4433/bricallback/backend/notifikasi';
 const timestamp = new Date().toISOString();  // X-TIMESTAMP header
-const accessToken = 'Bearer 2NEsUaYqBkYol9goYbdEiafPdCzHB7VK';  // Misalnya token yang diambil dari header Authorization
+const accessToken = '2NEsUaYqBkYol9goYbdEiafPdCzHB7VK';  // Misalnya token yang diambil dari header Authorization (tanpa "Bearer ")
 const body = {
     "partnerServiceId": "service123",
     "customerNo": "customer001",
@@ -21,17 +21,24 @@ const body = {
     }
 };
 
+// Langkah 1: Minifikasi dan enkripsi body dengan SHA-256
+const bodyJson = JSON.stringify(body);
+const bodyMinified = bodyJson.replace(/\s+/g, ''); // Minifikasi body (menghapus spasi)
+const bodySHA256 = crypto.createHash('sha256')
+    .update(bodyMinified)
+    .digest('hex')
+    .toLowerCase(); // Konversi ke format lowercase hex
 
 // Langkah 2: Membentuk string untuk ditandatangani
-const stringToSign = `${method}:${path}:${accessToken}:${body}:${timestamp}`;
+const stringToSign = `${method}:${path}:${accessToken}:${bodySHA256}:${timestamp}`;
 
 // Langkah 3: Menghitung signature dengan HMAC-SHA512
 const hmacSignature = crypto.createHmac('sha512', clientSecret)
     .update(stringToSign)
-    .digest('base64');
+    .digest('base64'); // Signature hasilnya dalam format Base64
 
 // Tampilkan hasilnya
-console.log('Authorization:', `${accessToken}`);
+console.log('Authorization:', `Bearer ${accessToken}`);
 console.log('X-TIMESTAMP:', timestamp);
 console.log('X-SIGNATURE:', hmacSignature);
-console.log('Body:', body);
+console.log('Body:', bodyJson);

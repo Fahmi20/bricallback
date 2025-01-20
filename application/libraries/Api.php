@@ -157,22 +157,39 @@ EOD;
 
 public function validateSignature($Authorization, $body, $timeStamp, $signature)
 {
+    // Hapus "Bearer " pada Authorization header
     $Authorization = str_replace('Bearer ', '', $Authorization);
-    $httpMethod = 'POST';
-    $path = '/bricallback/backend/notifikasi';
-    $accessToken = $Authorization; 
-    $clientSecret = $this->client_secret;
+    
+    // Tentukan HTTP method dan path endpoint
+    $httpMethod = 'POST'; // Sesuaikan dengan metode HTTP yang digunakan
+    $path = 'https://briapi-dev.arraafi.id:4433/bricallback/backend/notifikasi';  // Path yang sesuai dengan endpoint Anda
+    $accessToken = $Authorization; // Token akses dari Authorization header
+    $clientSecret = $this->client_secret; // Ambil client secret dari konfigurasi Anda
+    
+    // Konversi body menjadi JSON dan hapus spasi
     $bodyJson = json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-    $bodyMinified = preg_replace('/\s+/', '', $bodyJson);
+    $bodyMinified = preg_replace('/\s+/', '', $bodyJson); // Minifikasi body JSON
+    
+    // Hash body yang telah diminyaki menggunakan SHA-256
     $bodySHA256 = hash('sha256', $bodyMinified);
-    $stringToSign = $httpMethod . ":" . $path . ":" . $accessToken . ":" . $bodySHA256 . ":" . $timeStamp;
+    
+    // Ubah SHA-256 hash ke bentuk hexadecimal dan lowercase
+    $bodyHex = strtolower(bin2hex(hex2bin($bodySHA256))); // Ubah menjadi hexadecimal lowercase
+    
+    // Buat string untuk di-sign
+    $stringToSign = $httpMethod . ":" . $path . ":" . $accessToken . ":" . $bodyHex . ":" . $timeStamp;
+    
+    // Hitung signature dengan HMAC_SHA512 menggunakan clientSecret
     $calculatedSignature = hash_hmac('sha512', $stringToSign, $clientSecret);
+    
+    // Verifikasi signature yang dihitung dengan signature yang diterima
     if (hash_equals($calculatedSignature, $signature)) {
         return array('status' => 'success', 'message' => 'Signature valid');
     } else {
         return array('status' => 'error', 'message' => 'Invalid signature', 'result' => $stringToSign);
     }
 }
+
 
 
     public function verifySignature($clientID, $timeStamp, $base64signature)
