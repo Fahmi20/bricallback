@@ -158,8 +158,7 @@ EOD;
 public function validateSignature($authorization, $timestamp, $signature, $requestData)
 {
     // Mendefinisikan metode dan path
-    $method = "POST";
-    $path = "/bricallback/backend/notifikasi";
+    $path = '/bricallback/backend/notifikasi';
 
     // Mengonversi body ke JSON dengan format yang tepat
     $bodyJson = json_encode($requestData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -192,7 +191,7 @@ public function validateSignature($authorization, $timestamp, $signature, $reque
     }
 
     // Menyusun string untuk verifikasi tanda tangan
-    $data = $authorization . ":" . $timestamp . ":" . $bodySHA256;
+    $data = 'POST'. ":" . $path . ":" . $authorization . ":" . $bodySHA256 . ":" . $timestamp;
 
     // Decode tanda tangan dari Base64
     $decodedSignature = base64_decode($signature, true);  // Validasi base64 decode

@@ -1,7 +1,9 @@
 const crypto = require('crypto');
 
 // Data untuk tanda tangan
-const authorization = 'Bearer lymy+K/KbblstqiWrQzLzKTru/m+MnorNe9ls6vzpo='; // Authorization header
+const authorization = 'Bearer 2NEsUaYqBkYol9goYbdEiafPdCzHB7VK'; // Authorization header
+const method = 'POST';
+const path = '/bricallback/backend/notifikasi';
 const timestamp = new Date().toISOString();  // X-TIMESTAMP header
 const body = {
     "partnerServiceId": "service123",
@@ -50,8 +52,8 @@ uimSjqmsEW3lz2qQaRVkoOM=
 
 // Gabungkan data untuk ditandatangani
 // Konversi objek body ke JSON string terlebih dahulu
-const bodyString = JSON.stringify(body, null, 0);  // Stringify tanpa indentasi untuk format yang lebih kompak
-const stringToSign = authorization + ':' + timestamp + ':' + bodyString;
+const bodyString = JSON.stringify(body);  // Stringify tanpa indentasi untuk format yang lebih kompak
+const stringToSign = method + ':' + path + ':' + authorization + ':' + timestamp + ':' + bodyString;
 
 // Buat signature
 const sign = crypto.createSign('SHA512');
