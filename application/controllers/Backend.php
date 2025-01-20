@@ -104,7 +104,7 @@ public function notifikasi() {
         'X-SIGNATURE' => $this->input->get_request_header('X-SIGNATURE', TRUE),
         'X-PARTNER-ID' => $this->input->get_request_header('X-PARTNER-ID', TRUE),
         'CHANNEL-ID' => $this->input->get_request_header('CHANNEL-ID', TRUE),
-        'X-EXTERNAL-ID' => $this->input->get_request_header('X-EXTERNAL-ID', TRUE)
+        'X-EXTERNAL-ID' => $this->input->get_request_header('X-EXTERNAL-ID', TRUE),
     ];
 
     // Validasi keberadaan header
