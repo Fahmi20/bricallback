@@ -141,7 +141,8 @@ EOD;
 
 public function validateSignature($method, $path, $authorization, $timestamp, $signature, $bodySHA256)
 {
-    $clientSecret = $this->client_secret;
+    $clientSecret = $this->client_secret; // Client Secret untuk HMAC, meskipun Anda menggunakan public key untuk signature validation
+
     // Membaca public key
     $publicKeyPemPath = 'application/keys/pubkey1.pem';
     if (!file_exists($publicKeyPemPath)) {
@@ -150,6 +151,7 @@ public function validateSignature($method, $path, $authorization, $timestamp, $s
             'message' => 'File kunci publik tidak ditemukan'
         ];
     }
+
     $publicKeyPem = file_get_contents($publicKeyPemPath);
     $publicKey = openssl_pkey_get_public($publicKeyPem);
     if (!$publicKey) {
@@ -161,6 +163,8 @@ public function validateSignature($method, $path, $authorization, $timestamp, $s
 
     // Membuat StringToSign
     $stringToSign = "{$method}:{$path}:{$authorization}:{$bodySHA256}:{$timestamp}";
+
+    // Decode signature dari Base64
     $decodedSignature = base64_decode($signature);
     if ($decodedSignature === false) {
         return [
@@ -169,32 +173,35 @@ public function validateSignature($method, $path, $authorization, $timestamp, $s
         ];
     }
 
-    // Menghitung HMAC SHA256 dari StringToSign menggunakan Client Secret
-    $calculatedSignature = hash_hmac('sha256', $stringToSign, $clientSecret);
+    // Verifikasi tanda tangan menggunakan openssl_verify
+    // Menggunakan method openssl_verify untuk memverifikasi apakah tanda tangan valid
+    $result = openssl_verify($stringToSign, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA256);
 
-    // Verifikasi signature dengan perbandingan hash yang dihitung dan signature yang diterima
-    if (hash_equals($calculatedSignature, bin2hex($decodedSignature))) {
-        // Jika signature valid
-        openssl_free_key($publicKey);
+    // Menangani hasil verifikasi
+    openssl_free_key($publicKey); // Menghentikan penggunaan public key setelah verifikasi
+
+    if ($result === 1) {
+        // Tanda tangan valid
         return [
             'status' => 'success',
             'message' => 'Tanda tangan valid'
         ];
-    } else {
-        // Jika signature tidak valid
-        openssl_free_key($publicKey);
-
-        // Menyediakan detail lebih lanjut
+    } elseif ($result === 0) {
+        // Tanda tangan tidak valid
         return [
             'status' => 'error',
             'message' => 'Tanda tangan tidak valid',
-            'calculatedSignature' => $calculatedSignature,  // Signature yang dihitung
             'receivedSignature' => bin2hex($decodedSignature),  // Signature yang diterima (dalam hex)
-            'stringToSign' => $stringToSign  // Data yang digunakan untuk menandatangani
+            'stringToSign' => $stringToSign 
+        ];
+    } else {
+        // Terjadi kesalahan saat memverifikasi tanda tangan
+        return [
+            'status' => 'error',
+            'message' => 'Kesalahan saat memverifikasi tanda tangan: ' . openssl_error_string()
         ];
     }
 }
-
 
 
 
