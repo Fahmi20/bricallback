@@ -1,8 +1,6 @@
 const crypto = require('crypto');
-const fs = require('fs');
 
 // Data untuk tanda tangan
-const authorization = 'Bearer 2NEsUaYqBkYol9goYbdEiafPdCzHB7VK';
 const clientSecret = 'SpPtPt6Oa7Cjf47XIUvn6gq6fVYEPPodzFgukfMdk/o='; // Client Secret
 const method = 'POST';
 const path = '/bricallback/backend/notifikasi';
@@ -65,7 +63,7 @@ sign.end();
 const signature = sign.sign(privateKey, 'base64');
 
 // Tampilkan signature
-console.log('Authorization:', authorization);
+console.log('Authorization:', `Bearer ${clientSecret}`);
 console.log('X-TIMESTAMP:', timestamp);
 console.log('X-SIGNATURE:', signature);
 console.log('Body:', bodyJson);

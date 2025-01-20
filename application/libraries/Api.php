@@ -155,84 +155,55 @@ EOD;
     }
 }
 
-public function validateSignature($authorization, $timestamp, $signature, $requestData)
+
+
+
+
+public function validateSignature($Authorization, $requestData, $timeStamp, $signature)
 {
-    // Mendefinisikan metode dan path
-    $path = '/bricallback/backend/notifikasi';
-    $authorization = str_replace('Bearer ', '', $authorization);
-    $clientSecret = $this->client_secret;
+    // Hapus kata "Bearer " jika ada di depan token
+    $Authorization = str_replace('Bearer ', '', $Authorization);
 
-    // Mengonversi body ke JSON dengan format yang tepat
-    $bodyJson = json_encode($requestData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-    
-    // Minifikasi body dengan menghapus spasi, newline, dan carriage return
-    $bodyMinified = preg_replace('/\s+/', '', $bodyJson); // Menghindari perubahan format string yang sah
-    $bodySHA256 = hash('sha256', $bodyMinified); // Hashing body JSON yang telah diminifikasi
-
-    // Menyusun string untuk verifikasi tanda tangan
-    $data = 'POST' . ":" . $path . ":" . $authorization . ":" . strtolower(bin2hex($bodySHA256)) . ":" . $timestamp;
-
-    // **Langkah 1: Verifikasi menggunakan clientSecret dan HMAC SHA-512**
-    $generatedSignature = hash_hmac('sha512', $data, $clientSecret);
-
-    // **Langkah 2: Verifikasi tanda tangan menggunakan public key RSA**
-    // Path untuk kunci publik
-    $publicKeyPemPath = 'application/keys/pubkey1.pem';
-    
-    // Memeriksa ketersediaan kunci publik
+    // Ambil public key (misalnya dari file atau variabel)
+    $publicKeyPemPath = 'application/keys/pubkey1.pem';  // Ganti dengan path public key BRI
     if (!file_exists($publicKeyPemPath)) {
-        return [
-            'status' => 'error',
-            'message' => 'File kunci publik tidak ditemukan'
-        ];
+        return array('status' => 'error', 'message' => 'File kunci publik tidak ditemukan');
     }
 
-    // Memuat kunci publik dari file
     $publicKeyPem = file_get_contents($publicKeyPemPath);
     $publicKey = openssl_pkey_get_public($publicKeyPem);
-    
-    // Memastikan kunci publik valid
+
     if (!$publicKey) {
-        return [
-            'status' => 'error',
-            'message' => 'Kunci publik tidak valid: ' . openssl_error_string()
-        ];
+        return array('status' => 'error', 'message' => 'Kunci publik tidak valid: ' . openssl_error_string());
     }
 
-    // Decode tanda tangan dari Base64
-    $decodedSignature = base64_decode($signature, true);  // Validasi base64 decode
-    if ($decodedSignature === false) {
-        return [
-            'status' => 'error',
-            'message' => 'Format Base64 tanda tangan tidak valid'
-        ];
-    }
+    $httpMethod = 'POST';
+    $path = '/bricallback/backend/notifikasi';
+    // Langkah 1: Minifikasi Body Request (Hapus spasi dan newline)
+    $bodyJson = json_encode($requestData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    $bodyMinified = preg_replace('/\s+/', '', $bodyJson); // Menghapus spasi dan newlines
+    $bodySHA256 = hash('sha256', $bodyMinified);  // Hashing body yang diminifikasi dengan SHA-256
 
-    // Verifikasi tanda tangan dengan kunci publik menggunakan openssl_verify
-    $verifyResult = openssl_verify($data, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA512);
+    // Langkah 2: Membentuk string untuk ditandatangani
+    $stringToSign = $httpMethod . ':' . $path . ':' . $Authorization . ':' . strtolower(bin2hex($bodySHA256)) . ':' . $timeStamp;
 
-    // Membebaskan kunci publik setelah selesai
+    // Langkah 3: Verifikasi signature dengan openssl_verify menggunakan public key
+    $decodedSignature = base64_decode($signature);
+    $result = openssl_verify($stringToSign, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA512);
+
+    // Bebaskan public key setelah digunakan
     openssl_free_key($publicKey);
 
-    // Memeriksa hasil verifikasi dengan kunci publik
-    if ($verifyResult === 1) {
-        return [
-            'status' => 'success',
-            'message' => 'Tanda tangan valid'
-        ];
-    } elseif ($verifyResult === 0) {
-        return [
-            'status' => 'error',
-            'message' => 'Tanda tangan tidak valid (public key check)',
-            'result' => $data
-        ];
+    if ($result === 1) {
+        return array('status' => 'success', 'message' => 'Signature valid');
+    } elseif ($result === 0) {
+        return array('status' => 'error', 'message' => 'Invalid signature');
     } else {
-        return [
-            'status' => 'error',
-            'message' => 'Kesalahan saat memverifikasi tanda tangan dengan kunci publik: ' . openssl_error_string()
-        ];
+        return array('status' => 'error', 'message' => 'Error during signature verification: ' . openssl_error_string());
     }
 }
+
+
 
 
 
