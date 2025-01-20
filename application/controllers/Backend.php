@@ -126,10 +126,10 @@ public function notifikasi() {
 
     // Ambil body request
     $body = file_get_contents('php://input');
-    $bodySHA256 = hash('sha256', $body); // Hash body request menggunakan SHA256
     $requestData = json_decode($body, true); // Decode body JSON menjadi array
 
-    $authorizationHeader = $headers['Authorization'];
+    $authorizationHeader = 'Bearer ' . $headers['Authorization'];
+        $authorizationHeader = $headers['Authorization'];
     if (empty($authorizationHeader) || strpos($authorizationHeader, 'Bearer ') !== 0) {
         $this->output
             ->set_content_type('application/json')
@@ -151,78 +151,87 @@ public function notifikasi() {
             ->set_status_header(401)
             ->set_output(json_encode([
                 'responseCode' => '401',
-                'responseMessage' => 'Invalid access token'
+                'responseMessage' => 'Invalid access token, Coba Gunakan Tanpa Bearer'
             ]));
         return;
     }
 
-    // Membuat StringToSign untuk validasi signature
-    $method = $_SERVER['REQUEST_METHOD']; // Method, misalnya POST
-    $path = '/bricallback/backend/notifikasi'; // Path endpoint
-    $timestamp = $headers['X-TIMESTAMP']; // Timestamp dari header
+    // Validasi signature
+    try {
+        $validationResult = $this->api->validateSignature(
+            $headers['Authorization'], 
+            $headers['X-TIMESTAMP'], 
+            $headers['X-SIGNATURE'], 
+            $headers['X-PARTNER-ID'], 
+            $headers['CHANNEL-ID'], 
+            $headers['X-EXTERNAL-ID'],
+            $headers['ContentType']
+        );
+        
+        if ($validationResult['status'] === 'success') {
+            // Cek jika partnerServiceId ada dalam body request
+            if (empty($requestData['partnerServiceId'])) {
+                $this->output
+                    ->set_content_type('application/json')
+                    ->set_status_header(400)
+                    ->set_output(json_encode([
+                        'responseCode' => '400',
+                        'responseMessage' => 'Missing partnerServiceId in request body'
+                    ]));
+                return;
+            }
 
-    // Validasi Signature menggunakan fungsi validateSignature
-    $validationResult = $this->api->validateSignature(
-        $method,
-        $path,
-        $headers['Authorization'], // Bearer token
-        $timestamp,
-        $headers['X-SIGNATURE'], // Signature yang dikirim
-        $bodySHA256
-    );
+            // Simpan data
+            $saveResult = $this->VirtualAccountModel->savePaymentData($requestData);
 
-    if ($validationResult['status'] !== 'success') {
-        $this->output
-            ->set_content_type('application/json')
-            ->set_status_header(400)
-            ->set_output(json_encode([ 
-                'responseCode' => '400',
-                'responseMessage' => $validationResult['message']
-            ]));
-        return;
-    }
-
-    // Cek jika partnerServiceId ada dalam body request
-    if (empty($requestData['partnerServiceId'])) {
-        $this->output
-            ->set_content_type('application/json')
-            ->set_status_header(400)
-            ->set_output(json_encode([
-                'responseCode' => '400',
-                'responseMessage' => 'Missing partnerServiceId in request body'
-            ]));
-        return;
-    }
-
-    // Simpan data
-    $saveResult = $this->VirtualAccountModel->savePaymentData($requestData);
-
-    if ($saveResult) {
-        $this->output
-            ->set_content_type('application/json')
-            ->set_status_header(200)
-            ->set_output(json_encode([
-                'responseCode' => '200',
-                'responseMessage' => 'Successful',
-                'virtualAccountData' => [
-                    'partnerServiceId' => $requestData['partnerServiceId'],  // Ambil dari body request
-                    'customerNo' => $requestData['customerNo'],
-                    'virtualAccountNo' => $requestData['virtualAccountNo'],
-                    'paymentRequestId' => $requestData['paymentRequestId'],
-                    'trxDateTime' => $requestData['trxDateTime'],
-                    'paymentStatus' => 'Success'
-                ]
-            ]));
-    } else {
+            if ($saveResult) {
+                $this->output
+                    ->set_content_type('application/json')
+                    ->set_status_header(200)
+                    ->set_output(json_encode([
+                        'responseCode' => '200',
+                        'responseMessage' => 'Successful',
+                        'virtualAccountData' => [
+                            'partnerServiceId' => $requestData['partnerServiceId'],  // Ambil dari body request
+                            'customerNo' => $requestData['customerNo'],
+                            'virtualAccountNo' => $requestData['virtualAccountNo'],
+                            'paymentRequestId' => $requestData['paymentRequestId'],
+                            'trxDateTime' => $requestData['trxDateTime'],
+                            'paymentStatus' => 'Success'
+                        ]
+                    ]));
+            } else {
+                $this->output
+                    ->set_content_type('application/json')
+                    ->set_status_header(500)
+                    ->set_output(json_encode([
+                        'responseCode' => '500',
+                        'responseMessage' => 'Failed to save payment data'
+                    ]));
+            }
+        } else {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(400)
+                ->set_output(json_encode([
+                    'responseCode' => '400',
+                    'responseMessage' => $validationResult['message']
+                ]));
+        }
+    } catch (Exception $e) {
+        log_message('error', 'Error during signature validation: ' . $e->getMessage());
         $this->output
             ->set_content_type('application/json')
             ->set_status_header(500)
             ->set_output(json_encode([
                 'responseCode' => '500',
-                'responseMessage' => 'Failed to save payment data'
+                'responseMessage' => 'Internal server error'
             ]));
     }
 }
+
+
+
 
 
 
