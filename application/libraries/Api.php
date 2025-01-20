@@ -214,15 +214,6 @@ public function validateSignature($authorization, $timestamp, $signature, $reque
     // Membebaskan kunci publik setelah selesai
     openssl_free_key($publicKey);
 
-    // Memeriksa hasil verifikasi signature HMAC
-    if (!hash_equals($generatedSignature, $signature)) {
-        return [
-            'status' => 'error',
-            'message' => 'Signature HMAC tidak valid',
-            'result' => $data
-        ];
-    }
-
     // Memeriksa hasil verifikasi dengan kunci publik
     if ($verifyResult === 1) {
         return [
