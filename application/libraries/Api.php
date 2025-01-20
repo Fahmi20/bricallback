@@ -138,7 +138,7 @@ EOD;
     }
 }
 
-public function validateSignature($authorization, $timestamp, $signature, $partnerId, $channelId, $externalId, $content, $body)
+public function validateSignature($authorization, $timestamp, $signature, $partnerId, $channelId, $externalId, $content, $bodySha256)
 {
     // Path ke file kunci publik
     $publicKeyPemPath = 'application/keys/pubkey1.pem';
@@ -165,10 +165,6 @@ public function validateSignature($authorization, $timestamp, $signature, $partn
 
     // Gabungkan semua parameter untuk membentuk data yang akan diperiksa tanda tangannya
     $data = $authorization . "|" . $timestamp . "|" . $partnerId . "|" . $channelId . "|" . $externalId . "|" . $content;
-
-    // Ambil body request dan hitung SHA256-nya
-    $body = file_get_contents('php://input'); // Ambil body request
-    $bodySha256 = hash('sha256', $body); // Menghitung hash SHA256 dari body
 
     // Gabungkan bodySHA256 dengan data lainnya
     $dataWithBodySHA256 = $data . "|" . $bodySha256;
