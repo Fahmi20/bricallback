@@ -162,7 +162,7 @@ public function validateSignature($Authorization, $body, $timeStamp, $signature)
     
     // Tentukan HTTP method dan path endpoint
     $httpMethod = 'POST'; // Sesuaikan dengan metode HTTP yang digunakan
-    $path = 'https://briapi-dev.arraafi.id:4433/bricallback/backend/notifikasi';  // Path yang sesuai dengan endpoint Anda
+    $path = '/bricallback/backend/notifikasi';  // Path yang sesuai dengan endpoint Anda
     $accessToken = $Authorization; // Token akses dari Authorization header
     $clientSecret = $this->client_secret; // Ambil client secret dari konfigurasi Anda
     

@@ -3,7 +3,7 @@ const crypto = require('crypto');
 // Data untuk tanda tangan
 const clientSecret = 'SpPtPt6Oa7Cjf47XIUvn6gq6fVYEPPodzFgukfMdk/o='; // Client Secret
 const method = 'POST';
-const path = 'https://briapi-dev.arraafi.id:4433/bricallback/backend/notifikasi';
+const path = '/bricallback/backend/notifikasi';
 const timestamp = new Date().toISOString();  // X-TIMESTAMP header
 const accessToken = '2NEsUaYqBkYol9goYbdEiafPdCzHB7VK';  // Misalnya token yang diambil dari header Authorization (tanpa "Bearer ")
 const body = {
