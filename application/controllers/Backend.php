@@ -133,8 +133,6 @@ public function notifikasi() {
 
         // Verifikasi signature
         $verificationResult = $this->api->validateSignature($Authorization, $requestData, $timeStamp, $signature);
-        echo json_encode($verificationResult, JSON_PRETTY_PRINT);
-
         // Periksa hasil verifikasi signature
         if ($verificationResult['status'] === 'success') {
             // Cek jika partnerServiceId ada dalam body request

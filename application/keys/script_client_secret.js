@@ -22,13 +22,8 @@ const body = {
 };
 
 
-// Langkah 1: Minifikasi Body Request (Hapus spasi dan newline)
-const bodyJson = JSON.stringify(body);  // Stringify tanpa indentasi untuk format yang lebih kompak
-const bodyMinified = bodyJson.replace(/\s+/g, ''); // Hapus spasi dan newlines
-const bodySHA256 = crypto.createHash('sha256').update(bodyMinified).digest('hex'); // Hashing body yang diminifikasi dengan SHA-256
-
 // Langkah 2: Membentuk string untuk ditandatangani
-const stringToSign = `${method}:${path}:${accessToken}:${bodySHA256.toLowerCase()}:${timestamp}`;
+const stringToSign = `${method}:${path}:${accessToken}:${body}:${timestamp}`;
 
 // Langkah 3: Menghitung signature dengan HMAC-SHA512
 const hmacSignature = crypto.createHmac('sha512', clientSecret)
@@ -36,7 +31,7 @@ const hmacSignature = crypto.createHmac('sha512', clientSecret)
     .digest('base64');
 
 // Tampilkan hasilnya
-console.log('Authorization:', `Bearer ${accessToken}`);
+console.log('Authorization:', `${accessToken}`);
 console.log('X-TIMESTAMP:', timestamp);
 console.log('X-SIGNATURE:', hmacSignature);
-console.log('Body:', bodyJson);
+console.log('Body:', body);
