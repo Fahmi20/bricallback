@@ -168,7 +168,7 @@ public function notifikasi() {
             $headers['X-PARTNER-ID'], 
             $headers['CHANNEL-ID'], 
             $headers['X-EXTERNAL-ID'],
-            $headers['Content-Type'],
+            $headers['ContentType'],
             $bodySha256
         );
         
