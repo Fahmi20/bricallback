@@ -138,7 +138,7 @@ EOD;
     }
 }
 
-public function validateSignature($authorization, $timestamp, $signature,$partnerId,$channelId,$externalId)
+public function validateSignature($authorization, $timestamp, $signature,$partnerId,$channelId,$externalId,$content)
 {
     $publicKeyPemPath = 'application/keys/pubkey1.pem';
     if (!file_exists($publicKeyPemPath)) {
@@ -155,7 +155,7 @@ public function validateSignature($authorization, $timestamp, $signature,$partne
             'message' => 'Kunci publik tidak valid: ' . openssl_error_string()
         ];
     }
-    $data = $authorization . "|" . $timestamp . "|" . $partnerId . "|" . $channelId . "|" . $externalId;
+    $data = $authorization . "|" . $timestamp . "|" . $partnerId . "|" . $channelId . "|" . $externalId . "|" . $content;
     $decodedSignature = base64_decode($signature);
     if ($decodedSignature === false) {
         return [

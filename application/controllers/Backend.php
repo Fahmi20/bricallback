@@ -105,6 +105,7 @@ public function notifikasi() {
         'X-PARTNER-ID' => $this->input->get_request_header('X-PARTNER-ID', TRUE),
         'CHANNEL-ID' => $this->input->get_request_header('CHANNEL-ID', TRUE),
         'X-EXTERNAL-ID' => $this->input->get_request_header('X-EXTERNAL-ID', TRUE),
+        'ContentType' => $this->input->get_request_header('Content-Type', TRUE)
     ];
 
     // Validasi keberadaan header
@@ -152,7 +153,8 @@ public function notifikasi() {
             $headers['X-SIGNATURE'], 
             $headers['X-PARTNER-ID'], 
             $headers['CHANNEL-ID'], 
-            $headers['X-EXTERNAL-ID']
+            $headers['X-EXTERNAL-ID'],
+            $headers['Content-Type']
         );
         
         if ($validationResult['status'] === 'success') {
