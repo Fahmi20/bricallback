@@ -105,10 +105,11 @@ public function notifikasi() {
         $partnerId = $this->input->get_request_header('X-PARTNER-ID', TRUE);
         $channelId = $this->input->get_request_header('CHANNEL-ID', TRUE);
         $externalId = $this->input->get_request_header('X-EXTERNAL-ID', TRUE);
+        $contentType = $this->input->get_request_header('Content-Type', TRUE);
 
         // Validasi header yang diperlukan
-        if (!$Authorization || !$signature || !$timeStamp || !$partnerId || !$channelId || !$externalId) {
-            echo json_encode(array('status' => 'error', 'message' => 'Invalid headers'));
+        if (!$Authorization || !$signature || !$timeStamp || !$partnerId || !$channelId || !$externalId || !$contentType) {
+            echo json_encode(array('responseCode' => '409', 'message' => 'Invalid headers'));
             return;
         }
 
