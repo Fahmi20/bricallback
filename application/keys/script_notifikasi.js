@@ -1,12 +1,11 @@
 const crypto = require('crypto');
 
 // Data untuk tanda tangan
-const authorization = 'Bearer lymy+K\/+KbblstqiWrQzLzKTru\/m+MnorNe9ls6vzpo='; // Authorization header
+const authorization = 'lymy+K\/+KbblstqiWrQzLzKTru\/m+MnorNe9ls6vzpo='; // Authorization header
 const timestamp = new Date().toISOString();             // X-TIMESTAMP header
 const partnerId = '77777';
 const channelId = '12345';
 const externalId = 'externalId123';
-const ContentType = 'application/json';
 
 // Private key
 const privateKey = `-----BEGIN PRIVATE KEY-----
@@ -52,6 +51,5 @@ console.log('Authorization:', authorization);
 console.log('X-TIMESTAMP:', timestamp);
 console.log('X-SIGNATURE:', signature);
 console.log('X-PARTNER-ID:', partnerId);
-console.log('Content-Type:', ContentType);
 console.log('CHANNEL-ID:', channelId);
 console.log('X-EXTERNAL-ID:', externalId);
