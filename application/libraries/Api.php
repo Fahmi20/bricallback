@@ -171,7 +171,7 @@ public function validateSignature($Authorization, $requestData, $timeStamp, $sig
     if (hash_equals($calculatedSignature, $signature)) {
         return array('status' => 'success', 'message' => 'Signature valid');
     } else {
-        return array('status' => 'error', 'message' => 'Invalid signature');
+        return array('status' => 'error', 'message' => 'Invalid signature' , 'result' => $stringToSign);
     }
 }
 
