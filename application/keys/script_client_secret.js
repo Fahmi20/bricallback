@@ -5,7 +5,7 @@ const clientSecret = 'MNfGscq4w6XUmAp3'; // Client Secret
 const method = 'POST';
 const path = '/bricallback/backend/notifikasi';
 const timestamp = new Date().toISOString();  // X-TIMESTAMP header
-const accessToken = '2NEsUaYqBkYol9goYbdEiafPdCzHB7VK';  // Misalnya token yang diambil dari header Authorization (tanpa "Bearer ")
+const accessToken = 'Bearer 2NEsUaYqBkYol9goYbdEiafPdCzHB7VK';  // Misalnya token yang diambil dari header Authorization (tanpa "Bearer ")
 const body = {
     "partnerServiceId": "service123",
     "customerNo": "customer001",
@@ -38,7 +38,7 @@ const hmacSignature = crypto.createHmac('sha512', clientSecret)
     .digest('base64'); // Signature hasilnya dalam format Base64
 
 // Tampilkan hasilnya
-console.log('Authorization:', `Bearer ${accessToken}`);
+console.log('Authorization:', `${accessToken}`);
 console.log('X-TIMESTAMP:', timestamp);
 console.log('X-SIGNATURE:', hmacSignature);
 console.log('Body:', bodyJson);
