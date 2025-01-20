@@ -138,53 +138,50 @@ EOD;
     }
 }
 
-public function validateSignature($authorization, $timestamp, $content, $signature, $partnerId, $channelId, $externalId)
+public function validateSignature($authorization, $timestamp, $signature,$partnerId,$channelId,$externalId,$content)
 {
     $publicKeyPemPath = 'application/keys/pubkey1.pem';
-
-    // Periksa apakah file kunci publik ada
     if (!file_exists($publicKeyPemPath)) {
-        log_message('error', 'File kunci publik tidak ditemukan di: ' . $publicKeyPemPath);
-        return false;
+        return [
+            'status' => 'error',
+            'message' => 'File kunci publik tidak ditemukan'
+        ];
     }
-
-    // Muat kunci publik
     $publicKeyPem = file_get_contents($publicKeyPemPath);
     $publicKey = openssl_pkey_get_public($publicKeyPem);
-
     if (!$publicKey) {
-        log_message('error', 'Kunci publik tidak valid: ' . openssl_error_string());
-        return false;
+        return [
+            'status' => 'error',
+            'message' => 'Kunci publik tidak valid: ' . openssl_error_string()
+        ];
     }
-
-    // Gabungkan data untuk diverifikasi
-    $data = $authorization . "|" . $timestamp . "|" . $content . "|" . $partnerId . "|" . $channelId . "|" . $externalId;
-
-    // Decode tanda tangan dari Base64
+    $data = $authorization . "|" . $timestamp . "|" . $partnerId . "|" . $channelId . "|" . $externalId . "|" . $content;
     $decodedSignature = base64_decode($signature);
     if ($decodedSignature === false) {
-        log_message('error', 'Format Base64 tanda tangan tidak valid');
-        return false;
+        return [
+            'status' => 'error',
+            'message' => 'Format Base64 tanda tangan tidak valid'
+        ];
     }
-
-    // Verifikasi tanda tangan
     $result = openssl_verify($data, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA512);
-
-    // Bebaskan kunci publik
     openssl_free_key($publicKey);
-
-    // Kembalikan hasil
     if ($result === 1) {
-        return true; // Tanda tangan valid
+        return [
+            'status' => 'success',
+            'message' => 'Tanda tangan valid'
+        ];
     } elseif ($result === 0) {
-        log_message('error', 'Tanda tangan tidak valid');
-        return false;
+        return [
+            'status' => 'error',
+            'message' => 'Tanda tangan tidak valid'
+        ];
     } else {
-        log_message('error', 'Kesalahan saat memverifikasi tanda tangan: ' . openssl_error_string());
-        return false;
+        return [
+            'status' => 'error',
+            'message' => 'Kesalahan saat memverifikasi tanda tangan: ' . openssl_error_string()
+        ];
     }
 }
-
 
 
 
