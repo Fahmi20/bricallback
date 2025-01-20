@@ -6,6 +6,7 @@ const timestamp = new Date().toISOString();             // X-TIMESTAMP header
 const partnerId = '77777';
 const channelId = '12345';
 const externalId = 'externalId123';
+const ContentType = 'application/json';
 
 // Private key
 const privateKey = `-----BEGIN PRIVATE KEY-----
@@ -51,6 +52,6 @@ console.log('Authorization:', authorization);
 console.log('X-TIMESTAMP:', timestamp);
 console.log('X-SIGNATURE:', signature);
 console.log('X-PARTNER-ID:', partnerId);
-console.log('Content-type: application/json');
+console.log('Content-Type:', ContentType);
 console.log('CHANNEL-ID:', channelId);
 console.log('X-EXTERNAL-ID:', externalId);
