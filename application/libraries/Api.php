@@ -155,17 +155,15 @@ EOD;
     }
 }
 
-
-
-public function validateSignature($Authorization, $requestData, $timeStamp, $signature)
+public function validateSignature($Authorization, $body, $timeStamp, $signature)
 {
     $Authorization = str_replace('Bearer ', '', $Authorization);
     $httpMethod = 'POST';
     $path = '/bricallback/backend/notifikasi';
     $accessToken = $Authorization; 
     $clientSecret = $this->client_secret;
-    $bodyJson = json_encode($requestData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-    $bodyMinified = preg_replace('/\s+/', '', $bodyJson);  // Minifikasi body JSON
+    $bodyJson = json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    $bodyMinified = preg_replace('/\s+/', '', $bodyJson);
     $bodySHA256 = hash('sha256', $bodyMinified);
     $stringToSign = $httpMethod . ":" . $path . ":" . $accessToken . ":" . $bodySHA256 . ":" . $timeStamp;
     $calculatedSignature = hash_hmac('sha512', $stringToSign, $clientSecret);
@@ -175,7 +173,6 @@ public function validateSignature($Authorization, $requestData, $timeStamp, $sig
         return array('status' => 'error', 'message' => 'Invalid signature', 'result' => $stringToSign);
     }
 }
-
 
 
     public function verifySignature($clientID, $timeStamp, $base64signature)

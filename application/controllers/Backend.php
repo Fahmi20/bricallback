@@ -126,16 +126,12 @@ public function notifikasi() {
                 ->set_status_header(401)
                 ->set_output(json_encode([ 
                     'responseCode' => '401',
-                    'responseMessage' => 'Invalid access token, Coba Gunakan Tanpa Bearer'
+                    'responseMessage' => 'Invalid access token'
                 ]));
             return;
         }
-
-        // Verifikasi signature
         $verificationResult = $this->api->validateSignature($Authorization, $requestData, $timeStamp, $signature);
-        // Periksa hasil verifikasi signature
         if ($verificationResult['status'] === 'success') {
-            // Cek jika partnerServiceId ada dalam body request
             if (empty($requestData['partnerServiceId'])) {
                 $this->output
                     ->set_content_type('application/json')
