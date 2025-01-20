@@ -101,11 +101,7 @@ public function notifikasi() {
     $headers = [
         'Authorization' => $this->input->get_request_header('Authorization', TRUE),
         'X-TIMESTAMP' => $this->input->get_request_header('X-TIMESTAMP', TRUE),
-        'X-SIGNATURE' => $this->input->get_request_header('X-SIGNATURE', TRUE),
-        'X-PARTNER-ID' => $this->input->get_request_header('X-PARTNER-ID', TRUE),
-        'CHANNEL-ID' => $this->input->get_request_header('CHANNEL-ID', TRUE),
-        'X-EXTERNAL-ID' => $this->input->get_request_header('X-EXTERNAL-ID', TRUE),
-        'ContentType' => $this->input->get_request_header('Content-Type', TRUE)
+        'X-SIGNATURE' => $this->input->get_request_header('X-SIGNATURE', TRUE)
     ];
 
     // Validasi keberadaan header
@@ -161,11 +157,7 @@ public function notifikasi() {
         $validationResult = $this->api->validateSignature(
             $headers['Authorization'], 
             $headers['X-TIMESTAMP'], 
-            $headers['X-SIGNATURE'], 
-            $headers['X-PARTNER-ID'], 
-            $headers['CHANNEL-ID'], 
-            $headers['X-EXTERNAL-ID'],
-            $headers['ContentType'],
+            $headers['X-SIGNATURE'],
             $bodyInput
         );
         
