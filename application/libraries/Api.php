@@ -138,7 +138,7 @@ EOD;
     }
 }
 
-public function validateSignature($authorization, $timestamp, $signature, $bodyInput)
+public function validateSignature($authorization, $timestamp, $signature,$partnerId,$channelId,$externalId,$content,$bodyInput)
 {
     $publicKeyPemPath = 'application/keys/pubkey1.pem';
     if (!file_exists($publicKeyPemPath)) {
@@ -155,9 +155,8 @@ public function validateSignature($authorization, $timestamp, $signature, $bodyI
             'message' => 'Kunci publik tidak valid: ' . openssl_error_string()
         ];
     }
-    $body = json_decode($bodyInput, true);
-    $bodyRequestSHA256 = hash('sha256', json_encode($body));
-    $stringToSign = 'POST' . ':' . '/bricallback/backend/notifikasi' . ':' . $authorization . ':' . $bodyRequestSHA256 . ':' . $timestamp;
+    $bodySHA256 = hash('sha256', json_encode($bodyInput));
+    $StringToSign = $authorization . "|" . $timestamp . "|" . $partnerId . "|" . $channelId . "|" . $externalId . "|" . $content . "|" . $bodySHA256;
     $decodedSignature = base64_decode($signature);
     if ($decodedSignature === false) {
         return [
@@ -165,9 +164,8 @@ public function validateSignature($authorization, $timestamp, $signature, $bodyI
             'message' => 'Format Base64 tanda tangan tidak valid'
         ];
     }
-    $result = openssl_verify($stringToSign, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA512);
+    $result = openssl_verify($StringToSign, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA512);
     openssl_free_key($publicKey);
-
     if ($result === 1) {
         return [
             'status' => 'success',
@@ -185,8 +183,6 @@ public function validateSignature($authorization, $timestamp, $signature, $bodyI
         ];
     }
 }
-
-
 
 
 
