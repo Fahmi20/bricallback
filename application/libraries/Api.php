@@ -175,7 +175,7 @@ public function validateSignature($authorization, $timestamp, $signature, $reque
     }
 
     // Menyusun string untuk verifikasi tanda tangan
-    $data = $method . ":" . $path . ":" . $authorization . ":" . $timestamp . ":" . $bodySHA256;
+    $data = $authorization . ":" . $timestamp . ":" . $bodySHA256;
 
     // Decode tanda tangan dari Base64
     $decodedSignature = base64_decode($signature, true);  // Validasi base64 decode

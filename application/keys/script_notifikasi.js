@@ -63,3 +63,4 @@ const signature = sign.sign(privateKey, 'base64');
 console.log('Authorization:', authorization);
 console.log('X-TIMESTAMP:', timestamp);
 console.log('X-SIGNATURE:', signature);
+console.log('Body:', bodyString);
