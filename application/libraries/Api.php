@@ -166,7 +166,7 @@ public function validateSignature($Authorization, $requestData, $timeStamp, $sig
     $bodyJson = json_encode($requestData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     $bodyMinified = preg_replace('/\s+/', '', $bodyJson);
     $bodySHA256 = hash('sha256', $bodyMinified);
-    $stringToSign = $httpMethod . ':' . $path . ':' . $Authorization . ':' . strtolower(bin2hex($bodySHA256)) . ':' . $timeStamp;
+    $stringToSign = $httpMethod . ':' . $path . ':' . $Authorization . ':' . $bodySHA256 . ':' . $timeStamp;
     $calculatedSignature = hash_hmac('sha512', $stringToSign, $clientSecret);
     if (hash_equals($calculatedSignature, $signature)) {
         return array('status' => 'success', 'message' => 'Signature valid');
