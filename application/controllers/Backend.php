@@ -158,6 +158,7 @@ public function notifikasi() {
     // Validasi signature
     try {
         $validationResult = $this->api->validateSignature(
+            $headers['Authorization'], 
             $headers['X-TIMESTAMP'], 
             $headers['X-SIGNATURE'], 
             $requestData // Mengirim body request untuk validasi
