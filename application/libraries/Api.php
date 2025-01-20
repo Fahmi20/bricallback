@@ -164,12 +164,12 @@ public function validateSignature($authorization, $timestamp, $signature, $partn
     }
 
     // Menghitung SHA256 dari body input
-    // Perhatikan bahwa bodyInput harus berupa array atau objek yang valid
+    // Pastikan bodyInput adalah array atau objek yang valid
     $bodySHA256 = hash('sha256', json_encode($bodyInput));
 
-    // Menyusun string untuk ditandatangani
-    // Formatnya adalah: authorization | timestamp | partnerId | channelId | externalId | content | bodySHA256
-    $stringToSign = $authorization . "|" . $timestamp . "|" . $partnerId . "|" . $channelId . "|" . $externalId . "|" . $content . "|" . $bodySHA256;
+    // Menyusun string untuk ditandatangani sesuai format:
+    // HTTP_METHOD:PATH:authorization:SHA256_BODY:timestamp
+    $stringToSign = 'POST' . ':' . '/bricallback/backend/notifikasi' . ':' . $authorization . ':' . $bodySHA256 . ':' . $timestamp;
 
     // Decode signature dari base64
     $decodedSignature = base64_decode($signature);
@@ -182,7 +182,7 @@ public function validateSignature($authorization, $timestamp, $signature, $partn
 
     // Memverifikasi tanda tangan menggunakan openssl_verify
     $result = openssl_verify($stringToSign, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA512);
-    
+
     // Membebaskan kunci publik setelah selesai
     openssl_free_key($publicKey);
 
@@ -204,6 +204,7 @@ public function validateSignature($authorization, $timestamp, $signature, $partn
         ];
     }
 }
+
 
 
 
