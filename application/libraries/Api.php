@@ -160,6 +160,7 @@ public function validateSignature($authorization, $timestamp, $signature, $reque
     // Mendefinisikan metode dan path
     $path = '/bricallback/backend/notifikasi';
     $authorization = str_replace('Bearer ', '', $authorization);
+    $clientSecret = $this->client_secret;
 
     // Mengonversi body ke JSON dengan format yang tepat
     $bodyJson = json_encode($requestData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -168,6 +169,13 @@ public function validateSignature($authorization, $timestamp, $signature, $reque
     $bodyMinified = preg_replace('/\s+/', '', $bodyJson); // Menghindari perubahan format string yang sah
     $bodySHA256 = hash('sha256', $bodyMinified); // Hashing body JSON yang telah diminifikasi
 
+    // Menyusun string untuk verifikasi tanda tangan
+    $data = 'POST' . ":" . $path . ":" . $authorization . ":" . strtolower(bin2hex($bodySHA256)) . ":" . $timestamp;
+
+    // **Langkah 1: Verifikasi menggunakan clientSecret dan HMAC SHA-512**
+    $generatedSignature = hash_hmac('sha512', $data, $clientSecret);
+
+    // **Langkah 2: Verifikasi tanda tangan menggunakan public key RSA**
     // Path untuk kunci publik
     $publicKeyPemPath = 'application/keys/pubkey1.pem';
     
@@ -191,9 +199,6 @@ public function validateSignature($authorization, $timestamp, $signature, $reque
         ];
     }
 
-    // Menyusun string untuk verifikasi tanda tangan
-    $data = 'POST'. ":" . $path . ":" . $authorization . ":" . $bodySHA256 . ":" . $timestamp;
-
     // Decode tanda tangan dari Base64
     $decodedSignature = base64_decode($signature, true);  // Validasi base64 decode
     if ($decodedSignature === false) {
@@ -204,30 +209,40 @@ public function validateSignature($authorization, $timestamp, $signature, $reque
     }
 
     // Verifikasi tanda tangan dengan kunci publik menggunakan openssl_verify
-    $result = openssl_verify($data, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA512);
-    
+    $verifyResult = openssl_verify($data, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA512);
+
     // Membebaskan kunci publik setelah selesai
     openssl_free_key($publicKey);
 
-    // Menentukan hasil verifikasi
-    if ($result === 1) {
+    // Memeriksa hasil verifikasi signature HMAC
+    if (!hash_equals($generatedSignature, $signature)) {
+        return [
+            'status' => 'error',
+            'message' => 'Signature HMAC tidak valid',
+            'result' => $data
+        ];
+    }
+
+    // Memeriksa hasil verifikasi dengan kunci publik
+    if ($verifyResult === 1) {
         return [
             'status' => 'success',
             'message' => 'Tanda tangan valid'
         ];
-    } elseif ($result === 0) {
+    } elseif ($verifyResult === 0) {
         return [
             'status' => 'error',
-            'message' => 'Tanda tangan tidak valid',
+            'message' => 'Tanda tangan tidak valid (public key check)',
             'result' => $data
         ];
     } else {
         return [
             'status' => 'error',
-            'message' => 'Kesalahan saat memverifikasi tanda tangan: ' . openssl_error_string()
+            'message' => 'Kesalahan saat memverifikasi tanda tangan dengan kunci publik: ' . openssl_error_string()
         ];
     }
 }
+
 
 
 
