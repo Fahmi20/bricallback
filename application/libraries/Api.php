@@ -159,7 +159,7 @@ public function validateSignature($authorization, $timestamp, $signature, $reque
 {
     // Mendefinisikan metode dan path
     $path = '/bricallback/backend/notifikasi';
-    $authorization = str_replace('Bearer ', 'dummy:', $authorization);
+    $authorization = str_replace('Bearer ', '', $authorization);
 
     // Mengonversi body ke JSON dengan format yang tepat
     $bodyJson = json_encode($requestData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
