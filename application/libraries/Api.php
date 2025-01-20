@@ -161,8 +161,6 @@ public function validateSignature($method, $path, $authorization, $timestamp, $s
 
     // Membuat StringToSign
     $stringToSign = "{$method}:{$path}:{$authorization}:{$bodySHA256}:{$timestamp}";
-
-    // Decode signature dari Base64
     $decodedSignature = base64_decode($signature);
     if ($decodedSignature === false) {
         return [

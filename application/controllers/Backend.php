@@ -231,11 +231,6 @@ public function notifikasi() {
 
 
 
-
-
-
-
-
     public function inquiry_payment_va_briva_controller()
     {
         $partnerServiceId = '03636';
