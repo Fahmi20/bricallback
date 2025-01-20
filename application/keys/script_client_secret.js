@@ -5,7 +5,7 @@ const clientSecret = 'SpPtPt6Oa7Cjf47XIUvn6gq6fVYEPPodzFgukfMdk/o='; // Client S
 const method = 'POST';
 const path = '/bricallback/backend/notifikasi';
 const timestamp = new Date().toISOString();  // X-TIMESTAMP header
-const accessToken = 'yourAccessToken';  // Misalnya token yang diambil dari header Authorization
+const accessToken = 'Bearer 2NEsUaYqBkYol9goYbdEiafPdCzHB7VK';  // Misalnya token yang diambil dari header Authorization
 const body = {
     "partnerServiceId": "service123",
     "customerNo": "customer001",
@@ -20,6 +20,7 @@ const body = {
         "bankId": "123"
     }
 };
+
 
 // Langkah 1: Minifikasi Body Request (Hapus spasi dan newline)
 const bodyJson = JSON.stringify(body);  // Stringify tanpa indentasi untuk format yang lebih kompak

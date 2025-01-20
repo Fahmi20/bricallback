@@ -157,58 +157,23 @@ EOD;
 
 
 
-
-
 public function validateSignature($Authorization, $requestData, $timeStamp, $signature)
 {
-    // Hapus kata "Bearer " jika ada di depan token
     $Authorization = str_replace('Bearer ', '', $Authorization);
-
-    // Ambil public key (misalnya dari file atau variabel)
-    $publicKeyPemPath = 'application/keys/pubkey1.pem';  // Ganti dengan path public key BRI
-    if (!file_exists($publicKeyPemPath)) {
-        return array('status' => 'error', 'message' => 'File kunci publik tidak ditemukan');
-    }
-
-    $publicKeyPem = file_get_contents($publicKeyPemPath);
-    $publicKey = openssl_pkey_get_public($publicKeyPem);
-
-    if (!$publicKey) {
-        return array('status' => 'error', 'message' => 'Kunci publik tidak valid: ' . openssl_error_string());
-    }
-
     $httpMethod = 'POST';
     $path = '/bricallback/backend/notifikasi';
-    // Langkah 1: Minifikasi Body Request (Hapus spasi dan newline)
+    $clientSecret = $this->client_secret;
     $bodyJson = json_encode($requestData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-    $bodyMinified = preg_replace('/\s+/', '', $bodyJson); // Menghapus spasi dan newlines
-    $bodySHA256 = hash('sha256', $bodyMinified);  // Hashing body yang diminifikasi dengan SHA-256
-
-    // Langkah 2: Membentuk string untuk ditandatangani
+    $bodyMinified = preg_replace('/\s+/', '', $bodyJson);
+    $bodySHA256 = hash('sha256', $bodyMinified);
     $stringToSign = $httpMethod . ':' . $path . ':' . $Authorization . ':' . strtolower(bin2hex($bodySHA256)) . ':' . $timeStamp;
-
-    // Langkah 3: Verifikasi signature dengan openssl_verify menggunakan public key
-    $decodedSignature = base64_decode($signature);
-    $result = openssl_verify($stringToSign, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA512);
-
-    // Bebaskan public key setelah digunakan
-    openssl_free_key($publicKey);
-
-    if ($result === 1) {
+    $calculatedSignature = hash_hmac('sha512', $stringToSign, $clientSecret);
+    if (hash_equals($calculatedSignature, $signature)) {
         return array('status' => 'success', 'message' => 'Signature valid');
-    } elseif ($result === 0) {
-        return array('status' => 'error', 'message' => 'Invalid signature');
     } else {
-        return array('status' => 'error', 'message' => 'Error during signature verification: ' . openssl_error_string());
+        return array('status' => 'error', 'message' => 'Invalid signature');
     }
 }
-
-
-
-
-
-
-
 
 
     public function verifySignature($clientID, $timeStamp, $base64signature)
