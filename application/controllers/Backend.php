@@ -157,6 +157,10 @@ public function notifikasi() {
 
     // Validasi signature
     try {
+        // Hitung SHA256 dari body
+        $bodySha256 = hash('sha256', $body);
+
+        // Panggil validateSignature dengan menambahkan bodySha256
         $validationResult = $this->api->validateSignature(
             $headers['Authorization'], 
             $headers['X-TIMESTAMP'], 
@@ -164,11 +168,10 @@ public function notifikasi() {
             $headers['X-PARTNER-ID'], 
             $headers['CHANNEL-ID'], 
             $headers['X-EXTERNAL-ID'],
-            $headers['ContentType']
+            $bodySha256
         );
         
         if ($validationResult['status'] === 'success') {
-            // Cek jika partnerServiceId ada dalam body request
             if (empty($requestData['partnerServiceId'])) {
                 $this->output
                     ->set_content_type('application/json')
@@ -179,8 +182,6 @@ public function notifikasi() {
                     ]));
                 return;
             }
-
-            // Simpan data
             $saveResult = $this->VirtualAccountModel->savePaymentData($requestData);
 
             if ($saveResult) {
@@ -228,6 +229,7 @@ public function notifikasi() {
             ]));
     }
 }
+
 
 
 

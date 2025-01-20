@@ -138,16 +138,23 @@ EOD;
     }
 }
 
-public function validateSignature($authorization, $timestamp, $signature,$partnerId,$channelId,$externalId,$content)
+public function validateSignature($authorization, $timestamp, $signature, $partnerId, $channelId, $externalId, $content)
 {
+    // Path ke file kunci publik
     $publicKeyPemPath = 'application/keys/pubkey1.pem';
+
+    // Cek jika file kunci publik ada
     if (!file_exists($publicKeyPemPath)) {
         return [
             'status' => 'error',
             'message' => 'File kunci publik tidak ditemukan'
         ];
     }
+
+    // Ambil isi file kunci publik
     $publicKeyPem = file_get_contents($publicKeyPemPath);
+
+    // Ambil kunci publik dari file PEM
     $publicKey = openssl_pkey_get_public($publicKeyPem);
     if (!$publicKey) {
         return [
@@ -155,7 +162,18 @@ public function validateSignature($authorization, $timestamp, $signature,$partne
             'message' => 'Kunci publik tidak valid: ' . openssl_error_string()
         ];
     }
+
+    // Gabungkan semua parameter untuk membentuk data yang akan diperiksa tanda tangannya
     $data = $authorization . "|" . $timestamp . "|" . $partnerId . "|" . $channelId . "|" . $externalId . "|" . $content;
+
+    // Ambil body request dan hitung SHA256-nya
+    $body = file_get_contents('php://input'); // Ambil body request
+    $bodySha256 = hash('sha256', $body); // Menghitung hash SHA256 dari body
+
+    // Gabungkan bodySHA256 dengan data lainnya
+    $dataWithBodySHA256 = $data . "|" . $bodySha256;
+
+    // Decode signature yang diterima
     $decodedSignature = base64_decode($signature);
     if ($decodedSignature === false) {
         return [
@@ -163,8 +181,14 @@ public function validateSignature($authorization, $timestamp, $signature,$partne
             'message' => 'Format Base64 tanda tangan tidak valid'
         ];
     }
-    $result = openssl_verify($data, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA512);
+
+    // Verifikasi tanda tangan menggunakan kunci publik dan algoritma SHA512
+    $result = openssl_verify($dataWithBodySHA256, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA512);
+    
+    // Lepaskan resource kunci publik setelah digunakan
     openssl_free_key($publicKey);
+
+    // Evaluasi hasil verifikasi
     if ($result === 1) {
         return [
             'status' => 'success',
@@ -182,6 +206,7 @@ public function validateSignature($authorization, $timestamp, $signature,$partne
         ];
     }
 }
+
 
 
 
