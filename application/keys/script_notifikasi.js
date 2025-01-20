@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 
 // Data untuk tanda tangan
-const authorization = 'lymy+K\/+KbblstqiWrQzLzKTru\/m+MnorNe9ls6vzpo='; // Authorization header
+const authorization = 'Bearer lymy+K\/+KbblstqiWrQzLzKTru\/m+MnorNe9ls6vzpo='; // Authorization header
 const timestamp = new Date().toISOString();             // X-TIMESTAMP header
 const partnerId = '77777';
 const channelId = '12345';
@@ -39,7 +39,7 @@ uimSjqmsEW3lz2qQaRVkoOM=
 -----END PRIVATE KEY-----`;
 
 // Gabungkan data untuk ditandatangani
-const stringToSign = authorization + '|' + timestamp + '|' + partnerId + '|' + channelId + '|' + externalId;
+const stringToSign = authorization + '|' + timestamp + '|' + partnerId + '|' + channelId + '|' + externalId + '|' + ContentType;
 
 // Buat signature
 const sign = crypto.createSign('SHA512');
