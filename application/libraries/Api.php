@@ -145,7 +145,6 @@ public function validateSignature($authorization, $timestamp, $signature,$Body)
     $bodyJson = json_encode($Body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     $bodyMinified = str_replace(['\n', '\r', ' '], '', $bodyJson);
     $bodySHA256 = hash('sha256', $bodyMinified);
-
     $publicKeyPemPath = 'application/keys/pubkey1.pem';
     if (!file_exists($publicKeyPemPath)) {
         return [
