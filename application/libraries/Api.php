@@ -155,17 +155,9 @@ public function validateSignature($authorization, $timestamp, $signature, $bodyI
             'message' => 'Kunci publik tidak valid: ' . openssl_error_string()
         ];
     }
-
-    // Ambil data body dari request yang diterima
-    $body = json_decode($bodyInput, true); // Anggap ini adalah body JSON yang diterima dari API BRI
-
-    // Ambil SHA256 dari body request (bodyrequestSHA256)
+    $body = json_decode($bodyInput, true);
     $bodyRequestSHA256 = hash('sha256', json_encode($body));
-
-    // Membuat string untuk ditandatangani (stringToSign)
     $stringToSign = 'POST' . ':' . '/bricallback/backend/notifikasi' . ':' . $authorization . ':' . $bodyRequestSHA256 . ':' . $timestamp;
-
-    // Decode signature dari base64
     $decodedSignature = base64_decode($signature);
     if ($decodedSignature === false) {
         return [
@@ -173,8 +165,6 @@ public function validateSignature($authorization, $timestamp, $signature, $bodyI
             'message' => 'Format Base64 tanda tangan tidak valid'
         ];
     }
-
-    // Verifikasi tanda tangan
     $result = openssl_verify($stringToSign, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA512);
     openssl_free_key($publicKey);
 
