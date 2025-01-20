@@ -127,6 +127,7 @@ public function notifikasi() {
     $body = file_get_contents('php://input');
     $requestData = json_decode($body, true); // Decode body JSON menjadi array
 
+    // Validasi Bearer token
     $authorizationHeader = $headers['Authorization'];
     if (empty($authorizationHeader) || strpos($authorizationHeader, 'Bearer ') !== 0) {
         $this->output
@@ -160,9 +161,7 @@ public function notifikasi() {
             $headers['Authorization'], 
             $headers['X-TIMESTAMP'], 
             $headers['X-SIGNATURE'], 
-            $headers['X-PARTNER-ID'], 
-            $headers['CHANNEL-ID'], 
-            $headers['X-EXTERNAL-ID']
+            $requestData // Mengirim body request untuk validasi
         );
         
         if ($validationResult['status'] === 'success') {
@@ -201,7 +200,7 @@ public function notifikasi() {
                 $this->output
                     ->set_content_type('application/json')
                     ->set_status_header(500)
-                    ->set_output(json_encode([
+                    ->set_output(json_encode([ 
                         'responseCode' => '500',
                         'responseMessage' => 'Failed to save payment data'
                     ]));
@@ -220,12 +219,13 @@ public function notifikasi() {
         $this->output
             ->set_content_type('application/json')
             ->set_status_header(500)
-            ->set_output(json_encode([
+            ->set_output(json_encode([ 
                 'responseCode' => '500',
                 'responseMessage' => 'Internal server error'
             ]));
     }
 }
+
 
 
 

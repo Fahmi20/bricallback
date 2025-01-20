@@ -1,11 +1,22 @@
 const crypto = require('crypto');
 
 // Data untuk tanda tangan
-const authorization = 'Bearer lymy+K\/+KbblstqiWrQzLzKTru\/m+MnorNe9ls6vzpo='; // Authorization header
-const timestamp = new Date().toISOString();             // X-TIMESTAMP header
-const partnerId = '77777';
-const channelId = '12345';
-const externalId = 'externalId123';
+const authorization = 'Bearer lymy+K/KbblstqiWrQzLzKTru/m+MnorNe9ls6vzpo='; // Authorization header
+const timestamp = new Date().toISOString();  // X-TIMESTAMP header
+const body = {
+    "partnerServiceId": "service123",
+    "customerNo": "customer001",
+    "virtualAccountNo": "1234567890",
+    "paymentRequestId": "req123456",
+    "trxDateTime": "2025-01-20T10:00:00Z",
+    "additionalInfo": {
+        "idApp": "app123",
+        "passApp" : "app123",
+        "paymentAmount" : "123",
+        "terminalId" : "002",
+        "bankId" : "123"
+    }
+};
 
 // Private key
 const privateKey = `-----BEGIN PRIVATE KEY-----
@@ -38,7 +49,9 @@ uimSjqmsEW3lz2qQaRVkoOM=
 -----END PRIVATE KEY-----`;
 
 // Gabungkan data untuk ditandatangani
-const stringToSign = authorization + '|' + timestamp + '|' + partnerId + '|' + channelId + '|' + externalId;
+// Konversi objek body ke JSON string terlebih dahulu
+const bodyString = JSON.stringify(body, null, 0);  // Stringify tanpa indentasi untuk format yang lebih kompak
+const stringToSign = authorization + ':' + timestamp + ':' + bodyString;
 
 // Buat signature
 const sign = crypto.createSign('SHA512');
@@ -50,6 +63,3 @@ const signature = sign.sign(privateKey, 'base64');
 console.log('Authorization:', authorization);
 console.log('X-TIMESTAMP:', timestamp);
 console.log('X-SIGNATURE:', signature);
-console.log('X-PARTNER-ID:', partnerId);
-console.log('CHANNEL-ID:', channelId);
-console.log('X-EXTERNAL-ID:', externalId);
