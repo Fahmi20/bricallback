@@ -195,7 +195,7 @@ public function validateSignature($authorization, $timestamp, $signature, $bodyI
     } elseif ($result === 0) {
         return [
             'status' => 'error',
-            'message' => 'Tanda tangan tidak valid'
+            'message' => 'Tanda tangan tidak '
         ];
     } else {
         return [
