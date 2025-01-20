@@ -202,7 +202,7 @@ public function validateSignature($authorization, $timestamp, $signature, $reque
         return [
             'status' => 'error',
             'message' => 'Tanda tangan tidak valid',
-            'result' => $result
+            'result' => $data
         ];
     } else {
         return [
