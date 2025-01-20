@@ -171,24 +171,25 @@ public function validateSignature($Authorization, $body, $timeStamp, $signature)
     $bodyMinified = preg_replace('/\s+/', '', $bodyJson); // Minifikasi body JSON
     
     // Hash body yang telah diminyaki menggunakan SHA-256
-    $bodySHA256 = hash('sha256', $bodyMinified);
-    
-    // Ubah SHA-256 hash ke bentuk hexadecimal dan lowercase
-    $bodyHex = strtolower(bin2hex(hex2bin($bodySHA256))); // Ubah menjadi hexadecimal lowercase
+    $bodySHA256 = hash('sha256', $bodyMinified);  // Tidak perlu menggunakan hex2bin atau bin2hex
     
     // Buat string untuk di-sign
-    $stringToSign = $httpMethod . ":" . $path . ":" . $accessToken . ":" . $bodyHex . ":" . $timeStamp;
+    $stringToSign = $httpMethod . ":" . $path . ":" . $accessToken . ":" . $bodySHA256 . ":" . $timeStamp;
     
     // Hitung signature dengan HMAC_SHA512 menggunakan clientSecret
-    $calculatedSignature = hash_hmac('sha512', $stringToSign, $clientSecret);
+    $calculatedSignature = hash_hmac('sha512', $stringToSign, $clientSecret, true);  // Gunakan true untuk hasil dalam bentuk binary
+    
+    // Ubah signature ke dalam format base64
+    $calculatedSignatureBase64 = base64_encode($calculatedSignature);  // Convert to Base64
     
     // Verifikasi signature yang dihitung dengan signature yang diterima
-    if (hash_equals($calculatedSignature, $signature)) {
+    if (hash_equals($calculatedSignatureBase64, $signature)) {
         return array('status' => 'success', 'message' => 'Signature valid');
     } else {
         return array('status' => 'error', 'message' => 'Invalid signature', 'result' => $stringToSign);
     }
 }
+
 
 
 
