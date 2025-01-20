@@ -40,159 +40,261 @@ class Backend extends CI_Controller
     }
 
     public function trigger_token_test()
-{
-    header("Access-Control-Allow-Origin: *");
-    header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-    header("Access-Control-Allow-Headers: X-SIGNATURE, X-CLIENT-KEY, X-TIMESTAMP, Content-Type");
-    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-        http_response_code(200);
-        exit();
+    {
+        header("Access-Control-Allow-Origin: *");
+        header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+        header("Access-Control-Allow-Headers: X-SIGNATURE, X-CLIENT-KEY, X-TIMESTAMP, Content-Type");
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            http_response_code(200);
+            exit();
+        }
+        $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
+        $clientID = $this->input->get_request_header('X-CLIENT-KEY', TRUE);
+        $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
+        if (empty($signature)) {
+            echo json_encode(array('status' => 'error', 'message' => 'Signature not provided'));
+            return;
+        }
+        if (empty($timeStamp)) {
+            echo json_encode(array('status' => 'error', 'message' => 'Timestamp not provided'));
+            return;
+        }
+        if (empty($clientID)) {
+            echo json_encode(array('status' => 'error', 'message' => 'Client not provided'));
+            return;
+        }
+        $response = $this->api->verifySignatureTest($signature, $timeStamp, $clientID);
+        echo json_encode($response);
     }
-    $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
-    $clientID = $this->input->get_request_header('X-CLIENT-KEY', TRUE);
-    $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
-    if (empty($signature)) {
-        echo json_encode(array('status' => 'error', 'message' => 'Signature not provided'));
-        return;
-    }
-    if (empty($timeStamp)) {
-        echo json_encode(array('status' => 'error', 'message' => 'Timestamp not provided'));
-        return;
-    }
-    if (empty($clientID)) {
-        echo json_encode(array('status' => 'error', 'message' => 'Client not provided'));
-        return;
-    }
-    $response = $this->api->verifySignatureTest($signature, $timeStamp, $clientID);
-    echo json_encode($response);
-}
 
 
 
 
-public function trigger_token() {
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        show_404();
-    }
-    $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
-    $clientID = $this->input->get_request_header('X-CLIENT-KEY', TRUE);
-    $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
-    if (!$signature || !$clientID || !$timeStamp) {
-        echo json_encode(array('status' => 'error', 'message' => 'Invalid headers'));
-        return;
-    }
-    $verificationResult = $this->api->verifySignatureTest($clientID, $timeStamp, $signature);
-    if (isset($verificationResult['accessToken'])) {
-        $accessToken = $verificationResult['accessToken'];
-        $expiresIn = $verificationResult['expiresIn'];
-        $this->load->model('VirtualAccountModel');
-        $this->VirtualAccountModel->saveAccessToken($clientID, $accessToken, $expiresIn);
-    }
-    echo json_encode($verificationResult, JSON_PRETTY_PRINT);
-}
-
-
-public function notifikasi() {
-    try {
+    public function trigger_token()
+    {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             show_404();
         }
-
-        // Ambil semua header yang diperlukan
-        $Authorization = $this->input->get_request_header('Authorization', TRUE);
         $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
+        $clientID = $this->input->get_request_header('X-CLIENT-KEY', TRUE);
         $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
-        $partnerId = $this->input->get_request_header('X-PARTNER-ID', TRUE);
-        $channelId = $this->input->get_request_header('CHANNEL-ID', TRUE);
-        $externalId = $this->input->get_request_header('X-EXTERNAL-ID', TRUE);
-        $contentType = $this->input->get_request_header('Content-Type', TRUE);
-
-        // Validasi header yang diperlukan
-        if (!$Authorization || !$signature || !$timeStamp || !$partnerId || !$channelId || !$externalId || !$contentType) {
-            echo json_encode(array('responseCode' => '409', 'message' => 'Invalid headers'));
+        if (!$signature || !$clientID || !$timeStamp) {
+            echo json_encode(array('status' => 'error', 'message' => 'Invalid headers'));
             return;
         }
-
-        // Ambil body request
-        $body = file_get_contents('php://input');
-        $requestData = json_decode($body, true); // Decode body JSON menjadi array
-
-        // Validasi token
-        $accessToken = substr($Authorization, 7); // Mengambil token setelah "Bearer "
-        $this->load->model('VirtualAccountModel');
-        $storedToken = $this->VirtualAccountModel->getAccessTokenByToken($accessToken);
-        if (!$storedToken) {
-            $this->output
-                ->set_content_type('application/json')
-                ->set_status_header(401)
-                ->set_output(json_encode([ 
-                    'responseCode' => '401',
-                    'responseMessage' => 'Invalid access token'
-                ]));
-            return;
+        $verificationResult = $this->api->verifySignatureTest($clientID, $timeStamp, $signature);
+        if (isset($verificationResult['accessToken'])) {
+            $accessToken = $verificationResult['accessToken'];
+            $expiresIn = $verificationResult['expiresIn'];
+            $this->load->model('VirtualAccountModel');
+            $this->VirtualAccountModel->saveAccessToken($clientID, $accessToken, $expiresIn);
         }
-        $verificationResult = $this->api->validateSignature($Authorization, $requestData, $timeStamp, $signature);
-        if ($verificationResult['status'] === 'success') {
-            if (empty($requestData['partnerServiceId'])) {
+        echo json_encode($verificationResult, JSON_PRETTY_PRINT);
+    }
+
+
+    public function notifikasi()
+    {
+        try {
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                show_404();
+            }
+
+            // Ambil semua header yang diperlukan
+            $Authorization = $this->input->get_request_header('Authorization', TRUE);
+            $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
+            $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
+            $partnerId = $this->input->get_request_header('X-PARTNER-ID', TRUE);
+            $channelId = $this->input->get_request_header('CHANNEL-ID', TRUE);
+            $externalId = $this->input->get_request_header('X-EXTERNAL-ID', TRUE);
+            $contentType = $this->input->get_request_header('Content-Type', TRUE);
+
+            // Ambil header Authorization
+            $Authorization = $this->input->get_request_header('Authorization', TRUE);
+
+            // Validasi header Authorization
+            if (empty($Authorization)) {
                 $this->output
                     ->set_content_type('application/json')
                     ->set_status_header(400)
-                    ->set_output(json_encode([ 
+                    ->set_output(json_encode([
                         'responseCode' => '400',
-                        'responseMessage' => 'Missing partnerServiceId in request body'
+                        'responseMessage' => 'Missing header: Authorization'
                     ]));
                 return;
             }
 
-            // Simpan data
-            $saveResult = $this->VirtualAccountModel->savePaymentData($requestData);
+            // Ambil header X-SIGNATURE
+            $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
 
-            if ($saveResult) {
+            // Validasi header X-SIGNATURE
+            if (empty($signature)) {
                 $this->output
                     ->set_content_type('application/json')
-                    ->set_status_header(200)
-                    ->set_output(json_encode([ 
-                        'responseCode' => '200',
-                        'responseMessage' => 'Successful',
-                        'virtualAccountData' => [
-                            'partnerServiceId' => $requestData['partnerServiceId'],
-                            'customerNo' => $requestData['customerNo'],
-                            'virtualAccountNo' => $requestData['virtualAccountNo'],
-                            'paymentRequestId' => $requestData['paymentRequestId'],
-                            'trxDateTime' => $requestData['trxDateTime'],
-                            'paymentStatus' => 'Success'
-                        ]
+                    ->set_status_header(400)
+                    ->set_output(json_encode([
+                        'responseCode' => '400',
+                        'responseMessage' => 'Missing header: X-SIGNATURE'
                     ]));
+                return;
+            }
+
+            // Ambil header X-TIMESTAMP
+            $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
+
+            // Validasi header X-TIMESTAMP
+            if (empty($timeStamp)) {
+                $this->output
+                    ->set_content_type('application/json')
+                    ->set_status_header(400)
+                    ->set_output(json_encode([
+                        'responseCode' => '400',
+                        'responseMessage' => 'Missing header: X-TIMESTAMP'
+                    ]));
+                return;
+            }
+
+            // Ambil header X-PARTNER-ID
+            $partnerId = $this->input->get_request_header('X-PARTNER-ID', TRUE);
+
+            // Validasi header X-PARTNER-ID
+            if (empty($partnerId)) {
+                $this->output
+                    ->set_content_type('application/json')
+                    ->set_status_header(400)
+                    ->set_output(json_encode([
+                        'responseCode' => '400',
+                        'responseMessage' => 'Missing header: X-PARTNER-ID'
+                    ]));
+                return;
+            }
+
+            // Ambil header CHANNEL-ID
+            $channelId = $this->input->get_request_header('CHANNEL-ID', TRUE);
+
+            // Validasi header CHANNEL-ID
+            if (empty($channelId)) {
+                $this->output
+                    ->set_content_type('application/json')
+                    ->set_status_header(400)
+                    ->set_output(json_encode([
+                        'responseCode' => '400',
+                        'responseMessage' => 'Missing header: CHANNEL-ID'
+                    ]));
+                return;
+            }
+
+            // Ambil header X-EXTERNAL-ID
+            $externalId = $this->input->get_request_header('X-EXTERNAL-ID', TRUE);
+
+            // Validasi header X-EXTERNAL-ID
+            if (empty($externalId)) {
+                $this->output
+                    ->set_content_type('application/json')
+                    ->set_status_header(400)
+                    ->set_output(json_encode([
+                        'responseCode' => '400',
+                        'responseMessage' => 'Missing header: X-EXTERNAL-ID'
+                    ]));
+                return;
+            }
+
+            // Ambil header Content-Type
+            $contentType = $this->input->get_request_header('Content-Type', TRUE);
+
+            // Validasi header Content-Type
+            if (empty($contentType)) {
+                $this->output
+                    ->set_content_type('application/json')
+                    ->set_status_header(400)
+                    ->set_output(json_encode([
+                        'responseCode' => '400',
+                        'responseMessage' => 'Missing header: Content-Type'
+                    ]));
+                return;
+            }
+
+
+            // Ambil body request
+            $body = file_get_contents('php://input');
+            $requestData = json_decode($body, true); // Decode body JSON menjadi array
+
+            // Validasi token
+            $accessToken = substr($Authorization, 7); // Mengambil token setelah "Bearer "
+            $this->load->model('VirtualAccountModel');
+            $storedToken = $this->VirtualAccountModel->getAccessTokenByToken($accessToken);
+            if (!$storedToken) {
+                $this->output
+                    ->set_content_type('application/json')
+                    ->set_status_header(401)
+                    ->set_output(json_encode([
+                        'responseCode' => '401',
+                        'responseMessage' => 'Invalid access token'
+                    ]));
+                return;
+            }
+            $verificationResult = $this->api->validateSignature($Authorization, $requestData, $timeStamp, $signature);
+            if ($verificationResult['status'] === 'success') {
+                if (empty($requestData['partnerServiceId'])) {
+                    $this->output
+                        ->set_content_type('application/json')
+                        ->set_status_header(400)
+                        ->set_output(json_encode([
+                            'responseCode' => '400',
+                            'responseMessage' => 'Missing partnerServiceId in request body'
+                        ]));
+                    return;
+                }
+
+                // Simpan data
+                $saveResult = $this->VirtualAccountModel->savePaymentData($requestData);
+
+                if ($saveResult) {
+                    $this->output
+                        ->set_content_type('application/json')
+                        ->set_status_header(200)
+                        ->set_output(json_encode([
+                            'responseCode' => '200',
+                            'responseMessage' => 'Successful',
+                            'virtualAccountData' => [
+                                'partnerServiceId' => $requestData['partnerServiceId'],
+                                'customerNo' => $requestData['customerNo'],
+                                'virtualAccountNo' => $requestData['virtualAccountNo'],
+                                'paymentRequestId' => $requestData['paymentRequestId'],
+                                'trxDateTime' => $requestData['trxDateTime'],
+                                'paymentStatus' => 'Success'
+                            ]
+                        ]));
+                } else {
+                    $this->output
+                        ->set_content_type('application/json')
+                        ->set_status_header(500)
+                        ->set_output(json_encode([
+                            'responseCode' => '500',
+                            'responseMessage' => 'Failed to save payment data'
+                        ]));
+                }
             } else {
                 $this->output
                     ->set_content_type('application/json')
-                    ->set_status_header(500)
-                    ->set_output(json_encode([ 
-                        'responseCode' => '500',
-                        'responseMessage' => 'Failed to save payment data'
+                    ->set_status_header(400)
+                    ->set_output(json_encode([
+                        'responseCode' => '400',
+                        'responseMessage' => $verificationResult['message'],
+                        'result' => $verificationResult['result']
                     ]));
             }
-        } else {
+        } catch (Exception $e) {
+            log_message('error', 'Error during signature validation: ' . $e->getMessage());
             $this->output
                 ->set_content_type('application/json')
-                ->set_status_header(400)
-                ->set_output(json_encode([ 
-                    'responseCode' => '400',
-                    'responseMessage' => $verificationResult['message'],
-                    'result' => $verificationResult['result']
+                ->set_status_header(500)
+                ->set_output(json_encode([
+                    'responseCode' => '500',
+                    'responseMessage' => 'Internal server error'
                 ]));
         }
-    } catch (Exception $e) {
-        log_message('error', 'Error during signature validation: ' . $e->getMessage());
-        $this->output
-            ->set_content_type('application/json')
-            ->set_status_header(500)
-            ->set_output(json_encode([ 
-                'responseCode' => '500',
-                'responseMessage' => 'Internal server error'
-            ]));
     }
-}
 
 
 
