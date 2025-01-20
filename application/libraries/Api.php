@@ -106,8 +106,6 @@ EOD;
     }
 
 
-/*************  ✨ Codeium Command 🌟  *************/
-    
     public function verifySignatureTest($clientID, $timeStamp, $signature)
 {
     $publicKeyPemPath = 'application/keys/pubkey1.pem';
@@ -139,11 +137,10 @@ EOD;
         return array('status' => 'error', 'message' => 'Kesalahan saat memverifikasi tanda tangan: ' . openssl_error_string());
     }
 }
-/******  455f15a7-94ad-40cb-90c0-24b1fd99b4d8  *******/
 
 public function validateSignature($authorization, $timestamp, $signature, $bodyInput)
 {
-    // Path file kunci publik
+    // Ambil public key (misalnya path ke file public key PEM)
     $publicKeyPemPath = 'application/keys/pubkey1.pem';
 
     // Memeriksa apakah file kunci publik ada
@@ -170,9 +167,9 @@ public function validateSignature($authorization, $timestamp, $signature, $bodyI
     // Pastikan bodyInput adalah array atau objek yang valid
     $bodySHA256 = hash('sha256', json_encode($bodyInput));
 
-    // Menyusun string untuk ditandatangani sesuai format:
-    // HTTP_METHOD:PATH:authorization:SHA256_BODY:timestamp
-    $stringToSign = 'POST' . ':' . '/bricallback/backend/notifikasi' . ':' . $authorization . ':' . $bodySHA256 . ':' . $timestamp;
+    // Menyusun string untuk ditandatangani sesuai format yang diinginkan:
+    // Format: HTTP_METHOD:PATH:authorization:SHA256_BODY:timestamp
+    $stringToSign =  $authorization . ':' . $bodySHA256 . ':' . $timestamp;
 
     // Decode signature dari base64
     $decodedSignature = base64_decode($signature);
@@ -198,8 +195,7 @@ public function validateSignature($authorization, $timestamp, $signature, $bodyI
     } elseif ($result === 0) {
         return [
             'status' => 'error',
-            'message' => 'Tanda tangan tidak valid',
-            'result' => $result,
+            'message' => 'Tanda tangan tidak valid'
         ];
     } else {
         return [
@@ -208,6 +204,7 @@ public function validateSignature($authorization, $timestamp, $signature, $bodyI
         ];
     }
 }
+
 
 
 
