@@ -108,11 +108,6 @@ class Backend extends CI_Controller
             $channelId = $this->input->get_request_header('CHANNEL-ID', TRUE);
             $externalId = $this->input->get_request_header('X-EXTERNAL-ID', TRUE);
             $contentType = $this->input->get_request_header('Content-Type', TRUE);
-
-            // Ambil header Authorization
-            $Authorization = $this->input->get_request_header('Authorization', TRUE);
-
-            // Validasi header Authorization
             if (empty($Authorization)) {
                 $this->output
                     ->set_content_type('application/json')
@@ -123,11 +118,7 @@ class Backend extends CI_Controller
                     ]));
                 return;
             }
-
-            // Ambil header X-SIGNATURE
             $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
-
-            // Validasi header X-SIGNATURE
             if (empty($signature)) {
                 $this->output
                     ->set_content_type('application/json')
@@ -138,11 +129,7 @@ class Backend extends CI_Controller
                     ]));
                 return;
             }
-
-            // Ambil header X-TIMESTAMP
             $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
-
-            // Validasi header X-TIMESTAMP
             if (empty($timeStamp)) {
                 $this->output
                     ->set_content_type('application/json')
@@ -153,11 +140,7 @@ class Backend extends CI_Controller
                     ]));
                 return;
             }
-
-            // Ambil header X-PARTNER-ID
             $partnerId = $this->input->get_request_header('X-PARTNER-ID', TRUE);
-
-            // Validasi header X-PARTNER-ID
             if (empty($partnerId)) {
                 $this->output
                     ->set_content_type('application/json')
@@ -168,11 +151,7 @@ class Backend extends CI_Controller
                     ]));
                 return;
             }
-
-            // Ambil header CHANNEL-ID
             $channelId = $this->input->get_request_header('CHANNEL-ID', TRUE);
-
-            // Validasi header CHANNEL-ID
             if (empty($channelId)) {
                 $this->output
                     ->set_content_type('application/json')
@@ -183,11 +162,7 @@ class Backend extends CI_Controller
                     ]));
                 return;
             }
-
-            // Ambil header X-EXTERNAL-ID
             $externalId = $this->input->get_request_header('X-EXTERNAL-ID', TRUE);
-
-            // Validasi header X-EXTERNAL-ID
             if (empty($externalId)) {
                 $this->output
                     ->set_content_type('application/json')
@@ -198,11 +173,7 @@ class Backend extends CI_Controller
                     ]));
                 return;
             }
-
-            // Ambil header Content-Type
             $contentType = $this->input->get_request_header('Content-Type', TRUE);
-
-            // Validasi header Content-Type
             if (empty($contentType)) {
                 $this->output
                     ->set_content_type('application/json')
@@ -213,14 +184,9 @@ class Backend extends CI_Controller
                     ]));
                 return;
             }
-
-
-            // Ambil body request
             $body = file_get_contents('php://input');
-            $requestData = json_decode($body, true); // Decode body JSON menjadi array
-
-            // Validasi token
-            $accessToken = substr($Authorization, 7); // Mengambil token setelah "Bearer "
+            $requestData = json_decode($body, true);
+            $accessToken = substr($Authorization, 7);
             $this->load->model('VirtualAccountModel');
             $storedToken = $this->VirtualAccountModel->getAccessTokenByToken($accessToken);
             if (!$storedToken) {
