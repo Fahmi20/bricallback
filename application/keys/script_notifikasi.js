@@ -51,7 +51,7 @@ uimSjqmsEW3lz2qQaRVkoOM=
 
 
 // Gabungkan data untuk ditandatangani
-const stringToSign = authorization + '|' + timestamp + '|' + bodyRequestSHA256;
+const stringToSign = authorization + ':' + timestamp + ':' + bodyRequestSHA256;
 
 
 // Buat signature

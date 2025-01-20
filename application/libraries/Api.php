@@ -106,6 +106,8 @@ EOD;
     }
 
 
+/*************  ✨ Codeium Command 🌟  *************/
+    
     public function verifySignatureTest($clientID, $timeStamp, $signature)
 {
     $publicKeyPemPath = 'application/keys/pubkey1.pem';
@@ -137,6 +139,7 @@ EOD;
         return array('status' => 'error', 'message' => 'Kesalahan saat memverifikasi tanda tangan: ' . openssl_error_string());
     }
 }
+/******  455f15a7-94ad-40cb-90c0-24b1fd99b4d8  *******/
 
 public function validateSignature($authorization, $timestamp, $signature, $bodyInput)
 {
