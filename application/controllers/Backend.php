@@ -150,7 +150,7 @@ public function notifikasi() {
             ->set_status_header(401)
             ->set_output(json_encode([
                 'responseCode' => '401',
-                'responseMessage' => 'Invalid access token, Coba Gunakan Tanpa Bearer'
+                'responseMessage' => 'Invalid access token'
             ]));
         return;
     }
