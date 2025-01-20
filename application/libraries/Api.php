@@ -138,7 +138,7 @@ EOD;
     }
 }
 
-public function validateSignature($authorization, $timestamp, $signature, $partnerId, $channelId, $externalId, $content)
+public function validateSignature($authorization, $timestamp, $signature, $partnerId, $channelId, $externalId, $content, $body)
 {
     // Path ke file kunci publik
     $publicKeyPemPath = 'application/keys/pubkey1.pem';
