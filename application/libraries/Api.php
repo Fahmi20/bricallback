@@ -157,32 +157,16 @@ EOD;
 
 public function validateSignature($Authorization, $body, $timeStamp, $signature)
 {
-    // Hapus "Bearer " pada Authorization header
-
-    
-    // Tentukan HTTP method dan path endpoint
-    $httpMethod = 'POST'; // Sesuaikan dengan metode HTTP yang digunakan
-    $path = '/bricallback/backend/notifikasi';  // Path yang sesuai dengan endpoint Anda
-    $accessToken = $Authorization; // Token akses dari Authorization header
-    $clientSecret = $this->client_secret; // Ambil client secret dari konfigurasi Anda
-    
-    // Konversi body menjadi JSON dan hapus spasi
+    $httpMethod = 'POST';
+    $path = '/bricallback/backend/notifikasi';
+    $accessToken = $Authorization;
+    $clientSecret = $this->client_secret;
     $bodyJson = json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-    $bodyMinified = preg_replace('/\s+/', '', $bodyJson); // Minifikasi body JSON
-    
-    // Hash body yang telah diminyaki menggunakan SHA-256
-    $bodySHA256 = hash('sha256', $bodyMinified);  // Tidak perlu menggunakan hex2bin atau bin2hex
-    
-    // Buat string untuk di-sign
+    $bodyMinified = preg_replace('/\s+/', '', $bodyJson);
+    $bodySHA256 = hash('sha256', $bodyMinified);
     $stringToSign = $httpMethod . ":" . $path . ":" . $accessToken . ":" . $bodySHA256 . ":" . $timeStamp;
-    
-    // Hitung signature dengan HMAC_SHA512 menggunakan clientSecret
-    $calculatedSignature = hash_hmac('sha512', $stringToSign, $clientSecret, true);  // Gunakan true untuk hasil dalam bentuk binary
-    
-    // Ubah signature ke dalam format base64
-    $calculatedSignatureBase64 = base64_encode($calculatedSignature);  // Convert to Base64
-    
-    // Verifikasi signature yang dihitung dengan signature yang diterima
+    $calculatedSignature = hash_hmac('sha512', $stringToSign, $clientSecret, true);
+    $calculatedSignatureBase64 = base64_encode($calculatedSignature);
     if (hash_equals($calculatedSignatureBase64, $signature)) {
         return array('status' => 'success', 'message' => 'Signature valid');
     } else {
