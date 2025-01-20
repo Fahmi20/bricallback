@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 
 // Data untuk tanda tangan
-const clientSecret = 'SpPtPt6Oa7Cjf47XIUvn6gq6fVYEPPodzFgukfMdk/o='; // Client Secret
+const clientSecret = 'MNfGscq4w6XUmAp3'; // Client Secret
 const method = 'POST';
 const path = '/bricallback/backend/notifikasi';
 const timestamp = new Date().toISOString();  // X-TIMESTAMP header

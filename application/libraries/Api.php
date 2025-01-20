@@ -158,8 +158,7 @@ EOD;
 public function validateSignature($Authorization, $body, $timeStamp, $signature)
 {
     // Hapus "Bearer " pada Authorization header
-    $Authorization = str_replace('Bearer ', '', $Authorization);
-    
+
     // Tentukan HTTP method dan path endpoint
     $httpMethod = 'POST'; // Sesuaikan dengan metode HTTP yang digunakan
     $path = '/bricallback/backend/notifikasi';  // Path yang sesuai dengan endpoint Anda
