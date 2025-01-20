@@ -101,10 +101,28 @@ public function notifikasi() {
     $headers = [
         'Authorization' => $this->input->get_request_header('Authorization', TRUE),
         'X-TIMESTAMP' => $this->input->get_request_header('X-TIMESTAMP', TRUE),
-        'X-SIGNATURE' => $this->input->get_request_header('X-SIGNATURE', TRUE)
+        'X-SIGNATURE' => $this->input->get_request_header('X-SIGNATURE', TRUE),
+        'X-PARTNER-ID' => $this->input->get_request_header('X-PARTNER-ID', TRUE),
+        'CHANNEL-ID' => $this->input->get_request_header('CHANNEL-ID', TRUE),
+        'X-EXTERNAL-ID' => $this->input->get_request_header('X-EXTERNAL-ID', TRUE),
+        'ContentType' => $this->input->get_request_header('Content-Type', TRUE)
     ];
 
     // Validasi keberadaan header
+    $missingHeaders = array_filter($headers, function($value) {
+        return !$value;
+    });
+
+    if (!empty($missingHeaders)) {
+        $this->output
+            ->set_content_type('application/json')
+            ->set_status_header(400)
+            ->set_output(json_encode([ 
+                'responseCode' => '400',
+                'responseMessage' => 'Missing headers: ' . implode(', ', array_keys($missingHeaders))
+            ]));
+        return;
+    }
 
     // Ambil body request
     $bodyInput = file_get_contents('php://input');
