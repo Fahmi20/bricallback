@@ -155,47 +155,23 @@ EOD;
     }
 }
 
-public function validateSignature($authorization, $timestamp, $signature, $requestData)
+public function validateSignature($clientSecret, $timestamp, $signature, $requestData)
 {
-    // Mendefinisikan metode dan path
+    // Definisikan path untuk notifikasi
     $path = '/bricallback/backend/notifikasi';
-    $authorization = str_replace('Bearer ', '', $authorization);
 
-    // Mengonversi body ke JSON dengan format yang tepat
+    // Konversi body request ke dalam format JSON
     $bodyJson = json_encode($requestData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     
-    // Minifikasi body dengan menghapus spasi, newline, dan carriage return
-    $bodyMinified = preg_replace('/\s+/', '', $bodyJson); // Menghindari perubahan format string yang sah
-    $bodySHA256 = hash('sha256', $bodyMinified); // Hashing body JSON yang telah diminifikasi
+    // Minifikasi body JSON untuk menghapus spasi dan newline
+    $bodyMinified = preg_replace('/\s+/', '', $bodyJson);  // Menghapus whitespaces
+    $bodySHA256 = hash('sha256', $bodyMinified);  // Menghitung SHA-256 dari body
 
-    // Path untuk kunci publik
-    $publicKeyPemPath = 'application/keys/pubkey1.pem';
-    
-    // Memeriksa ketersediaan kunci publik
-    if (!file_exists($publicKeyPemPath)) {
-        return [
-            'status' => 'error',
-            'message' => 'File kunci publik tidak ditemukan'
-        ];
-    }
+    // Menyusun string untuk tanda tangan
+    $stringToSign = 'POST' . ':' . $path . ':' . $clientSecret . ':' . $bodySHA256 . ':' . $timestamp;
 
-    // Memuat kunci publik dari file
-    $publicKeyPem = file_get_contents($publicKeyPemPath);
-    $publicKey = openssl_pkey_get_public($publicKeyPem);
-    
-    // Memastikan kunci publik valid
-    if (!$publicKey) {
-        return [
-            'status' => 'error',
-            'message' => 'Kunci publik tidak valid: ' . openssl_error_string()
-        ];
-    }
-
-    // Menyusun string untuk verifikasi tanda tangan
-    $data = 'POST'. ":" . $path . ":" . $authorization . ":" . $bodySHA256 . ":" . $timestamp;
-
-    // Decode tanda tangan dari Base64
-    $decodedSignature = base64_decode($signature, true);  // Validasi base64 decode
+    // Decode signature yang dikirimkan (base64)
+    $decodedSignature = base64_decode($signature, true);
     if ($decodedSignature === false) {
         return [
             'status' => 'error',
@@ -203,13 +179,32 @@ public function validateSignature($authorization, $timestamp, $signature, $reque
         ];
     }
 
-    // Verifikasi tanda tangan dengan kunci publik menggunakan openssl_verify
-    $result = openssl_verify($data, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA512);
+    // Verifikasi tanda tangan menggunakan openssl
+    $publicKeyPemPath = 'application/keys/pubkey1.pem';  // Path ke file kunci publik
+    if (!file_exists($publicKeyPemPath)) {
+        return [
+            'status' => 'error',
+            'message' => 'File kunci publik tidak ditemukan'
+        ];
+    }
+
+    $publicKeyPem = file_get_contents($publicKeyPemPath);
+    $publicKey = openssl_pkey_get_public($publicKeyPem);
     
-    // Membebaskan kunci publik setelah selesai
+    if (!$publicKey) {
+        return [
+            'status' => 'error',
+            'message' => 'Kunci publik tidak valid: ' . openssl_error_string()
+        ];
+    }
+
+    // Verifikasi tanda tangan dengan openssl
+    $result = openssl_verify($stringToSign, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA512);
+
+    // Bebaskan memori untuk kunci publik
     openssl_free_key($publicKey);
 
-    // Menentukan hasil verifikasi
+    // Memeriksa hasil verifikasi
     if ($result === 1) {
         return [
             'status' => 'success',
@@ -219,7 +214,7 @@ public function validateSignature($authorization, $timestamp, $signature, $reque
         return [
             'status' => 'error',
             'message' => 'Tanda tangan tidak valid',
-            'result' => $data
+            'result' => $stringToSign
         ];
     } else {
         return [
@@ -228,6 +223,7 @@ public function validateSignature($authorization, $timestamp, $signature, $reque
         ];
     }
 }
+
 
 
 

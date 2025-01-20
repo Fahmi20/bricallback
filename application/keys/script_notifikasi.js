@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 
 // Data untuk tanda tangan
-const authorization = 'Bearer 2NEsUaYqBkYol9goYbdEiafPdCzHB7VK'; // Authorization header
+const clientSecret = 'SpPtPt6Oa7Cjf47XIUvn6gq6fVYEPPodzFgukfMdk/o='; // Client Secret
 const method = 'POST';
 const path = '/bricallback/backend/notifikasi';
 const timestamp = new Date().toISOString();  // X-TIMESTAMP header
@@ -13,14 +13,21 @@ const body = {
     "trxDateTime": "2025-01-20T10:00:00Z",
     "additionalInfo": {
         "idApp": "app123",
-        "passApp" : "app123",
-        "paymentAmount" : "123",
-        "terminalId" : "002",
-        "bankId" : "123"
+        "passApp": "app123",
+        "paymentAmount": "123",
+        "terminalId": "002",
+        "bankId": "123"
     }
 };
 
-// Private key
+// Hash body request ke SHA256
+const bodyJson = JSON.stringify(body);  // Stringify tanpa indentasi untuk format yang lebih kompak
+const bodySHA256 = crypto.createHash('sha256').update(bodyJson).digest('hex');
+
+// Gabungkan data untuk ditandatangani
+const stringToSign = `${method}:${path}:${clientSecret}:${bodySHA256}:${timestamp}`;
+
+// Buat signature dengan SHA512 dan private key
 const privateKey = `-----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCmdw8/KF0erk/k
 LPz34HlaSrGhcCVnK6wdrUcLn0xEfaf1Q1kImS0V72JpCOkc3Q4pfEyehds4j8F1
@@ -50,19 +57,13 @@ n79KUlCM/B/9924GMwxcQiFDwd6BZoJrM92yqGo9SogzRvT/iokJRgr2YRVVMxAK
 uimSjqmsEW3lz2qQaRVkoOM=
 -----END PRIVATE KEY-----`;
 
-// Gabungkan data untuk ditandatangani
-// Konversi objek body ke JSON string terlebih dahulu
-const bodyString = JSON.stringify(body);  // Stringify tanpa indentasi untuk format yang lebih kompak
-const stringToSign = method + ':' + path + ':' + authorization + ':' + timestamp + ':' + bodyString;
-
-// Buat signature
 const sign = crypto.createSign('SHA512');
 sign.update(stringToSign);
 sign.end();
 const signature = sign.sign(privateKey, 'base64');
 
-// Tampilkan header dan body untuk Postman
-console.log('Authorization:', authorization);
+// Tampilkan signature
+console.log('Authorization:', `Bearer ${clientSecret}`);
 console.log('X-TIMESTAMP:', timestamp);
 console.log('X-SIGNATURE:', signature);
-console.log('Body:', bodyString);
+console.log('Body:', bodyJson);
