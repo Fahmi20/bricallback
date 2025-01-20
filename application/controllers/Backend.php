@@ -105,7 +105,6 @@ public function notifikasi() {
         'X-PARTNER-ID' => $this->input->get_request_header('X-PARTNER-ID', TRUE),
         'CHANNEL-ID' => $this->input->get_request_header('CHANNEL-ID', TRUE),
         'X-EXTERNAL-ID' => $this->input->get_request_header('X-EXTERNAL-ID', TRUE),
-        'ContentType' => $this->input->get_request_header('Content-Type', TRUE)
     ];
 
     // Validasi keberadaan header
@@ -125,11 +124,10 @@ public function notifikasi() {
     }
 
     // Ambil body request
-    $bodyInput = file_get_contents('php://input');
-    $requestData = json_decode($bodyInput, true); // Decode body JSON menjadi array
+    $body = file_get_contents('php://input');
+    $requestData = json_decode($body, true); // Decode body JSON menjadi array
 
-    $authorizationHeader = 'Bearer ' . $headers['Authorization'];
-        $authorizationHeader = $headers['Authorization'];
+    $authorizationHeader = $headers['Authorization'];
     if (empty($authorizationHeader) || strpos($authorizationHeader, 'Bearer ') !== 0) {
         $this->output
             ->set_content_type('application/json')
@@ -161,8 +159,10 @@ public function notifikasi() {
         $validationResult = $this->api->validateSignature(
             $headers['Authorization'], 
             $headers['X-TIMESTAMP'], 
-            $headers['X-SIGNATURE'],
-            $bodyInput
+            $headers['X-SIGNATURE'], 
+            $headers['X-PARTNER-ID'], 
+            $headers['CHANNEL-ID'], 
+            $headers['X-EXTERNAL-ID']
         );
         
         if ($validationResult['status'] === 'success') {

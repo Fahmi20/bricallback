@@ -138,23 +138,16 @@ EOD;
     }
 }
 
-public function validateSignature($authorization, $timestamp, $signature, $bodyInput)
+public function validateSignature($authorization, $timestamp, $signature,$partnerId,$channelId,$externalId)
 {
-    // Ambil public key (misalnya path ke file public key PEM)
     $publicKeyPemPath = 'application/keys/pubkey1.pem';
-
-    // Memeriksa apakah file kunci publik ada
     if (!file_exists($publicKeyPemPath)) {
         return [
             'status' => 'error',
             'message' => 'File kunci publik tidak ditemukan'
         ];
     }
-
-    // Membaca file kunci publik
     $publicKeyPem = file_get_contents($publicKeyPemPath);
-
-    // Mendapatkan kunci publik dari PEM
     $publicKey = openssl_pkey_get_public($publicKeyPem);
     if (!$publicKey) {
         return [
@@ -162,16 +155,7 @@ public function validateSignature($authorization, $timestamp, $signature, $bodyI
             'message' => 'Kunci publik tidak valid: ' . openssl_error_string()
         ];
     }
-
-    // Menghitung SHA256 dari body input
-    // Pastikan bodyInput adalah array atau objek yang valid
-    $bodySHA256 = hash('sha256', json_encode($bodyInput));
-
-    // Menyusun string untuk ditandatangani sesuai format yang diinginkan:
-    // Format: HTTP_METHOD:PATH:authorization:SHA256_BODY:timestamp
-    $stringToSign =  $authorization . ':' . $bodySHA256 . ':' . $timestamp;
-
-    // Decode signature dari base64
+    $data = $authorization . "|" . $timestamp . "|" . $partnerId . "|" . $channelId . "|" . $externalId;
     $decodedSignature = base64_decode($signature);
     if ($decodedSignature === false) {
         return [
@@ -179,14 +163,8 @@ public function validateSignature($authorization, $timestamp, $signature, $bodyI
             'message' => 'Format Base64 tanda tangan tidak valid'
         ];
     }
-
-    // Memverifikasi tanda tangan menggunakan openssl_verify
-    $result = openssl_verify($stringToSign, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA512);
-
-    // Membebaskan kunci publik setelah selesai
+    $result = openssl_verify($data, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA512);
     openssl_free_key($publicKey);
-
-    // Menentukan hasil verifikasi tanda tangan
     if ($result === 1) {
         return [
             'status' => 'success',
@@ -195,7 +173,7 @@ public function validateSignature($authorization, $timestamp, $signature, $bodyI
     } elseif ($result === 0) {
         return [
             'status' => 'error',
-            'message' => 'Tanda tangan tidak '
+            'message' => 'Tanda tangan tidak valid'
         ];
     } else {
         return [
@@ -204,9 +182,6 @@ public function validateSignature($authorization, $timestamp, $signature, $bodyI
         ];
     }
 }
-
-
-
 
 
 
