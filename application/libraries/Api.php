@@ -100,10 +100,27 @@ EOD;
     }
 
     private function generateAccessToken($length = 32)
-    {
-        $randomBytes = openssl_random_pseudo_bytes($length);
-        return base64_encode($randomBytes);
+{
+    // Hasilkan byte acak
+    $randomBytes = openssl_random_pseudo_bytes($length);
+
+    // Definisikan karakter yang diizinkan (alfanumerik: 0-9, a-z, A-Z)
+    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $charactersLength = strlen($characters);
+
+    // Inisialisasi string hasil token
+    $randomString = '';
+
+    // Loop untuk menghasilkan token yang terdiri dari karakter-karakter yang diizinkan
+    for ($i = 0; $i < $length; $i++) {
+        // Ambil byte acak dan map ke karakter yang valid
+        $randomByte = ord($randomBytes[$i]) % $charactersLength;
+        $randomString .= $characters[$randomByte];
     }
+
+    return $randomString;
+}
+
 
 
     public function verifySignatureTest($clientID, $timeStamp, $signature)
