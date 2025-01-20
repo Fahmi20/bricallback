@@ -161,7 +161,7 @@ public function validateSignature($Authorization, $requestData, $timeStamp, $sig
 {
     $Authorization = str_replace('Bearer ', '', $Authorization);
     $httpMethod = 'POST';
-    $path = '/snap/v1.0/dummy';
+    $path = '/bricallback/backend/notifikasi';
     $accessToken = $Authorization; 
     $clientSecret = $this->client_secret;
     $bodyJson = json_encode($requestData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
