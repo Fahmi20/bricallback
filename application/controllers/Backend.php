@@ -105,20 +105,6 @@ public function notifikasi() {
     ];
 
     // Validasi keberadaan header
-    $missingHeaders = array_filter($headers, function($value) {
-        return !$value;
-    });
-
-    if (!empty($missingHeaders)) {
-        $this->output
-            ->set_content_type('application/json')
-            ->set_status_header(400)
-            ->set_output(json_encode([ 
-                'responseCode' => '400',
-                'responseMessage' => 'Missing headers: ' . implode(', ', array_keys($missingHeaders))
-            ]));
-        return;
-    }
 
     // Ambil body request
     $bodyInput = file_get_contents('php://input');

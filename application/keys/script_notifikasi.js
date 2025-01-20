@@ -3,10 +3,6 @@ const crypto = require('crypto');
 // Data untuk tanda tangan
 const authorization = 'Bearer lymy+K\/+KbblstqiWrQzLzKTru\/m+MnorNe9ls6vzpo='; // Authorization header
 const timestamp = new Date().toISOString();             // X-TIMESTAMP header
-const partnerId = '77777';
-const channelId = '12345';
-const externalId = 'externalId123';
-const ContentType = 'application/json';
 const body = {
     "partnerServiceId": "service123",
     "customerNo": "customer001",
@@ -55,7 +51,7 @@ uimSjqmsEW3lz2qQaRVkoOM=
 
 
 // Gabungkan data untuk ditandatangani
-const stringToSign = authorization + '|' + timestamp + '|' + partnerId + '|' + channelId + '|' + externalId + '|' + ContentType + '|' + bodyRequestSHA256;
+const stringToSign = authorization + '|' + timestamp + '|' + bodyRequestSHA256;
 
 
 // Buat signature
@@ -68,7 +64,3 @@ const signature = sign.sign(privateKey, 'base64');
 console.log('Authorization:', authorization);
 console.log('X-TIMESTAMP:', timestamp);
 console.log('X-SIGNATURE:', signature);
-console.log('X-PARTNER-ID:', partnerId);
-console.log('CHANNEL-ID:', channelId);
-console.log('X-EXTERNAL-ID:', externalId);
-console.log('Content-Type:', ContentType);
