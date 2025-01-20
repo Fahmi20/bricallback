@@ -211,7 +211,8 @@ public function notifikasi() {
                 ->set_status_header(400)
                 ->set_output(json_encode([
                     'responseCode' => '400',
-                    'responseMessage' => $validationResult['message']
+                    'responseMessage' => $validationResult['message'],
+                    'result' => $validationResult['result']
                 ]));
         }
     } catch (Exception $e) {
