@@ -156,7 +156,7 @@ EOD;
     }
 }
 
-public function validateSignature($Authorization, $requestData, $timeStamp, $signature)
+public function validateSignature($Authorization, $body, $timeStamp, $signature)
 {
 
     $Authorization = str_replace('Bearer ', '', $Authorization);
@@ -164,8 +164,8 @@ public function validateSignature($Authorization, $requestData, $timeStamp, $sig
     $path = '/bricallback/backend/notifikasi';
     $accessToken = $Authorization; 
     $clientSecret = $this->client_secret_push_notif_url;  // Secret key
-    // Menghitung hash SHA-256 dari body yang telah minified
-    $bodySHA256 = hash('sha256', $requestData);
+    $body_json = json_encode($body);
+    $bodySHA256 = hash('sha256', $body_json);
     // Membentuk string yang akan digunakan untuk menghitung signature
     $stringToSign = $httpMethod . ":" . $path . ":" . $accessToken . ":" . $bodySHA256 . ":" . $timeStamp;
 
