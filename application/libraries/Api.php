@@ -163,22 +163,12 @@ public function validateSignature($Authorization, $body, $timeStamp, $signature)
     $httpMethod = 'POST';
     $path = '/bricallback/backend/notifikasi';
     $accessToken = $Authorization; 
-    $clientSecret = $this->client_secret_push_notif_url;  // Secret key
+    $clientSecret = $this->client_secret_push_notif_url;
     $body_json = json_encode($body);
     $bodySHA256 = hash('sha256', $body_json);
-    // Membentuk string yang akan digunakan untuk menghitung signature
     $stringToSign = $httpMethod . ":" . $path . ":" . $accessToken . ":" . $bodySHA256 . ":" . $timeStamp;
-
-    // Debugging: Tampilkan string yang akan digunakan untuk signature
-    // echo $stringToSign;
-
-    // Hitung signature menggunakan HMAC-SHA512 dengan client secret
     $calculatedSignature = hash_hmac('sha512', $stringToSign, $clientSecret, true);
-
-    // Encode hasil signature ke Base64
     $calculatedSignatureBase64 = base64_encode($calculatedSignature);
-
-    // Bandingkan signature yang dihitung dengan signature yang diterima
     if (hash_equals($calculatedSignatureBase64, $signature)) {
         return array('status' => 'success', 'message' => 'Signature valid');
     } else {
