@@ -220,7 +220,7 @@ class Backend extends CI_Controller
                         ->set_content_type('application/json')
                         ->set_status_header(200)
                         ->set_output(json_encode([
-                            'responseCode' => '200',
+                            'responseCode' => '2003400',
                             'responseMessage' => 'Successful',
                             'virtualAccountData' => [
                                 'partnerServiceId' => $requestData['partnerServiceId'],
