@@ -63,8 +63,6 @@ class VirtualAccountModel extends CI_Model
             'virtual_account' => $data['virtualAccountNo'],
             'trx_date' => $data['trxDateTime'],
             'payment_requestid' => $data['paymentRequestId'],
-            'idapp' => $data['additionalInfo']['idApp'],
-            'passapp' => $data['additionalInfo']['passApp'],
             'amount' => $data['additionalInfo']['paymentAmount'],
             'terminalid' => $data['additionalInfo']['terminalId'],
             'bankid' => $data['additionalInfo']['bankId'],
