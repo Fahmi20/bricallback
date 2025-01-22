@@ -157,6 +157,8 @@ EOD;
 
 public function validateSignature($Authorization, $body, $timeStamp, $signature)
 {
+
+    $Authorization = str_replace('Bearer ', '', $Authorization);
     // Metode HTTP dan path
     $httpMethod = 'POST';
     $path = '/bricallback/backend/notifikasi';
