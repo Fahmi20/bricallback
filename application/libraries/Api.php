@@ -14,6 +14,7 @@ class Api
     private $public_key_pem = "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB-----END PUBLIC KEY-----";
     private $client_id = 'G6bDFAAbwTUhqhMGa9qOsydLGBexH6bh';
     private $client_secret = 'MNfGscq4w6XUmAp3';
+    private $client_secret_push_notif_url = 'Bf45NzPq09XwSa1RtU6Vg8MjYt4R';
     private $partner_id = 'YGSDev';
     private $channel_id = '00009';
     private $channel_id_mapping = [
@@ -163,7 +164,7 @@ public function validateSignature($Authorization, $body, $timeStamp, $signature)
     $httpMethod = 'POST';
     $path = '/bricallback/backend/notifikasi';
     $accessToken = $Authorization;  // Token akses yang diterima
-    $clientSecret = $this->client_secret;  // Secret key
+    $clientSecret = $this->client_secret_push_notif_url;  // Secret key
 
     // Mengubah body menjadi JSON dan minifikasi (hapus spasi)
     $bodyJson = json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
