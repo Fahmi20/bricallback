@@ -156,7 +156,7 @@ EOD;
     }
 }
 
-public function validateSignature($Authorization, $body, $timeStamp, $signature)
+public function validateSignature($Authorization, $requestData, $timeStamp, $signature)
 {
 
     $Authorization = str_replace('Bearer ', '', $Authorization);
@@ -165,7 +165,7 @@ public function validateSignature($Authorization, $body, $timeStamp, $signature)
     $accessToken = $Authorization; 
     $clientSecret = $this->client_secret_push_notif_url;  // Secret key
     // Menghitung hash SHA-256 dari body yang telah minified
-    $bodySHA256 = hash('sha256', $body);
+    $bodySHA256 = hash('sha256', $requestData);
     // Membentuk string yang akan digunakan untuk menghitung signature
     $stringToSign = $httpMethod . ":" . $path . ":" . $accessToken . ":" . $bodySHA256 . ":" . $timeStamp;
 
