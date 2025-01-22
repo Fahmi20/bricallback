@@ -1,25 +1,12 @@
 const crypto = require('crypto');
 
 // Data untuk tanda tangan
-const clientSecret = 'MNfGscq4w6XUmAp3'; // Client Secret
+const clientSecret = 'ND6kq819YVylOdrSr4FOXb18aJf3Vc2R'; // Client Secret
 const method = 'POST';
 const path = '/bricallback/backend/notifikasi';
 const timestamp = new Date().toISOString();  // X-TIMESTAMP header
-const accessToken = 'Bearer 2NEsUaYqBkYol9goYbdEiafPdCzHB7VK';  // Misalnya token yang diambil dari header Authorization (tanpa "Bearer ")
-const body = {
-    "partnerServiceId": "service123",
-    "customerNo": "customer001",
-    "virtualAccountNo": "1234567890",
-    "paymentRequestId": "req123456",
-    "trxDateTime": "2025-01-20T10:00:00Z",
-    "additionalInfo": {
-        "idApp": "app123",
-        "passApp": "app123",
-        "paymentAmount": "123",
-        "terminalId": "002",
-        "bankId": "123"
-    }
-};
+const accessToken = 'ND6kq819YVylOdrSr4FOXb18aJf3Vc2R';  // Misalnya token yang diambil dari header Authorization (tanpa "Bearer ")
+const body = {"partnerServiceId":"   22084","customerNo":"12121212","virtualAccountNo":"   2208412121212","trxDateTime":"2025-01-22T08:43:00+07:00","additionalInfo":{"paymentAmount":"100000","bankId":"002","terminalId":"1"},"paymentRequestId":"9012940124"};
 
 // Langkah 1: Minifikasi dan enkripsi body dengan SHA-256
 const bodyJson = JSON.stringify(body);
