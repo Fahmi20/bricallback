@@ -164,14 +164,8 @@ public function validateSignature($Authorization, $body, $timeStamp, $signature)
     $path = '/bricallback/backend/notifikasi';
     $accessToken = $Authorization; 
     $clientSecret = $this->client_secret_push_notif_url;  // Secret key
-
-    // Mengubah body menjadi JSON dan minifikasi (hapus spasi)
-    $bodyJson = json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-    $bodyMinified = preg_replace('/\s+/', '', $bodyJson);
-
     // Menghitung hash SHA-256 dari body yang telah minified
-    $bodySHA256 = hash('sha256', $bodyMinified);
-
+    $bodySHA256 = hash('sha256', $body);
     // Membentuk string yang akan digunakan untuk menghitung signature
     $stringToSign = $httpMethod . ":" . $path . ":" . $accessToken . ":" . $bodySHA256 . ":" . $timeStamp;
 
