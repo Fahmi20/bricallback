@@ -76,15 +76,9 @@ EOD;
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
         $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-
-        if ($httpCode == 200) {
-            $json = json_decode($response, true);
-            return $json['access_token'];
-        } else {
-            return $response;
-        }
+        $json = json_decode($response, true);
+        echo json_encode($json);
     }
 
     private function get_valid_access_token()
