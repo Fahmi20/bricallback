@@ -761,6 +761,9 @@ class Backend extends CI_Controller
 
     public function create_virtual_account_manual_siarraafi()
     {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            show_404();
+        }
         $partnerServiceId = '03636';//03636
         $customerNo = $this->input->post('customerNo');
         $partnerServiceIdWithSpaces = '   ' . $partnerServiceId;
