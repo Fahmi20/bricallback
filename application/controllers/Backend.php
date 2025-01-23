@@ -16,30 +16,23 @@ class Backend extends CI_Controller
     }
 
     public function get_access_token()
-{
-    // Panggil method untuk mendapatkan access token
-    $access_token = $this->api->get_access_token();
+    {
+        $access_token = $this->api->get_access_token();
 
-    // Cek apakah ada error
-    if (isset($access_token['error'])) {
-        // Jika ada error, kembalikan error dalam format JSON
-        http_response_code(400);  // Atau kode HTTP sesuai dengan error
-        echo json_encode([
-            'error' => $access_token['error'],
-            'error_description' => $access_token['error_description'],
-            'response' => $access_token['response']  // Respons lengkap
-        ]);
-    } else {
-        // Jika tidak ada error, kembalikan token dengan format yang diinginkan
-        echo json_encode([
-            'accessToken' => $access_token['accessToken'],
-            'tokenType' => $access_token['tokenType'],
-            'expiresIn' => $access_token['expiresIn']
-        ]);
+        if (is_array($access_token) && isset($access_token['error'])) {
+            $this->output->set_status_header(500);
+            echo json_encode([
+                'status' => 'error',
+                'message' => $access_token['error'],
+                'response' => $access_token['response']
+            ]);
+        } else {
+            echo json_encode([
+                'status' => 'success',
+                'access_token' => $access_token
+            ]);
+        }
     }
-}
-
-
 
     public function get_access_token_push_notif()
     {

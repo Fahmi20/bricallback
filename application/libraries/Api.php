@@ -61,96 +61,31 @@ EOD;
     }
 
     public function get_access_token()
-{
-    $url = $this->baseUrl . '/oauth/client_credential/accesstoken?grant_type=client_credentials';
+    {
+        $url = $this->baseUrl . '/oauth/client_credential/accesstoken?grant_type=client_credentials';
 
-    // Set header untuk permintaan
-    $headers = [
-        'Content-Type: application/x-www-form-urlencoded',
-        'Authorization: Basic ' . base64_encode($this->client_id . ':' . $this->client_secret),
-        'Accept: application/json'
-    ];
+        $headers = [
+            'Content-Type: application/x-www-form-urlencoded',
+            'Authorization: Basic ' . base64_encode($this->client_id . ':' . $this->client_secret)
+        ];
 
-    // Inisialisasi curl
-    $ch = curl_init();
-    
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
-    // Eksekusi permintaan
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
 
-    // Menangani response berdasarkan status kode HTTP
-    if ($httpCode == 200) {
-        // Jika berhasil, ambil data response
-        $json = json_decode($response, true);
-
-        if (isset($json['access_token'])) {
-            // Mengembalikan format sesuai yang diinginkan
-            return [
-                'accessToken' => $json['access_token'],
-                'tokenType' => isset($json['token_type']) ? $json['token_type'] : 'Bearer',
-                'expiresIn' => isset($json['expires_in']) ? $json['expires_in'] : '0'
-            ];
+        if ($httpCode == 200) {
+            $json = json_decode($response, true);
+            return $json['access_token'];
         } else {
-            // Jika tidak ada access_token
-            return [
-                'error' => 'Response tidak mengandung access_token',
-                'response' => $json
-            ];
-        }
-    } else {
-        // Menangani error berdasarkan status HTTP
-        $json = json_decode($response, true);
-        $error_message = isset($json['error_description']) ? $json['error_description'] : 'Tidak ada deskripsi kesalahan';
-
-        switch ($httpCode) {
-            case 400: // Bad Request
-                return [
-                    'error' => 'Bad Request (400)',
-                    'error_description' => $error_message,
-                    'response' => $json
-                ];
-            case 401: // Unauthorized
-                return [
-                    'error' => 'Unauthorized (401)',
-                    'error_description' => $error_message,
-                    'response' => $json
-                ];
-            case 403: // Forbidden
-                return [
-                    'error' => 'Forbidden (403)',
-                    'error_description' => $error_message,
-                    'response' => $json
-                ];
-            case 404: // Not Found
-                return [
-                    'error' => 'Not Found (404)',
-                    'error_description' => 'Endpoint tidak ditemukan',
-                    'response' => $json
-                ];
-            case 500: // Internal Server Error
-                return [
-                    'error' => 'Internal Server Error (500)',
-                    'error_description' => 'Kesalahan di server',
-                    'response' => $json
-                ];
-            default:
-                return [
-                    'error' => 'Unexpected Error',
-                    'error_description' => $error_message,
-                    'http_code' => $httpCode,
-                    'response' => $json
-                ];
+            return ['error' => 'Gagal mendapatkan access token. Kode HTTP: ' . $httpCode, 'response' => $response];
         }
     }
-}
-
-
 
     private function get_valid_access_token()
     {
