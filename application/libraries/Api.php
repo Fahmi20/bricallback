@@ -74,11 +74,9 @@ EOD;
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-        $response = curl_exec($ch);
         curl_close($ch);
-        $json = json_decode($response, true);
-        echo json_encode($json);
+        $response = curl_exec($ch);
+        echo json_encode($response);
     }
 
     private function get_valid_access_token()
