@@ -83,7 +83,7 @@ EOD;
             $json = json_decode($response, true);
             return $json['access_token'];
         } else {
-            return ['error' => 'Gagal mendapatkan access token. Kode HTTP: ' . $httpCode, 'response' => $response];
+            return ['responseCode' => $httpCode , 'responseMessage' => $response];
         }
     }
 
