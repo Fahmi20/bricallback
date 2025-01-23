@@ -28,8 +28,8 @@ class Backend extends CI_Controller
             ]);
         } else {
             echo json_encode([
-                'status' => 'success',
-                'access_token' => $access_token
+                'responseMessage' => 'success',
+                'accessToken' => $access_token
             ]);
         }
     }
