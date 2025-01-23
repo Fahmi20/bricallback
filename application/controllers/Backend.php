@@ -18,20 +18,7 @@ class Backend extends CI_Controller
     public function get_access_token()
     {
         $access_token = $this->api->get_access_token();
-
-        if (is_array($access_token) && isset($access_token['error'])) {
-            $this->output->set_status_header(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $access_token['error'],
-                'response' => $access_token['response']
-            ]);
-        } else {
-            echo json_encode([
-                'responseMessage' => 'success',
-                'accessToken' => $access_token
-            ]);
-        }
+        echo json_encode($access_token);
     }
 
     public function get_access_token_push_notif()
