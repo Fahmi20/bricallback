@@ -93,8 +93,8 @@ EOD;
             // Mengembalikan format sesuai yang diinginkan
             return [
                 'accessToken' => $json['access_token'],
-                'tokenType' => isset($json['token_type']),
-                'expiresIn' => isset($json['expires_in'])
+                'tokenType' => isset($json['token_type']) ? $json['token_type'] : 'Bearer',
+                'expiresIn' => isset($json['expires_in']) ? $json['expires_in'] : '0'
             ];
         } else {
             // Jika tidak ada access_token
