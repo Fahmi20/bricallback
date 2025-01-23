@@ -82,6 +82,8 @@ EOD;
         if ($httpCode == 200) {
             $json = json_decode($response, true);
             return $json['access_token'];
+        } else {
+            return $response;
         }
     }
 
