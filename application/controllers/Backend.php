@@ -20,7 +20,7 @@ class Backend extends CI_Controller
     // Panggil method untuk mendapatkan access token
     $access_token = $this->api->get_access_token();
 
-    // Cek apakah response berisi error
+    // Cek apakah ada error
     if (isset($access_token['error'])) {
         // Jika ada error, kembalikan error dalam format JSON
         http_response_code(400);  // Atau kode HTTP sesuai dengan error
@@ -30,12 +30,15 @@ class Backend extends CI_Controller
             'response' => $access_token['response']  // Respons lengkap
         ]);
     } else {
-        // Jika tidak ada error, kembalikan access token
+        // Jika tidak ada error, kembalikan token dengan format yang diinginkan
         echo json_encode([
-            'access_token' => $access_token
+            'accessToken' => $access_token['accessToken'],
+            'tokenType' => $access_token['tokenType'],
+            'expiresIn' => $access_token['expiresIn']
         ]);
     }
 }
+
 
 
     public function get_access_token_push_notif()

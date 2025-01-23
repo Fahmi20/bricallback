@@ -78,21 +78,33 @@ EOD;
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+    // Eksekusi permintaan
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
+
+    // Menangani response berdasarkan status kode HTTP
     if ($httpCode == 200) {
+        // Jika berhasil, ambil data response
         $json = json_decode($response, true);
 
         if (isset($json['access_token'])) {
-            return $json['access_token'];
+            // Mengembalikan format sesuai yang diinginkan
+            return [
+                'accessToken' => $json['access_token'],
+                'tokenType' => isset($json['token_type']) ? $json['token_type'] : 'Bearer',
+                'expiresIn' => isset($json['expires_in']) ? $json['expires_in'] : '0'
+            ];
         } else {
+            // Jika tidak ada access_token
             return [
                 'error' => 'Response tidak mengandung access_token',
                 'response' => $json
             ];
         }
     } else {
+        // Menangani error berdasarkan status HTTP
         $json = json_decode($response, true);
         $error_message = isset($json['error_description']) ? $json['error_description'] : 'Tidak ada deskripsi kesalahan';
 
@@ -121,7 +133,7 @@ EOD;
                     'error_description' => 'Endpoint tidak ditemukan',
                     'response' => $json
                 ];
-            case 500:
+            case 500: // Internal Server Error
                 return [
                     'error' => 'Internal Server Error (500)',
                     'error_description' => 'Kesalahan di server',
