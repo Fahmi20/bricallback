@@ -66,7 +66,7 @@ EOD;
 
         $headers = [
             'Content-Type: application/x-www-form-urlencoded',
-            'Authorization: Basic ' . base64_encode($this->client_id_push_notif . ':' . $this->client_secret)
+            'Authorization: Basic ' . base64_encode($this->client_id . ':' . $this->client_secret)
         ];
 
         $ch = curl_init();
