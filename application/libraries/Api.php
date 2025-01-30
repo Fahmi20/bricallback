@@ -341,7 +341,7 @@ public function validateSignature($Authorization, $body, $timeStamp, $signature)
     {
         $timestamp = gmdate('Y-m-d\TH:i:s\Z');
         $path = '/snap/v1.0/transfer-va/notify-payment-intrabank';
-        $token = $this->get_valid_access_token();
+        $token = $this->get_access_token();
         $partnerUrl = 'http://127.0.0.1:8000/bricallback/backend/callback';
         $urlTemplate = 'https://sandbox.partner.api.bri.co.id/{partnerUrl}/snap/v1.0/transfer-va/notify-payment-intrabank';
         $url = str_replace('{partnerUrl}', $partnerUrl, $urlTemplate);
@@ -408,7 +408,7 @@ public function validateSignature($Authorization, $body, $timeStamp, $signature)
     public function inquiry_payment_va($partnerServiceId, $customerNo, $virtualAccountNo)
     {
         $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
-        $access_token = $this->get_valid_access_token();
+        $access_token = $this->get_access_token();
         $path = '/snap/v1.0/transfer-va/inquiry-intrabank';
         $body = [
             'partnerServiceId' => $partnerServiceId,
@@ -436,7 +436,7 @@ public function validateSignature($Authorization, $body, $timeStamp, $signature)
     public function payment_va($partnerServiceId, $customerNo, $virtualAccountNo, $virtualAccountName, $sourceAccountNo, $partnerReferenceNo, $paidAmount, $trxDateTime)
     {
         $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
-        $access_token = $this->get_valid_access_token();
+        $access_token = $this->get_access_token();
         $path = '/snap/v1.0/transfer-va/payment-intrabank';
         $body = [
             'partnerServiceId' => $partnerServiceId,
@@ -481,7 +481,7 @@ public function validateSignature($Authorization, $body, $timeStamp, $signature)
     ) {
         $timestamp = gmdate('Y-m-d\TH:i:s\Z');
         $path = '/snap/v1.0/transfer-va/inquiry';
-        $token = $this->get_valid_access_token();
+        $token = $this->get_access_token();
         $partnerUrl = 'http://103.167.35.206:8000/bricallback/backend/inquiry_payment_va_callback';
         $endTime = (new DateTime('now', new DateTimeZone('Asia/Jakarta')))
             ->add(new DateInterval('P1D'))
@@ -524,7 +524,7 @@ public function validateSignature($Authorization, $body, $timeStamp, $signature)
     public function payment_va_briva($partnerServiceId, $customerNo, $virtualAccountNo, $virtualAccountName, $sourceAccountNo, $partnerReferenceNo, $paidAmount, $trxDateTime)
     {
         $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
-        $access_token = $this->get_valid_access_token();
+        $access_token = $this->get_access_token();
         $path = '/snap/v1.0/transfer-va/payment-intrabank';
         $body = [
             'partnerServiceId' => $partnerServiceId,

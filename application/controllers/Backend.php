@@ -840,7 +840,7 @@ class Backend extends CI_Controller
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             show_404();
         }
-        $partnerServiceId = '22084';//03636
+        $partnerServiceId = '22084';
         $customerNo = $this->input->post('customerNo');
         $partnerServiceIdWithSpaces = '   ' . $partnerServiceId;
         $virtualAccountNo = '   ' . $partnerServiceId . $customerNo;
