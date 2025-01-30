@@ -3,7 +3,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 class Api
 {
-    private $baseUrl = 'https://apidevportal.aspi-indonesia.or.id:44310';
+    private $baseUrl = 'https://sandbox.partner.api.bri.co.id';
 
     private $public_key;
     private $public_key_path = '/mnt/data/pubkey.pem';
@@ -11,12 +11,11 @@ class Api
     private $client_secret_push_notif = 'Bf45NzPq09XwSa1RtU6Vg8MjYt4R';
     private $token_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/access-token/b2b";
     private $notif_url = "https://sandbox.partner.api.bri.co.id/snap/v1.0/transfer-va/notify-payment-intrabank";
-    private $public_key_pem = "-----BEGIN PUBLIC KEY-----3067b8c9c44e4f1b88a20ce3e2271c6a-----END PUBLIC KEY-----"; //MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB
-    private $client_id = '4d4776a092ca457e89bd1436f67184a8'; //G6bDFAAbwTUhqhMGa9qOsydLGBexH6bh
-
-    private $client_secret = 'LyV9XytLCLNOXbmdIaXh9zl4i+PI2mSsXaxU90QR94E='; //'MNfGscq4w6XUmAp3'
+    private $public_key_pem = "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH96OWkuCmo+VeJAvOOweHhhMZl2VPT9zXv6zr3a3CTwglmDcW4i5fldDzOeL4aco2d+XrPhCscrGKJA4wH1jyVzNcHK+RzsABcKtcqJ4Rira+x02/f554YkXSkxwqqUPtmCMXyr30FCuY3decIu2XsB9WYjpxuUUOdXpOVKzdCrABvZORn7lI2qoHeZ+ECytVYAMw7LDPOfDdo6qnD5Kg+kzVYZBmWC79TW9MaLkLLWNzY7XDe8NBV1KNU+G9/Ktc7S2+fF5jvPc+CWG7CAFHNOkAxyHZ7K1YvA4ghOckQf4EwmxdmDNmEk8ydYVix/nJXiUBY44olhNKr+EKJhYQIDAQAB-----END PUBLIC KEY-----";
+    private $client_id = 'G6bDFAAbwTUhqhMGa9qOsydLGBexH6bh';
+    private $client_secret = 'MNfGscq4w6XUmAp3';
     private $client_secret_push_notif_url = 'Bf45NzPq09XwSa1RtU6Vg8MjYt4R';
-    private $partner_id = 'YPGS';
+    private $partner_id = 'YGSDev';
     private $channel_id = '00009';
     private $channel_id_mapping = [
         '00001' => 'teller',
@@ -39,7 +38,19 @@ class Api
     {
         $this->private_key = <<<EOD
 -----BEGIN RSA PRIVATE KEY-----
-Xwk+MG/x7NZuzo01Uuxjfq5W4HSWJtMt1CoWOF3unWQ=
+MIICWwIBAAKBgQCpLGoAwbDqfyg7KaMaolp+iVxejleZkrizRbB/rXNVHw5D/2wh
+N9VRoDfF5nn884Fp5yt7QWNtfNj849pNGWepCT/4bPcZ0ZRghanv96wCMio6xvrC
+UWkCwdcokxZfRFZpSzQz3yYhT6FDETb1mKArH23wT1G0EyTDSYorY4huAwIDAQAB
+AoGAXOpa8j1vyOu8EfqFbcx7/YG+LOTrMhsGvNfq38VJUhgzgp9YKUp8LE/eMiCr
+IYYwrxTbqd+5F1p55zPSI4RvjN+5L4LxaKKyl0MSGETeZstGYqsBy7JxjgbjIYOZ
+wG4vglwNra5SG+mBdkzlV2ZBPFjG1qcRq0bhi8JuRhXXeNkCQQDexA7X9AovEC7o
+EzW4ZZ7LJO1+dJwuXIuiqSA6YlW+OWdE3Bzp2BWwS/tVqV2v9jI8w5qtANSKr0ka
+hiy1W6H9AkEAwmmKSxM8qvppUegJqT9gzw4isXlVx3bjLgzSx7MtKb3mqur012vb
+j8MXpvzJ+UmbKX5SYJrdcCweWGTAU+lP/wJADNk6EfKdc8F3MyOIga46znS+zgBj
+0bi8xREELtnlICencS1Q7ZvtBFIdmP8/zBpjI2YU0c2udKFPkhwTEBLM8QJAIKGG
+TMOV0zzkoJLJzFaO8TH2MMOk2i3iQ8BzQIGaev8c0GNPZTj9SUv9lFGptOXd3UEO
+ophbwpAlJ8EBZxQqEQJAeE/dQXB7hICB8A5ZAIFAVWQHJPf/Ahj8VDdpIdVzWK0b
+1BV6b19Ki7JbcONQuWbbNr4swlYvj2UFnaGzA43E6g==
 -----END RSA PRIVATE KEY-----
 EOD;
 
@@ -51,7 +62,7 @@ EOD;
 
     public function get_access_token()
     {
-        $url = $this->baseUrl . '/api/v1.0/access-token/b2b';
+        $url = $this->baseUrl . '/oauth/client_credential/accesstoken?grant_type=client_credentials';
 
         $headers = [
             'Content-Type: application/x-www-form-urlencoded',
