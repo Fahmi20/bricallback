@@ -162,7 +162,6 @@ $(document).ready(function () {
 		var customerNo = $("#edit_customerNo").val();
 		var virtualAccountName = $("#edit_virtualAccountName").val();
 		var totalAmount = $("#edit_totalAmount").val();
-		var expiredDateInput = $("#edit_expiredDate").val();
 		var trxId = $("#edit_trxId").val();
 		var additionalInfo = $("#edit_additionalInfo").val();
 
@@ -177,7 +176,6 @@ $(document).ready(function () {
 				customerNo: customerNo,
 				virtualAccountName: virtualAccountName,
 				totalAmount: totalAmount,
-				expiredDateInput: expiredDateInput, // Kirim tanggal yang diformat
 				trxId: trxId,
 				additionalInfo: additionalInfo,
 			},

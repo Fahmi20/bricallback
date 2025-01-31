@@ -117,10 +117,6 @@
                         <input type="text" class="form-control" id="edit_totalAmountCurrency" readonly>
                     </div>
                     <div class="mb-3">
-                        <label for="edit_expiredDate" class="form-label">Expired Date</label>
-                        <input type="datetime-local" class="form-control" id="edit_expiredDate" required>
-                    </div>
-                    <div class="mb-3">
                         <label for="edit_trxId" class="form-label">Transaction ID</label>
                         <input type="text" class="form-control" id="edit_trxId">
                     </div>
