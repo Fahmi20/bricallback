@@ -116,7 +116,7 @@ public function signature()
     public function notifikasi()
 {
     // Set headers untuk CORS
-    header("Access-Control-Allow-Origin: https://apidevportal.aspi-indonesia.or.id");
+    header("Access-Control-Allow-Origin: https://apidevportal.aspi-indonesia.or.id/client-simulator");
     header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE");
     header("Access-Control-Allow-Headers: X-TIMESTAMP, X-CLIENT-KEY, X-CLIENT-SECRET, Content-Type, X-SIGNATURE, Accept, Authorization, Authorization-Customer, ORIGIN, X-PARTNER-ID, X-EXTERNAL-ID, X-IP-ADDRESS, X-DEVICE-ID, CHANNEL-ID, X-LATITUDE, X-LONGITUDE");
     header("Access-Control-Allow-Credentials: true");
