@@ -95,6 +95,13 @@ public function signature()
         header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE");
         header("Access-Control-Allow-Headers: X-TIMESTAMP, X-CLIENT-KEY, X-CLIENT-SECRET, Content-Type, X-SIGNATURE, Accept, Authorization, Authorization-Customer, ORIGIN, X-PARTNER-ID, X-EXTERNAL-ID, X-IP-ADDRESS, X-DEVICE-ID, CHANNEL-ID, X-LATITUDE, X-LONGITUDE");
         header("Access-Control-Allow-Credentials: true");
+
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            http_response_code(200);
+            exit();
+        }
+
+        try {
         
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             show_404();
@@ -115,6 +122,7 @@ public function signature()
         }
         echo json_encode($verificationResult, JSON_PRETTY_PRINT);
     }
+}
 
 
     public function notifikasi()
