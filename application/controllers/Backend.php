@@ -90,39 +90,95 @@ public function signature()
 
 
     public function trigger_token()
-    {
-        header("Access-Control-Allow-Origin: https://apidevportal.aspi-indonesia.or.id");
-        header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE");
-        header("Access-Control-Allow-Headers: X-TIMESTAMP, X-CLIENT-KEY, X-CLIENT-SECRET, Content-Type, X-SIGNATURE, Accept, Authorization, Authorization-Customer, ORIGIN, X-PARTNER-ID, X-EXTERNAL-ID, X-IP-ADDRESS, X-DEVICE-ID, CHANNEL-ID, X-LATITUDE, X-LONGITUDE");
-        header("Access-Control-Allow-Credentials: true");
+{
+    // Set CORS headers
+    header("Access-Control-Allow-Origin: https://apidevportal.aspi-indonesia.or.id");
+    header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE");
+    header("Access-Control-Allow-Headers: X-TIMESTAMP, X-CLIENT-KEY, X-CLIENT-SECRET, Content-Type, X-SIGNATURE, Accept, Authorization, Authorization-Customer, ORIGIN, X-PARTNER-ID, X-EXTERNAL-ID, X-IP-ADDRESS, X-DEVICE-ID, CHANNEL-ID, X-LATITUDE, X-LONGITUDE");
+    header("Access-Control-Allow-Credentials: true");
 
-        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-            http_response_code(200);
-            exit();
-        }
+    // Handle preflight request (OPTIONS)
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        http_response_code(200);
+        exit();
+    }
 
-        try {
-        
+    try {
+        // Only handle POST requests
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            show_404();
+            $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(405) // Method Not Allowed
+                ->set_output(json_encode([
+                    'status' => 'error',
+                    'message' => 'Method not allowed, POST required.'
+                ]));
+            return;
         }
+
+        // Get the necessary headers
         $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
         $clientID = $this->input->get_request_header('X-CLIENT-KEY', TRUE);
         $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
+
+        // Validate required headers
         if (!$signature || !$clientID || !$timeStamp) {
-            echo json_encode(array('status' => 'error', 'message' => 'Invalid headers'));
+            $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(400) // Bad Request
+                ->set_output(json_encode([
+                    'status' => 'error',
+                    'message' => 'Invalid or missing headers: X-SIGNATURE, X-CLIENT-KEY, X-TIMESTAMP.'
+                ]));
             return;
         }
+
+        // Verify the signature
         $verificationResult = $this->api->verifySignatureTest($clientID, $timeStamp, $signature);
+
+        // Check if the verification was successful and accessToken is available
         if (isset($verificationResult['accessToken'])) {
             $accessToken = $verificationResult['accessToken'];
             $expiresIn = $verificationResult['expiresIn'];
+
+            // Save access token to the database
             $this->load->model('VirtualAccountModel');
             $this->VirtualAccountModel->saveAccessToken($clientID, $accessToken, $expiresIn);
+
+            // Return successful response
+            $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(200)
+                ->set_output(json_encode([
+                    'status' => 'success',
+                    'accessToken' => $accessToken,
+                    'expiresIn' => $expiresIn
+                ], JSON_PRETTY_PRINT));
+        } else {
+            // Handle verification failure
+            $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(400) // Bad Request
+                ->set_output(json_encode([
+                    'status' => 'error',
+                    'message' => 'Signature verification failed.',
+                    'details' => $verificationResult
+                ], JSON_PRETTY_PRINT));
         }
-        echo json_encode($verificationResult, JSON_PRETTY_PRINT);
+
+    } catch (Exception $e) {
+        // Handle any exception that occurs during processing
+        log_message('error', 'Error during trigger_token: ' . $e->getMessage());
+        $this->output
+            ->set_content_type('application/json')
+            ->set_status_header(500) // Internal Server Error
+            ->set_output(json_encode([
+                'status' => 'error',
+                'message' => 'Internal server error occurred.'
+            ], JSON_PRETTY_PRINT));
     }
 }
+
 
 
     public function notifikasi()
