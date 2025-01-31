@@ -137,7 +137,8 @@ public function signature()
                 ->set_content_type('application/json')
                 ->set_status_header(200)
                 ->set_output(json_encode([
-                    'status' => 'success',
+                    'responseCode' => '2003400',
+                    'responseMessage' => 'Successful',
                     'accessToken' => $accessToken,
                     'expiresIn' => $expiresIn
                 ], JSON_PRETTY_PRINT));
