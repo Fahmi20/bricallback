@@ -118,7 +118,7 @@ public function signature()
 
         // Get the necessary headers
         $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
-        $clientID = $this->input->get_request_header('X-CLIENT-KEY', TRUE);
+        $clientID = $this->input->get_request_header('X-PARTNER-ID', TRUE);
         $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
         // Verify the signature
         $verificationResult = $this->api->verifySignatureTest($clientID, $timeStamp, $signature);
