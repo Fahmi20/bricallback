@@ -120,19 +120,6 @@ public function signature()
         $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
         $clientID = $this->input->get_request_header('X-CLIENT-KEY', TRUE);
         $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
-
-        // Validate required headers
-        if (!$signature || !$clientID || !$timeStamp) {
-            $this->output
-                ->set_content_type('application/json')
-                ->set_status_header(400) // Bad Request
-                ->set_output(json_encode([
-                    'status' => 'error',
-                    'message' => 'Invalid or missing headers: X-SIGNATURE, X-CLIENT-KEY, X-TIMESTAMP.'
-                ]));
-            return;
-        }
-
         // Verify the signature
         $verificationResult = $this->api->verifySignatureTest($clientID, $timeStamp, $signature);
 
