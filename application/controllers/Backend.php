@@ -115,36 +115,26 @@ public function signature()
 
     public function notifikasi()
 {
-    // Mengatur Header untuk CORS
+    // Set headers untuk CORS
     header("Access-Control-Allow-Origin: https://apidevportal.bi.go.id");
-    header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE, OPTIONS");
+    header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE");
     header("Access-Control-Allow-Headers: X-TIMESTAMP, X-CLIENT-KEY, X-CLIENT-SECRET, Content-Type, X-SIGNATURE, Accept, Authorization, Authorization-Customer, ORIGIN, X-PARTNER-ID, X-EXTERNAL-ID, X-IP-ADDRESS, X-DEVICE-ID, CHANNEL-ID, X-LATITUDE, X-LONGITUDE");
     header("Access-Control-Allow-Credentials: true");
 
-    // Menangani request OPTIONS untuk preflight CORS
+    // Jika request adalah preflight (OPTIONS request), langsung return
     if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
         http_response_code(200);
         exit();
     }
 
     try {
-        // Pastikan metode yang digunakan adalah POST
+        // Validasi method POST
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             show_404();
         }
 
-        // List header yang wajib ada
-        $requiredHeaders = [
-            'Authorization',
-            'X-SIGNATURE',
-            'X-TIMESTAMP',
-            'X-PARTNER-ID',
-            'CHANNEL-ID',
-            'X-EXTERNAL-ID',
-            'Content-Type'
-        ];
-
-        // Mengecek apakah semua header yang diperlukan ada
+        // Validasi dan proses header yang dibutuhkan
+        $requiredHeaders = ['Authorization', 'X-SIGNATURE', 'X-TIMESTAMP', 'X-PARTNER-ID', 'CHANNEL-ID', 'X-EXTERNAL-ID', 'Content-Type'];
         foreach ($requiredHeaders as $header) {
             $headerValue = $this->input->get_request_header($header, TRUE);
             if (empty($headerValue)) {
@@ -159,15 +149,13 @@ public function signature()
             }
         }
 
-        // Mengambil isi request body
+        // Memproses data body dari request
         $body = file_get_contents('php://input');
         $requestData = json_decode($body, true);
 
-        // Mengekstrak access token dari header Authorization
+        // Verifikasi access token
         $Authorization = $this->input->get_request_header('Authorization', TRUE);
-        $accessToken = substr($Authorization, 7);
-
-        // Memeriksa apakah token valid di database
+        $accessToken = substr($Authorization, 7); // Mengambil token tanpa "Bearer "
         $this->load->model('VirtualAccountModel');
         $storedToken = $this->VirtualAccountModel->getAccessTokenByToken($accessToken);
         if (!$storedToken) {
@@ -181,13 +169,12 @@ public function signature()
             return;
         }
 
-        // Validasi Signature
+        // Lakukan verifikasi signature
         $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
         $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
         $verificationResult = $this->api->validateSignature($Authorization, $requestData, $timeStamp, $signature);
-
+        
         if ($verificationResult['status'] === 'success') {
-            // Pastikan request memiliki partnerServiceId
             if (empty($requestData['partnerServiceId'])) {
                 $this->output
                     ->set_content_type('application/json')
@@ -199,7 +186,7 @@ public function signature()
                 return;
             }
 
-            // Simpan data pembayaran ke database
+            // Simpan data pembayaran
             $saveResult = $this->VirtualAccountModel->savePaymentData($requestData);
 
             if ($saveResult) {
