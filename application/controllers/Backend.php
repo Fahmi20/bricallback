@@ -139,6 +139,7 @@ public function signature()
                 ->set_output(json_encode([
                     'responseCode' => '2003400',
                     'responseMessage' => 'Successful',
+                    'tokenType' => 'Bearer',
                     'accessToken' => $accessToken,
                     'expiresIn' => $expiresIn
                 ], JSON_PRETTY_PRINT));
