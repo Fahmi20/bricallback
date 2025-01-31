@@ -91,6 +91,7 @@ public function signature()
 
     public function trigger_token()
     {
+        
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             show_404();
         }
@@ -114,6 +115,9 @@ public function signature()
 
     public function notifikasi()
     {
+        header("Access-Control-Allow-Origin: https://apidevportal.bi.go.id");
+        header("Access-Control-Allow-Methods: POST,GET,PUT,DELETE");
+        header("Access-Control-Allow-Headers: X-TIMESTAMP,X-CLIENT-KEY,X-CLIENT-SECRET,Content-Type,X-SIGNATURE,Accept,Authorization,Authorization-Customer,ORIGIN,X-PARTNER-ID,X-EXTERNAL-ID,X-IP-ADDRESS,X-DEVICE-ID,CHANNEL-ID,X-LATITUDE,X-LONGITUDE");
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                 show_404();
