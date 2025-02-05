@@ -63,7 +63,7 @@ class Backend extends CI_Controller
             show_404();
         }
         $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
-        $clientID = $this->input->get_request_header('X-PARTNER-ID', TRUE);
+        $clientID = $this->input->get_request_header('X-CLIENT-KEY', TRUE);
         $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
         if (!$signature || !$clientID || !$timeStamp) {
             echo json_encode(array('status' => 'error', 'message' => 'Invalid headers'));
