@@ -168,7 +168,7 @@ EOD;
             'expiresIn' => '899'
         );
     } elseif ($result === 0) {
-        return array('responseCode' => '4013401', 'message' => 'Unauthorized. Verify Client Secret Fail.');
+        return array('responseCode' => '4013401', 'responseMessage' => 'Unauthorized. Verify Client Secret Fail.');
     }
 }
 
@@ -188,7 +188,7 @@ public function validateSignature($Authorization, $body, $timeStamp, $signature)
     if (hash_equals($calculatedSignatureBase64, $signature)) {
         return array('status' => 'success', 'message' => 'Signature valid');
     } else {
-        return array('status' => 'error', 'message' => 'Invalid signature', 'result' => $stringToSign);
+        return array('responseCode' => '4013401', 'responseMessage' => 'Unauthorized. Verify Client Secret Fail.', 'result' => $stringToSign);
     }
 }
 
