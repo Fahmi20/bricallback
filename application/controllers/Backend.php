@@ -239,9 +239,8 @@ public function notifikasi()
                 ->set_content_type('application/json')
                 ->set_status_header(400)
                 ->set_output(json_encode([
-                    'responseCode' => '400',
-                    'responseMessage' => $verificationResult['message'],
-                    'result' => $verificationResult['result']
+                    'responseCode' => '4017300',
+                    'responseMessage' => 'Unauthorized Signature',
                 ]));
         }
     } catch (Exception $e) {
