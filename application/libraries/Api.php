@@ -168,9 +168,7 @@ EOD;
             'expiresIn' => '899'
         );
     } elseif ($result === 0) {
-        return array('status' => 'error', 'message' => 'Tanda tangan tidak valid');
-    } else {
-        return array('status' => 'error', 'message' => 'Kesalahan saat memverifikasi tanda tangan: ' . openssl_error_string());
+        return array('responseCode' => '4013401', 'message' => 'Unauthorized. Verify Client Secret Fail.');
     }
 }
 
