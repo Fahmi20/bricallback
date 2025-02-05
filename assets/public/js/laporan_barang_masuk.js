@@ -20,24 +20,6 @@ $(function () {
 
 	$("#search").click(function () {
 		var startDate = $("#startDate").val(); // Ambil tanggal input
-		console.log("startDate:", startDate); // Debugging log
-
-		if (!startDate) {
-			Toast.fire({
-				icon: "error",
-				title: "Semua field harus diisi",
-			});
-			return;
-		}
-
-		// Validasi apakah startDate berada dalam 60 hari terakhir atau lebih awal
-		if (!isValidDateInLast60Days(startDate)) {
-			Toast.fire({
-				icon: "error",
-				title: "Start Date harus dalam 60 hari terakhir atau lebih awal",
-			});
-			return;
-		}
 
 		// AJAX request ke backend
 		show.style.display = "none";
@@ -51,8 +33,6 @@ $(function () {
 				startDate: startDate, // Kirim tanggal dalam format yyyy-mm-dd
 			},
 			success: function (response) {
-				console.log(response);
-
 				if (
 					response.responseCode === "2003500" &&
 					response.virtualAccountData.length > 0

@@ -277,7 +277,7 @@ $(document).ready(function () {
 			// Tentukan paidStatus berdasarkan totalAmount
 			paidStatus = totalAmount <= 0 ? "Y" : "N";
 
-			console.log("Paid Status:", totalAmount);
+			console.log("Paid Status:", paidStatus);
 
 			// Lakukan update status VA melalui AJAX
 			$.ajax({

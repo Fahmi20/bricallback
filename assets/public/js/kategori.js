@@ -313,7 +313,7 @@ $(document).ready(function () {
 			url: $(this).attr("action"),
 			method: "POST",
 			data: $(this).serialize(),
-			success: function () {
+			success: function (response) {
 				Swal.fire(
 					"Success",
 					"Virtual Account created successfully!",

@@ -62,30 +62,48 @@ EOD;
 
     public function get_access_token()
     {
-        $url = $this->baseUrl . '/oauth/client_credential/accesstoken?grant_type=client_credentials';
+        $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
+        $client_ID = $this->client_id;
 
-        $headers = [
-            'Content-Type: application/x-www-form-urlencoded',
-            'Authorization: Basic ' . base64_encode($this->client_id . ':' . $this->client_secret)
+        $path = '/snap/v1.0/access-token/b2b';
+
+        $body = [
+            'grantType' => 'client_credentials',
         ];
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($httpCode == 200) {
-            $json = json_decode($response, true);
-            return $json['access_token'];
-        } else {
-            return ['error' => 'Gagal mendapatkan access token. Kode HTTP: ' . $httpCode, 'response' => $response];
-        }
+        $body_json = json_encode($body);
+        $signature = $this->generate_hmac_signature_access_token($client_ID,$timestamp);
+        $headers = [
+            'X-SIGNATURE: ' . $signature,
+            'X-CLIENT-KEY: ' . $this->client_id,
+            'X-TIMESTAMP: ' . $timestamp,
+            'Content-Type: application/json'
+        ];
+        $url = $this->baseUrl . $path;
+        $response = $this->send_api_request($url, 'POST', $headers, $body_json);
+        $json = json_decode($response, true);
+        return $json['accessToken'];
     }
+
+    private function generate_hmac_signature_access_token($client_ID, $timestamp)
+{
+
+    $stringToSign = $client_ID . "|" . $timestamp;
+    $privateKey = $this->private_key;
+    $privateKeyResource = openssl_pkey_get_private($privateKey);
+    if (!$privateKeyResource) {
+        return ['error' => 'Gagal mendapatkan resource private key.'];
+    }
+    $signature = '';
+    $result = openssl_sign($stringToSign, $signature, $privateKeyResource, OPENSSL_ALGO_SHA256);
+    if (!$result) {
+        return ['error' => 'Gagal menghasilkan signature.'];
+    }
+    $base64Signature = base64_encode($signature);
+    return $base64Signature;
+}
+
+
+
 
     private function get_valid_access_token()
     {
@@ -653,11 +671,6 @@ public function validateSignature($Authorization, $body, $timeStamp, $signature)
     {
         $timestamp = gmdate('Y-m-d\TH:i:s\Z', time());
         $access_token = $this->get_access_token();
-
-        if (isset($access_token['error'])) {
-            return ['error' => 'Failed to retrieve access token'];
-        }
-
         $path = '/snap/v1.0/transfer-va/update-status';
 
         $body = [
@@ -667,10 +680,6 @@ public function validateSignature($Authorization, $body, $timeStamp, $signature)
             'trxId' => $trxId,
             'paidStatus' => $paidStatus
         ];
-
-        if ($trxId) {
-            $body['trxId'] = $trxId;
-        }
 
         $body_json = json_encode($body);
         $external_id = rand(100000000, 999999999);
@@ -916,6 +925,24 @@ public function validateSignature($Authorization, $body, $timeStamp, $signature)
 
     private function send_api_request($url, $method = 'POST', $headers = [], $body = null, $callback = null)
     {
+        // Menampilkan request cURL jika mode debug aktif
+        // Menampilkan request cURL jika mode debug aktif
+    if (defined('DEBUG_MODE') && DEBUG_MODE) {
+        $curl_command = "curl -X " . strtoupper($method) . " \"" . $url . "\"";
+
+        // Menambahkan header
+        foreach ($headers as $header) {
+            $curl_command .= " -H \"" . $header . "\"";
+        }
+
+        // Menambahkan body untuk POST/PUT requests
+        if ($method == 'POST' || $method == 'PUT') {
+            $curl_command .= " -d \"" . $body . "\"";
+        }
+
+        // Menampilkan curl request yang lengkap
+        echo $curl_command . "\n";
+    }
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
