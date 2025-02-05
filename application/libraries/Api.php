@@ -186,9 +186,9 @@ public function validateSignature($Authorization, $body, $timeStamp, $signature)
     $calculatedSignature = hash_hmac('sha512', $stringToSign, $clientSecret, true);
     $calculatedSignatureBase64 = base64_encode($calculatedSignature);
     if (hash_equals($calculatedSignatureBase64, $signature)) {
-        return array('status' => 'success', 'message' => 'Signature valid');
+        return array('responseCode' => '2003400', 'responseMessage' => 'Successful');
     } else {
-        return array('responseCode' => '4013401', 'responseMessage' => 'Unauthorized. Verify Client Secret Fail.', 'result' => $stringToSign);
+        return array('responseCode' => '4017300', 'message' => 'Unauthorized Signature');
     }
 }
 

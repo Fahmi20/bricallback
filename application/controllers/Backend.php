@@ -194,7 +194,7 @@ public function notifikasi()
         $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
         $verificationResult = $this->api->validateSignature($Authorization, $requestData, $timeStamp, $signature);
         
-        if ($verificationResult['responseMessage'] === 'Successful') {
+        if ($verificationResult['responseCode'] === '2003400') {
             if (empty($requestData['partnerServiceId'])) {
                 $this->output
                     ->set_content_type('application/json')
