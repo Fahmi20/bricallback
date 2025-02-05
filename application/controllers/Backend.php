@@ -116,11 +116,7 @@ class Backend extends CI_Controller
             $this->output
                 ->set_content_type('application/json')
                 ->set_status_header(400) // Bad Request
-                ->set_output(json_encode([
-                    'status' => 'error',
-                    'message' => 'Signature verification failed.',
-                    'details' => $verificationResult
-                ], JSON_PRETTY_PRINT));
+                ->set_output(json_encode([ $verificationResult], JSON_PRETTY_PRINT));
         }
 
     } catch (Exception $e) {
