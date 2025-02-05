@@ -181,8 +181,8 @@ class Backend extends CI_Controller
                     ->set_content_type('application/json')
                     ->set_status_header(401)
                     ->set_output(json_encode([
-                        'responseCode' => '401',
-                        'responseMessage' => 'Invalid access token'
+                        'responseCode' => '4017301',
+                        'responseMessage' => 'Invalid Token (B2B)'
                     ]));
                 return;
             }
