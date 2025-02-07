@@ -828,7 +828,6 @@ class Backend extends CI_Controller
 
     public function buy_formulir()
     {
-        define('DEBUG_MODE', true);
         $partnerServiceId = '22084';
         $customerNo = $this->input->post('customerNo');
         $partnerServiceIdWithSpaces = '   ' . $partnerServiceId;
