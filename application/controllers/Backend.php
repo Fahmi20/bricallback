@@ -1241,10 +1241,8 @@ class Backend extends CI_Controller
 public function inquiry_status_va()
 {
     $virtualAccountNo = $this->input->post('virtualAccountNo');
-
     if (!empty($virtualAccountNo)) {
         $virtualAccount = $this->VirtualAccountModel->get_one_row($virtualAccountNo);
-
         if ($virtualAccount) {
             $data = [
                 'partnerServiceId' => $virtualAccount->partnerServiceId,
@@ -1261,21 +1259,8 @@ public function inquiry_status_va()
                 $data['inquiryRequestId']
             );
 
-            echo json_encode([
-                "status" => "success",
-                "data" => $response
-            ]);
-        } else {
-            echo json_encode([
-                "status" => "error",
-                "message" => "Virtual Account Number not found"
-            ]);
+            echo json_encode([$response]);
         }
-    } else {
-        echo json_encode([
-            "status" => "error",
-            "message" => "Virtual Account Number is required"
-        ]);
     }
 }
 
