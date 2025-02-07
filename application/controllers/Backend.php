@@ -828,7 +828,7 @@ class Backend extends CI_Controller
 
     public function buy_formulir()
     {
-
+        define('DEBUG_MODE', true);
         $partnerServiceId = '22084';
         $customerNo = $this->input->post('customerNo');
         $partnerServiceIdWithSpaces = '   ' . $partnerServiceId;
@@ -911,6 +911,7 @@ class Backend extends CI_Controller
 
     public function create_virtual_account_manual()
     {
+        define('DEBUG_MODE', true);
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             show_404();
         }
@@ -1190,34 +1191,53 @@ class Backend extends CI_Controller
     }
 
     public function inquiry_status_va_controller()
-    {
-        $virtualAccounts = $this->VirtualAccountModel->get_all_virtual_accounts();
-        $responses = [];
+{
+    $virtualAccountNo = $this->input->post('virtualAccountNo');
+    $virtualAccounts = $this->VirtualAccountModel->get_all_virtual_accounts();
+    $responses = [];
 
-        if (!empty($virtualAccounts)) {
-            foreach ($virtualAccounts as $virtualAccount) {
+    if (!empty($virtualAccounts)) {
+        foreach ($virtualAccounts as $virtualAccount) {
+            // Jika virtualAccountNo dikirim oleh client, hanya ambil yang cocok
+            if (empty($virtualAccountNo) || $virtualAccount->virtualAccountNo == $virtualAccountNo) {
                 $data = [
                     'partnerServiceId' => $virtualAccount->partnerServiceId,
                     'customerNo' => $virtualAccount->customerNo,
-                    'virtualAccountNo' => $virtualAccount->virtualAccountNo,
+                    'virtualAccountNo' => $virtualAccount->virtualAccountNo, // Perbaikan sintaks
                     'inquiryRequestId' => $virtualAccount->inquiryRequestId,
                 ];
+
+                // Panggil API untuk inquiry status VA
                 $response = $this->api->inquiry_status_va(
                     $data['partnerServiceId'],
                     $data['customerNo'],
                     $data['virtualAccountNo'],
                     $data['inquiryRequestId']
                 );
+
                 $responses[] = $response;
             }
+        }
+
+        // Jika ditemukan data yang cocok atau semua data ditampilkan
+        if (!empty($responses)) {
             echo json_encode($responses);
         } else {
+            // Jika `virtualAccountNo` tidak ditemukan dalam database
             echo json_encode([
                 "data" => [],
-                "message" => "No partner Service Id found"
+                "message" => "Virtual Account Number not found"
             ]);
         }
+    } else {
+        // Jika tidak ada data VA sama sekali
+        echo json_encode([
+            "data" => [],
+            "message" => "No Virtual Accounts found"
+        ]);
     }
+}
+
 
 
 
