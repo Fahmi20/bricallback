@@ -828,7 +828,9 @@ class Backend extends CI_Controller
 
     public function buy_formulir()
     {
-
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            show_404();
+        }
         $partnerServiceId = '22084';
         $customerNo = $this->input->post('customerNo');
         $partnerServiceIdWithSpaces = '   ' . $partnerServiceId;
