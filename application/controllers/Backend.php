@@ -58,202 +58,202 @@ class Backend extends CI_Controller
 
 
     public function trigger_token()
-{
-    // Set CORS headers
-    header("Access-Control-Allow-Origin: https://apidevportal.aspi-indonesia.or.id");
-    header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE");
-    header("Access-Control-Allow-Headers: X-TIMESTAMP, X-CLIENT-KEY, X-CLIENT-SECRET, Content-Type, X-SIGNATURE, Accept, Authorization, Authorization-Customer, ORIGIN, X-PARTNER-ID, X-EXTERNAL-ID, X-IP-ADDRESS, X-DEVICE-ID, CHANNEL-ID, X-LATITUDE, X-LONGITUDE");
-    header("Access-Control-Allow-Credentials: true");
+    {
+        // Set CORS headers
+        header("Access-Control-Allow-Origin: https://apidevportal.aspi-indonesia.or.id");
+        header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE");
+        header("Access-Control-Allow-Headers: X-TIMESTAMP, X-CLIENT-KEY, X-CLIENT-SECRET, Content-Type, X-SIGNATURE, Accept, Authorization, Authorization-Customer, ORIGIN, X-PARTNER-ID, X-EXTERNAL-ID, X-IP-ADDRESS, X-DEVICE-ID, CHANNEL-ID, X-LATITUDE, X-LONGITUDE");
+        header("Access-Control-Allow-Credentials: true");
 
-    // Handle preflight request (OPTIONS)
-    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-        http_response_code(200);
-        exit();
-    }
-
-    try {
-        // Only handle POST requests
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->output
-                ->set_content_type('application/json')
-                ->set_status_header(405) // Method Not Allowed
-                ->set_output(json_encode([
-                    'status' => 'error',
-                    'message' => 'Method not allowed, POST required.'
-                ]));
-            return;
+        // Handle preflight request (OPTIONS)
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            http_response_code(200);
+            exit();
         }
 
-        // Get the necessary headers
-        $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
-        $clientID = $this->input->get_request_header('X-PARTNER-ID', TRUE);
-        $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
-        // Verify the signature
-        $verificationResult = $this->api->verifySignatureTest($clientID, $timeStamp, $signature);
-
-        // Check if the verification was successful and accessToken is available
-        if (isset($verificationResult['accessToken'])) {
-            $accessToken = $verificationResult['accessToken'];
-            $expiresIn = $verificationResult['expiresIn'];
-
-            // Save access token to the database
-            $this->load->model('VirtualAccountModel');
-            $this->VirtualAccountModel->saveAccessToken($clientID, $accessToken, $expiresIn);
-
-            // Return successful response
-            $this->output
-                ->set_content_type('application/json')
-                ->set_status_header(200)
-                ->set_output(json_encode([
-                    'responseCode' => '2003400',
-                    'responseMessage' => 'Successful',
-                    'tokenType' => 'Bearer',
-                    'accessToken' => $accessToken,
-                    'expiresIn' => $expiresIn
-                ], JSON_PRETTY_PRINT));
-        } else {
-            // Handle verification failure
-            $this->output
-                ->set_content_type('application/json')
-                ->set_status_header(400) // Bad Request
-                ->set_output(json_encode( $verificationResult, JSON_PRETTY_PRINT));
-        }
-
-    } catch (Exception $e) {
-        // Handle any exception that occurs during processing
-        log_message('error', 'Error during trigger_token: ' . $e->getMessage());
-        $this->output
-            ->set_content_type('application/json')
-            ->set_status_header(500) // Internal Server Error
-            ->set_output(json_encode([
-                'status' => 'error',
-                'message' => 'Internal server error occurred.'
-            ], JSON_PRETTY_PRINT));
-    }
-}
-
-
-public function notifikasi()
-{
-    // Set headers untuk CORS
-    header("Access-Control-Allow-Origin: https://apidevportal.aspi-indonesia.or.id");
-    header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE");
-    header("Access-Control-Allow-Headers: X-TIMESTAMP, X-CLIENT-KEY, X-CLIENT-SECRET, Content-Type, X-SIGNATURE, Accept, Authorization, Authorization-Customer, ORIGIN, X-PARTNER-ID, X-EXTERNAL-ID, X-IP-ADDRESS, X-DEVICE-ID, CHANNEL-ID, X-LATITUDE, X-LONGITUDE");
-    header("Access-Control-Allow-Credentials: true");
-
-    // Jika request adalah preflight (OPTIONS request), langsung return
-    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-        http_response_code(200);
-        exit();
-    }
-
-    try {
-        // Validasi method POST
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            show_404();
-        }
-
-        // Validasi dan proses header yang dibutuhkan
-        $requiredHeaders = ['Authorization', 'X-SIGNATURE', 'X-TIMESTAMP', 'X-PARTNER-ID', 'CHANNEL-ID', 'X-EXTERNAL-ID', 'Content-Type'];
-        foreach ($requiredHeaders as $header) {
-            $headerValue = $this->input->get_request_header($header, TRUE);
-            if (empty($headerValue)) {
+        try {
+            // Only handle POST requests
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                 $this->output
                     ->set_content_type('application/json')
-                    ->set_status_header(400)
+                    ->set_status_header(405) // Method Not Allowed
                     ->set_output(json_encode([
-                        'responseCode' => '400',
-                        'responseMessage' => "Missing header: $header"
-                    ]));
-                return;
-            }
-        }
-
-        // Memproses data body dari request
-        $body = file_get_contents('php://input');
-        $requestData = json_decode($body, true);
-
-        // Verifikasi access token
-        $Authorization = $this->input->get_request_header('Authorization', TRUE);
-        $accessToken = substr($Authorization, 7); // Mengambil token tanpa "Bearer "
-        $this->load->model('VirtualAccountModel');
-        $storedToken = $this->VirtualAccountModel->getAccessTokenByToken($accessToken);
-        if (!$storedToken) {
-            $this->output
-                ->set_content_type('application/json')
-                ->set_status_header(401)
-                ->set_output(json_encode([
-                    'responseCode' => '4017301',
-                    'responseMessage' => 'Invalid Token (B2B)'
-                ]));
-            return;
-        }
-
-        // Lakukan verifikasi signature
-        $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
-        $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
-        $verificationResult = $this->api->validateSignature($Authorization, $requestData, $timeStamp, $signature);
-        
-        if ($verificationResult['responseCode'] === '2003400') {
-            if (empty($requestData['partnerServiceId'])) {
-                $this->output
-                    ->set_content_type('application/json')
-                    ->set_status_header(400)
-                    ->set_output(json_encode([
-                        'responseCode' => '400',
-                        'responseMessage' => 'Missing partnerServiceId in request body'
+                        'status' => 'error',
+                        'message' => 'Method not allowed, POST required.'
                     ]));
                 return;
             }
 
-            // Simpan data pembayaran
-            $saveResult = $this->VirtualAccountModel->savePaymentData($requestData);
+            // Get the necessary headers
+            $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
+            $clientID = $this->input->get_request_header('X-PARTNER-ID', TRUE);
+            $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
+            // Verify the signature
+            $verificationResult = $this->api->verifySignatureTest($clientID, $timeStamp, $signature);
 
-            if ($saveResult) {
+            // Check if the verification was successful and accessToken is available
+            if (isset($verificationResult['accessToken'])) {
+                $accessToken = $verificationResult['accessToken'];
+                $expiresIn = $verificationResult['expiresIn'];
+
+                // Save access token to the database
+                $this->load->model('VirtualAccountModel');
+                $this->VirtualAccountModel->saveAccessToken($clientID, $accessToken, $expiresIn);
+
+                // Return successful response
                 $this->output
                     ->set_content_type('application/json')
                     ->set_status_header(200)
                     ->set_output(json_encode([
                         'responseCode' => '2003400',
                         'responseMessage' => 'Successful',
-                        'virtualAccountData' => [
-                            'partnerServiceId' => $requestData['partnerServiceId'],
-                            'customerNo' => $requestData['customerNo'],
-                            'virtualAccountNo' => $requestData['virtualAccountNo'],
-                            'paymentRequestId' => $requestData['paymentRequestId'],
-                            'trxDateTime' => $requestData['trxDateTime'],
-                            'paymentStatus' => 'Success'
-                        ]
+                        'tokenType' => 'Bearer',
+                        'accessToken' => $accessToken,
+                        'expiresIn' => $expiresIn
+                    ], JSON_PRETTY_PRINT));
+            } else {
+                // Handle verification failure
+                $this->output
+                    ->set_content_type('application/json')
+                    ->set_status_header(400) // Bad Request
+                    ->set_output(json_encode($verificationResult, JSON_PRETTY_PRINT));
+            }
+
+        } catch (Exception $e) {
+            // Handle any exception that occurs during processing
+            log_message('error', 'Error during trigger_token: ' . $e->getMessage());
+            $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(500) // Internal Server Error
+                ->set_output(json_encode([
+                    'status' => 'error',
+                    'message' => 'Internal server error occurred.'
+                ], JSON_PRETTY_PRINT));
+        }
+    }
+
+
+    public function notifikasi()
+    {
+        // Set headers untuk CORS
+        header("Access-Control-Allow-Origin: https://apidevportal.aspi-indonesia.or.id");
+        header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE");
+        header("Access-Control-Allow-Headers: X-TIMESTAMP, X-CLIENT-KEY, X-CLIENT-SECRET, Content-Type, X-SIGNATURE, Accept, Authorization, Authorization-Customer, ORIGIN, X-PARTNER-ID, X-EXTERNAL-ID, X-IP-ADDRESS, X-DEVICE-ID, CHANNEL-ID, X-LATITUDE, X-LONGITUDE");
+        header("Access-Control-Allow-Credentials: true");
+
+        // Jika request adalah preflight (OPTIONS request), langsung return
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            http_response_code(200);
+            exit();
+        }
+
+        try {
+            // Validasi method POST
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                show_404();
+            }
+
+            // Validasi dan proses header yang dibutuhkan
+            $requiredHeaders = ['Authorization', 'X-SIGNATURE', 'X-TIMESTAMP', 'X-PARTNER-ID', 'CHANNEL-ID', 'X-EXTERNAL-ID', 'Content-Type'];
+            foreach ($requiredHeaders as $header) {
+                $headerValue = $this->input->get_request_header($header, TRUE);
+                if (empty($headerValue)) {
+                    $this->output
+                        ->set_content_type('application/json')
+                        ->set_status_header(400)
+                        ->set_output(json_encode([
+                            'responseCode' => '400',
+                            'responseMessage' => "Missing header: $header"
+                        ]));
+                    return;
+                }
+            }
+
+            // Memproses data body dari request
+            $body = file_get_contents('php://input');
+            $requestData = json_decode($body, true);
+
+            // Verifikasi access token
+            $Authorization = $this->input->get_request_header('Authorization', TRUE);
+            $accessToken = substr($Authorization, 7); // Mengambil token tanpa "Bearer "
+            $this->load->model('VirtualAccountModel');
+            $storedToken = $this->VirtualAccountModel->getAccessTokenByToken($accessToken);
+            if (!$storedToken) {
+                $this->output
+                    ->set_content_type('application/json')
+                    ->set_status_header(401)
+                    ->set_output(json_encode([
+                        'responseCode' => '4017301',
+                        'responseMessage' => 'Invalid Token (B2B)'
                     ]));
+                return;
+            }
+
+            // Lakukan verifikasi signature
+            $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
+            $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
+            $verificationResult = $this->api->validateSignature($Authorization, $requestData, $timeStamp, $signature);
+
+            if ($verificationResult['responseCode'] === '2003400') {
+                if (empty($requestData['partnerServiceId'])) {
+                    $this->output
+                        ->set_content_type('application/json')
+                        ->set_status_header(400)
+                        ->set_output(json_encode([
+                            'responseCode' => '400',
+                            'responseMessage' => 'Missing partnerServiceId in request body'
+                        ]));
+                    return;
+                }
+
+                // Simpan data pembayaran
+                $saveResult = $this->VirtualAccountModel->savePaymentData($requestData);
+
+                if ($saveResult) {
+                    $this->output
+                        ->set_content_type('application/json')
+                        ->set_status_header(200)
+                        ->set_output(json_encode([
+                            'responseCode' => '2003400',
+                            'responseMessage' => 'Successful',
+                            'virtualAccountData' => [
+                                'partnerServiceId' => $requestData['partnerServiceId'],
+                                'customerNo' => $requestData['customerNo'],
+                                'virtualAccountNo' => $requestData['virtualAccountNo'],
+                                'paymentRequestId' => $requestData['paymentRequestId'],
+                                'trxDateTime' => $requestData['trxDateTime'],
+                                'paymentStatus' => 'Success'
+                            ]
+                        ]));
+                } else {
+                    $this->output
+                        ->set_content_type('application/json')
+                        ->set_status_header(500)
+                        ->set_output(json_encode([
+                            'responseCode' => '500',
+                            'responseMessage' => 'Failed to save payment data'
+                        ]));
+                }
             } else {
                 $this->output
                     ->set_content_type('application/json')
-                    ->set_status_header(500)
+                    ->set_status_header(400)
                     ->set_output(json_encode([
-                        'responseCode' => '500',
-                        'responseMessage' => 'Failed to save payment data'
+                        'responseCode' => '4017300',
+                        'responseMessage' => 'Unauthorized Signature',
                     ]));
             }
-        } else {
+        } catch (Exception $e) {
+            log_message('error', 'Error during signature validation: ' . $e->getMessage());
             $this->output
                 ->set_content_type('application/json')
-                ->set_status_header(400)
+                ->set_status_header(500)
                 ->set_output(json_encode([
-                    'responseCode' => '4017300',
-                    'responseMessage' => 'Unauthorized Signature',
+                    'responseCode' => '500',
+                    'responseMessage' => 'Internal server error'
                 ]));
         }
-    } catch (Exception $e) {
-        log_message('error', 'Error during signature validation: ' . $e->getMessage());
-        $this->output
-            ->set_content_type('application/json')
-            ->set_status_header(500)
-            ->set_output(json_encode([
-                'responseCode' => '500',
-                'responseMessage' => 'Internal server error'
-            ]));
     }
-}
 
 
 
@@ -549,7 +549,7 @@ public function notifikasi()
 
     public function create_virtual_account_manual_sisfo()
     {
-        
+
         $partnerServiceId = $this->input->post('partnerServiceId');
         $customerNo = $this->input->post('customerNo');
         $partnerServiceIdWithSpaces = '   ' . $partnerServiceId;
@@ -873,7 +873,7 @@ public function notifikasi()
             'partNumber' => $partNumber,
             'inquiryRequestId' => $inquiryRequestId
         );
-    
+
         // Memanggil API untuk membuat virtual account
         $response = $this->api->create_virtual_account(
             $data['partnerServiceId'],
@@ -886,34 +886,34 @@ public function notifikasi()
             $data['trxId'],
             $data['additionalInfo']
         );
-    
+
         // Memastikan response adalah array
         $response = json_decode(json_encode($response), true);
 
-// Mengecek jika response code selain 2002700 dianggap error
-if (isset($response['responseCode']) && $response['responseCode'] != '2002700') {
-    // Menyampaikan response error berdasarkan responseCode
-    $this->output->set_status_header(500);
-    echo json_encode(array(
-        'status' => 'error',  // Menambahkan status error
-        'responseCode' => $response['responseCode'],  // Menampilkan responseCode selain 2002700
-        'responseMessage' => isset($response['responseMessage']) ? $response['responseMessage'] : 'No message'  // Mengambil responseMessage atau fallback jika tidak ada
-    ));
-} else {
-    $save_status = $this->VirtualAccountModel->save_virtual_account($data);
-    if ($save_status) {
-        echo json_encode(array('status' => 'success', 'data' => $response));  // Mengirimkan response sukses
-    } else {
-        $this->output->set_status_header(500);
-        echo json_encode(array(
-            'status' => 'error',
-            'message' => 'Failed to save Virtual Account to database'  // Mengirimkan pesan error jika gagal menyimpan ke database
-        ));
-    }
-}
+        // Mengecek jika response code selain 2002700 dianggap error
+        if (isset($response['responseCode']) && $response['responseCode'] != '2002700') {
+            // Menyampaikan response error berdasarkan responseCode
+            $this->output->set_status_header(500);
+            echo json_encode(array(
+                'status' => 'error',  // Menambahkan status error
+                'responseCode' => $response['responseCode'],  // Menampilkan responseCode selain 2002700
+                'responseMessage' => isset($response['responseMessage']) ? $response['responseMessage'] : 'No message'  // Mengambil responseMessage atau fallback jika tidak ada
+            ));
+        } else {
+            $save_status = $this->VirtualAccountModel->save_virtual_account($data);
+            if ($save_status) {
+                echo json_encode(array('status' => 'success', 'data' => $response));  // Mengirimkan response sukses
+            } else {
+                $this->output->set_status_header(500);
+                echo json_encode(array(
+                    'status' => 'error',
+                    'message' => 'Failed to save Virtual Account to database'  // Mengirimkan pesan error jika gagal menyimpan ke database
+                ));
+            }
+        }
 
     }
-    
+
 
 
     public function get_current_datetime()
@@ -923,50 +923,50 @@ if (isset($response['responseCode']) && $response['responseCode'] != '2002700') 
         echo json_encode(['datetime' => $formattedDateTime]);
     }
     public function inquire_virtual_account()
-{
-    
-    $virtualAccounts = $this->VirtualAccountModel->get_all_virtual_accounts();
-    $responses = [];
+    {
 
-    if ($virtualAccounts) {
-        foreach ($virtualAccounts as $virtualAccount) {
-            $data = [
-                'partnerServiceId' => $virtualAccount->partnerServiceId,
-                'customerNo' => $virtualAccount->customerNo,
-                'virtualAccountNo' => $virtualAccount->virtualAccountNo,
-                'trxId' => $virtualAccount->trxId
-            ];
+        $virtualAccounts = $this->VirtualAccountModel->get_all_virtual_accounts();
+        $responses = [];
 
-            // Panggil API untuk inquiry virtual account
-            $response = $this->api->inquiry_virtual_account(
-                $data['partnerServiceId'],
-                $data['customerNo'],
-                $data['virtualAccountNo'],
-                $data['trxId']
-            );
+        if ($virtualAccounts) {
+            foreach ($virtualAccounts as $virtualAccount) {
+                $data = [
+                    'partnerServiceId' => $virtualAccount->partnerServiceId,
+                    'customerNo' => $virtualAccount->customerNo,
+                    'virtualAccountNo' => $virtualAccount->virtualAccountNo,
+                    'trxId' => $virtualAccount->trxId
+                ];
 
-            // Menambahkan data tambahan ke response
-            $paidStatus = $this->VirtualAccountModel->get_paid_status($data['customerNo']);
-            $partnerReferenceNo = $this->VirtualAccountModel->get_partnerReferenceNo($data['customerNo']);
-            $Status = $this->VirtualAccountModel->get_Status($data['customerNo']);
-            $response['virtualAccountData']['paidStatus'] = $paidStatus ? $paidStatus : 'No Data';
-            $response['virtualAccountData']['Status'] = $Status ? $Status : 'No Data';
-            $response['virtualAccountData']['partnerReferenceNo'] = $partnerReferenceNo ? $partnerReferenceNo : 'No Data';
+                // Panggil API untuk inquiry virtual account
+                $response = $this->api->inquiry_virtual_account(
+                    $data['partnerServiceId'],
+                    $data['customerNo'],
+                    $data['virtualAccountNo'],
+                    $data['trxId']
+                );
 
-            // Tambahkan response ke array responses
-            $responses[] = $response;
+                // Menambahkan data tambahan ke response
+                $paidStatus = $this->VirtualAccountModel->get_paid_status($data['customerNo']);
+                $partnerReferenceNo = $this->VirtualAccountModel->get_partnerReferenceNo($data['customerNo']);
+                $Status = $this->VirtualAccountModel->get_Status($data['customerNo']);
+                $response['virtualAccountData']['paidStatus'] = $paidStatus ? $paidStatus : 'No Data';
+                $response['virtualAccountData']['Status'] = $Status ? $Status : 'No Data';
+                $response['virtualAccountData']['partnerReferenceNo'] = $partnerReferenceNo ? $partnerReferenceNo : 'No Data';
+
+                // Tambahkan response ke array responses
+                $responses[] = $response;
+            }
+
+            // Tampilkan hasil akhir dalam format JSON
+            echo json_encode($responses);
+        } else {
+            // Jika tidak ada data akun virtual, tampilkan pesan error
+            echo json_encode([
+                "data" => [],
+                "message" => "No virtual accounts found"
+            ]);
         }
-
-        // Tampilkan hasil akhir dalam format JSON
-        echo json_encode($responses);
-    } else {
-        // Jika tidak ada data akun virtual, tampilkan pesan error
-        echo json_encode([
-            "data" => [],
-            "message" => "No virtual accounts found"
-        ]);
     }
-}
 
 
 
@@ -1060,7 +1060,7 @@ if (isset($response['responseCode']) && $response['responseCode'] != '2002700') 
         }
     }
 
-    
+
     public function get_report_va_controller()
     {
         $partnerServiceId = '22084';
