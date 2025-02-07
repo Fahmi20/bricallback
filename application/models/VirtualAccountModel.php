@@ -104,6 +104,14 @@ class VirtualAccountModel extends CI_Model
         }
     }
 
+    public function get_one_row($virtualAccountNo)
+    {
+        $this->db->where('virtualAccountNo', $virtualAccountNo);
+        $query = $this->db->get('virtual_accounts'); // Ganti 'virtual_accounts' dengan nama tabel yang benar
+        
+        return $query->row(); // Ambil satu baris data
+    }
+
     public function get_virtual_account_by_customer_no_and_partnumber_and_paidstatus($customerNo, $partNumber, $paidStatus)
     {
         $this->db->where('customerNo', $customerNo);
