@@ -549,7 +549,7 @@ class Backend extends CI_Controller
 
     public function create_virtual_account_manual_sisfo()
     {
-
+        
         $partnerServiceId = $this->input->post('partnerServiceId');
         $customerNo = $this->input->post('customerNo');
         $partnerServiceIdWithSpaces = '   ' . $partnerServiceId;
@@ -824,6 +824,88 @@ class Backend extends CI_Controller
                 ]);
             }
         }
+    }
+
+    public function buy_formulir()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            show_404();
+        }
+        $partnerServiceId = '22084';
+        $customerNo = $this->input->post('customerNo');
+        $partnerServiceIdWithSpaces = '   ' . $partnerServiceId;
+        $virtualAccountNo = '   ' . $partnerServiceId . $customerNo;
+        $virtualAccountName = $this->input->post('virtualAccountName');
+        $totalAmount = $this->input->post('totalAmount');
+        $totalAmountCurrency = 'IDR';
+        $trxId = $this->input->post('trxId');
+        $additionalInfo = $this->input->post('additionalInfo');
+        $expiredDate = new DateTime('now', new DateTimeZone('Asia/Jakarta'));
+        $expiredDate->modify('+7 years');
+        $expiredDateWithTimezone = $expiredDate->format('Y-m-d\TH:i:sP');
+        $trxDateTime = new DateTime('now', new DateTimeZone('Asia/Jakarta'));
+        $trxDateTimeFormatted = $trxDateTime->format('Y-m-d\TH:i:sP');
+        $currentDateTime = new DateTime('now', new DateTimeZone('Asia/Jakarta'));
+        $startDate = $currentDateTime->format('Y-m-d');
+        $existingAccountData = $this->VirtualAccountModel->get_existing_partnumber();
+        $partNumber = $existingAccountData ? $existingAccountData->partNumber + 1 : 1;
+        $partnerReferenceNo = $this->generate_unique_payment_id() . $partNumber;
+        $inquiryRequestId = $this->generate_unique_payment_id();
+        $data = array(
+            'partnerServiceId' => $partnerServiceIdWithSpaces,
+            'customerNo' => $customerNo,
+            'virtualAccountNo' => $virtualAccountNo,
+            'virtualAccountName' => $virtualAccountName,
+            'totalAmount' => $totalAmount,
+            'totalAmountCurrency' => $totalAmountCurrency,
+            'startDate' => $startDate,
+            'expiredDate' => $expiredDateWithTimezone,
+            'trxId' => $trxId,
+            'additionalInfo' => $additionalInfo,
+            'trxDateTime' => $trxDateTimeFormatted,
+            'partnerReferenceNo' => $partnerReferenceNo,
+            'partNumber' => $partNumber,
+            'inquiryRequestId' => $inquiryRequestId
+        );
+
+        // Memanggil API untuk membuat virtual account
+        $response = $this->api->create_virtual_account(
+            $data['partnerServiceId'],
+            $data['customerNo'],
+            $data['virtualAccountNo'],
+            $data['virtualAccountName'],
+            $data['totalAmount'],
+            $data['totalAmountCurrency'],
+            $data['expiredDate'],
+            $data['trxId'],
+            $data['additionalInfo']
+        );
+
+        // Memastikan response adalah array
+        $response = json_decode(json_encode($response), true);
+
+        // Mengecek jika response code selain 2002700 dianggap error
+        if (isset($response['responseCode']) && $response['responseCode'] != '2002700') {
+            // Menyampaikan response error berdasarkan responseCode
+            $this->output->set_status_header(500);
+            echo json_encode(array(
+                'status' => 'error',  // Menambahkan status error
+                'responseCode' => $response['responseCode'],  // Menampilkan responseCode selain 2002700
+                'responseMessage' => isset($response['responseMessage']) ? $response['responseMessage'] : 'No message'  // Mengambil responseMessage atau fallback jika tidak ada
+            ));
+        } else {
+            $save_status = $this->VirtualAccountModel->save_virtual_account($data);
+            if ($save_status) {
+                echo json_encode(array('status' => 'success', 'data' => $response));  // Mengirimkan response sukses
+            } else {
+                $this->output->set_status_header(500);
+                echo json_encode(array(
+                    'status' => 'error',
+                    'message' => 'Failed to save Virtual Account to database'  // Mengirimkan pesan error jika gagal menyimpan ke database
+                ));
+            }
+        }
+
     }
 
 
