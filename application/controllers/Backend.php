@@ -828,6 +828,7 @@ class Backend extends CI_Controller
 
     public function buy_formulir()
     {
+
         $partnerServiceId = '22084';
         $customerNo = $this->input->post('customerNo');
         $partnerServiceIdWithSpaces = '   ' . $partnerServiceId;
@@ -845,8 +846,7 @@ class Backend extends CI_Controller
         $currentDateTime = new DateTime('now', new DateTimeZone('Asia/Jakarta'));
         $startDate = $currentDateTime->format('Y-m-d');
         $existingAccountData = $this->VirtualAccountModel->get_existing_partnumber();
-        $partNumber = $existingAccountData ? $existingAccountData->partNumber + 1 : 1;
-        $partnerReferenceNo = $this->generate_unique_payment_id() . $partNumber;
+        $partnerReferenceNo = $this->generate_unique_payment_id();
         $inquiryRequestId = $this->generate_unique_payment_id();
         $data = array(
             'partnerServiceId' => $partnerServiceIdWithSpaces,
@@ -861,7 +861,6 @@ class Backend extends CI_Controller
             'additionalInfo' => $additionalInfo,
             'trxDateTime' => $trxDateTimeFormatted,
             'partnerReferenceNo' => $partnerReferenceNo,
-            'partNumber' => $partNumber,
             'inquiryRequestId' => $inquiryRequestId
         );
 
