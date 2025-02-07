@@ -1238,9 +1238,9 @@ class Backend extends CI_Controller
 }
 
 
-public function inquiry_status_va()
+public function inquiry_status()
 {
-    $virtualAccountNo = $this->input->post('virtualAccountNo');
+    $virtualAccountNo = '  2208420258403';
     if (!empty($virtualAccountNo)) {
         $virtualAccount = $this->VirtualAccountModel->get_one_row($virtualAccountNo);
         if ($virtualAccount) {
@@ -1250,15 +1250,12 @@ public function inquiry_status_va()
                 'virtualAccountNo' => $virtualAccount->virtualAccountNo,
                 'inquiryRequestId' => $virtualAccount->inquiryRequestId,
             ];
-
-            // Panggil API untuk inquiry status VA
             $response = $this->api->inquiry_status_va(
                 $data['partnerServiceId'],
                 $data['customerNo'],
                 $data['virtualAccountNo'],
                 $data['inquiryRequestId']
             );
-
             echo json_encode([$response]);
         }
     }
