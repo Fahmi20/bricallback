@@ -845,7 +845,6 @@ class Backend extends CI_Controller
         $trxDateTimeFormatted = $trxDateTime->format('Y-m-d\TH:i:sP');
         $currentDateTime = new DateTime('now', new DateTimeZone('Asia/Jakarta'));
         $startDate = $currentDateTime->format('Y-m-d');
-        $existingAccountData = $this->VirtualAccountModel->get_existing_partnumber();
         $partnerReferenceNo = $this->generate_unique_payment_id();
         $inquiryRequestId = $this->generate_unique_payment_id();
         $data = array(
