@@ -1192,11 +1192,18 @@ class Backend extends CI_Controller
     public function inquiry_status_va_controller()
 {
     $virtualAccountNo = $this->input->post('virtualAccountNo');
-    $virtualAccounts = $this->VirtualAccountModel->get_all_virtual_accounts();
+    
+    // Jika ada input, ambil satu data saja. Jika tidak, ambil semua data.
+    if (!empty($virtualAccountNo)) {
+        $virtualAccounts = [$this->VirtualAccountModel->get_one_row($virtualAccountNo)];
+    } else {
+        $virtualAccounts = $this->VirtualAccountModel->get_all_virtual_accounts();
+    }
+
     $responses = [];
 
-    // **Jika database kosong**
-    if (empty($virtualAccounts)) {
+    // Jika tidak ada data di database
+    if (empty($virtualAccounts) || $virtualAccounts[0] == null) {
         echo json_encode([
             "data" => [],
             "message" => "No Virtual Accounts found"
@@ -1204,47 +1211,29 @@ class Backend extends CI_Controller
         return;
     }
 
-    // **Looping melalui semua data VA**
+    // Looping data VA yang ditemukan
     foreach ($virtualAccounts as $virtualAccount) {
-        // **Jika VA dikirim, cari yang cocok**
-        if (empty($virtualAccountNo) || $virtualAccount->virtualAccountNo == $virtualAccountNo) {
-            $data = [
-                'partnerServiceId' => $virtualAccount->partnerServiceId,
-                'customerNo' => $virtualAccount->customerNo,
-                'virtualAccountNo' => $virtualAccount->virtualAccountNo,
-                'inquiryRequestId' => $virtualAccount->inquiryRequestId,
-            ];
+        $data = [
+            'partnerServiceId' => $virtualAccount->partnerServiceId,
+            'customerNo' => $virtualAccount->customerNo,
+            'virtualAccountNo' => $virtualAccount->virtualAccountNo,
+            'inquiryRequestId' => $virtualAccount->inquiryRequestId
+        ];
 
-            // **Panggil API untuk inquiry status VA**
-            $response = $this->api->inquiry_status_va(
-                $data['partnerServiceId'],
-                $data['customerNo'],
-                $data['virtualAccountNo'],
-                $data['inquiryRequestId']
-            );
+        // Panggil API untuk inquiry status VA
+        $response = $this->api->inquiry_status_va(
+            $data['partnerServiceId'],
+            $data['customerNo'],
+            $data['virtualAccountNo'],
+            $data['inquiryRequestId']
+        );
 
-            $responses[] = $response;
-
-            // **Jika hanya mencari satu VA, hentikan loop**
-            if (!empty($virtualAccountNo)) {
-                break;
-            }
-        }
+        // Tambahkan hasil ke response
+        $responses[] = $response;
     }
 
-    // **Jika data ditemukan**
-    if (!empty($responses)) {
-        echo json_encode([
-            "status" => "success",
-            "data" => $responses
-        ]);
-    } else {
-        // **Jika VA yang dicari tidak ditemukan**
-        echo json_encode([
-            "status" => "error",
-            "message" => "Virtual Account Number not found"
-        ]);
-    }
+    // Tampilkan hasil response
+    echo json_encode([$responses]);
 }
 
 
