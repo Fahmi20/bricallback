@@ -845,7 +845,7 @@ class Backend extends CI_Controller
         $currentDateTime = new DateTime('now', new DateTimeZone('Asia/Jakarta'));
         $startDate = $currentDateTime->format('Y-m-d');
         $partnerReferenceNo = $this->generate_unique_payment_id();
-        $inquiryRequestId = $this->generate_unique_payment_id();
+        $inquiryRequestId = $this->generate_unique_payment_id() . $customerNo;
         $data = array(
             'partnerServiceId' => $partnerServiceIdWithSpaces,
             'customerNo' => $customerNo,
