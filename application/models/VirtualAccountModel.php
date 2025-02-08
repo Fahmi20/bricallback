@@ -106,13 +106,17 @@ class VirtualAccountModel extends CI_Model
 
     public function get_one_row($virtualAccountNo)
     {
-        $this->db->where('virtualAccountNo', $virtualAccountNo);
-        $query = $this->db->get('virtual_accounts'); // Ganti 'virtual_accounts' dengan nama tabel yang benar
-        
+        // Menggunakan query builder untuk mengambil data
+        $this->db->select('*'); // Pilih semua kolom
+        $this->db->from('virtual_accounts'); // Ganti dengan nama tabel yang sesuai
+        $this->db->where('virtualAccountNo', $virtualAccountNo); // Kondisi untuk mencari berdasarkan virtualAccountNo
+        $query = $this->db->get(); // Eksekusi query
+
+        // Memeriksa apakah ada hasil
         if ($query->num_rows() > 0) {
-            return $query->row();  // Mengembalikan satu baris sebagai objek
+            return $query->row(); // Mengembalikan satu baris data sebagai objek
         } else {
-            return false;  // Tidak ditemukan
+            return null; // Mengembalikan null jika tidak ada data ditemukan
         }
     }
 

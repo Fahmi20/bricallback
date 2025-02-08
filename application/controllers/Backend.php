@@ -1240,26 +1240,38 @@ class Backend extends CI_Controller
 
 public function inquiry_status()
 {
-    $virtualAccountNo = '  2208420258403';
-    if (!empty($virtualAccountNo)) {
-        $virtualAccount = $this->VirtualAccountModel->get_one_row($virtualAccountNo);
-        if ($virtualAccount) {
-            $data = [
-                'partnerServiceId' => $virtualAccount->partnerServiceId,
-                'customerNo' => $virtualAccount->customerNo,
-                'virtualAccountNo' => $virtualAccount->virtualAccountNo,
-                'inquiryRequestId' => $virtualAccount->inquiryRequestId,
-            ];
-            $response = $this->api->inquiry_status_va(
-                $data['partnerServiceId'],
-                $data['customerNo'],
-                $data['virtualAccountNo'],
-                $data['inquiryRequestId']
-            );
-            echo json_encode([$response]);
-        }
+    // Mengambil virtualAccountNo dari input POST
+    $virtualAccountNo = $this->input->post('virtualAccountNo');
+    
+    // Mengambil data dari database berdasarkan virtualAccountNo
+    $virtualAccount = $this->VirtualAccountModel->get_one_row($virtualAccountNo);
+    
+    // Memeriksa apakah data ditemukan
+    if ($virtualAccount) {
+        // Mengisi data berdasarkan kunci yang ada
+        $data = [
+            'partnerServiceId' => $virtualAccount->partnerServiceId,
+            'customerNo' => $virtualAccount->customerNo,
+            'virtualAccountNo' => $virtualAccount->virtualAccountNo,
+            'inquiryRequestId' => $virtualAccount->inquiryRequestId,
+        ];
+        
+        // Memanggil API dengan data yang telah diisi
+        $response = $this->api->inquiry_status_va(
+            $data['partnerServiceId'],
+            $data['customerNo'],
+            $data['virtualAccountNo'],
+            $data['inquiryRequestId']
+        );
+        
+        // Mengembalikan response dalam format JSON
+        echo json_encode([$response]);
+    } else {
+        // Jika tidak ada data ditemukan, kembalikan pesan error
+        echo json_encode(['error' => 'Virtual Account Not Found']);
     }
 }
+
 
 
 
