@@ -845,7 +845,7 @@ class Backend extends CI_Controller
         $currentDateTime = new DateTime('now', new DateTimeZone('Asia/Jakarta'));
         $startDate = $currentDateTime->format('Y-m-d');
         $partnerReferenceNo = $this->generate_unique_payment_id();
-        $inquiryRequestId = $this->generate_unique_payment_id().$customerNo;
+        $inquiryRequestId = $this->generate_unique_InquiryRequestId();
         $data = array(
             'partnerServiceId' => $partnerServiceIdWithSpaces,
             'customerNo' => $customerNo,
@@ -933,7 +933,7 @@ class Backend extends CI_Controller
         $existingAccountData = $this->VirtualAccountModel->get_existing_partnumber();
         $partNumber = $existingAccountData ? $existingAccountData->partNumber + 1 : 1;
         $partnerReferenceNo = $this->generate_unique_payment_id() . $partNumber;
-        $inquiryRequestId = $this->generate_unique_payment_id();
+        $inquiryRequestId = $this->generate_unique_InquiryRequestId();
         $data = array(
             'partnerServiceId' => $partnerServiceIdWithSpaces,
             'customerNo' => $customerNo,
@@ -1355,6 +1355,13 @@ public function inquiry_status()
     }
 
     function generate_unique_payment_id()
+    {
+        $timestamp = time();
+        $random = mt_rand(1000, 9999);
+        return $timestamp . $random;
+    }
+
+    function generate_unique_InquiryRequestId()
     {
         $timestamp = time();
         $random = mt_rand(1000, 9999);
