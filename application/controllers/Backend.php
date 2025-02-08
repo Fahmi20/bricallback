@@ -1238,6 +1238,41 @@ class Backend extends CI_Controller
 }
 
 
+public function inquiry_virtual_account()
+{
+    // Mengambil virtualAccountNo dari input POST
+    $virtualAccountNo = $this->input->post('virtualAccountNo');
+    
+    // Mengambil data dari database berdasarkan virtualAccountNo
+    $virtualAccount = $this->VirtualAccountModel->get_one_row($virtualAccountNo);
+    
+    // Memeriksa apakah data ditemukan
+    if ($virtualAccount) {
+        // Mengisi data berdasarkan kunci yang ada
+        $data = [
+            'partnerServiceId' => $virtualAccount->partnerServiceId,
+            'customerNo' => $virtualAccount->customerNo,
+            'virtualAccountNo' => $virtualAccount->virtualAccountNo,
+            'trxId' => $virtualAccount->trxId
+        ];
+
+        // Panggil API untuk inquiry virtual account
+        $response = $this->api->inquiry_virtual_account(
+            $data['partnerServiceId'],
+            $data['customerNo'],
+            $data['virtualAccountNo'],
+            $data['trxId']
+        );
+        
+        // Mengembalikan response dalam format JSON
+        echo json_encode([$response]);
+    } else {
+        // Jika tidak ada data ditemukan, kembalikan pesan error
+        echo json_encode(['error' => 'Virtual Account Not Found']);
+    }
+}
+
+
 public function inquiry_status()
 {
     // Mengambil virtualAccountNo dari input POST
