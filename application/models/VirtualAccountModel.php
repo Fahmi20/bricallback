@@ -120,6 +120,22 @@ class VirtualAccountModel extends CI_Model
         }
     }
 
+    public function get_one_row_payment($virtualAccountNo)
+    {
+        // Menggunakan query builder untuk mengambil data
+        $this->db->select('*'); // Pilih semua kolom
+        $this->db->from('payments'); // Ganti dengan nama tabel yang sesuai
+        $this->db->where('virtual_account', $virtualAccountNo); // Kondisi untuk mencari berdasarkan virtualAccountNo
+        $query = $this->db->get(); // Eksekusi query
+
+        // Memeriksa apakah ada hasil
+        if ($query->num_rows() > 0) {
+            return $query->row(); // Mengembalikan satu baris data sebagai objek
+        } else {
+            return null; // Mengembalikan null jika tidak ada data ditemukan
+        }
+    }
+
     public function get_virtual_account_by_customer_no_and_partnumber_and_paidstatus($customerNo, $partNumber, $paidStatus)
     {
         $this->db->where('customerNo', $customerNo);

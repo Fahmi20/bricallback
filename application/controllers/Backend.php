@@ -64,15 +64,12 @@ class Backend extends CI_Controller
         header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE");
         header("Access-Control-Allow-Headers: X-TIMESTAMP, X-CLIENT-KEY, X-CLIENT-SECRET, Content-Type, X-SIGNATURE, Accept, Authorization, Authorization-Customer, ORIGIN, X-PARTNER-ID, X-EXTERNAL-ID, X-IP-ADDRESS, X-DEVICE-ID, CHANNEL-ID, X-LATITUDE, X-LONGITUDE");
         header("Access-Control-Allow-Credentials: true");
-
-        // Handle preflight request (OPTIONS)
         if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
             http_response_code(200);
             exit();
         }
 
         try {
-            // Only handle POST requests
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                 $this->output
                     ->set_content_type('application/json')
@@ -83,24 +80,15 @@ class Backend extends CI_Controller
                     ]));
                 return;
             }
-
-            // Get the necessary headers
             $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
             $clientID = $this->input->get_request_header('X-PARTNER-ID', TRUE);
             $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
-            // Verify the signature
             $verificationResult = $this->api->verifySignatureTest($clientID, $timeStamp, $signature);
-
-            // Check if the verification was successful and accessToken is available
             if (isset($verificationResult['accessToken'])) {
                 $accessToken = $verificationResult['accessToken'];
                 $expiresIn = $verificationResult['expiresIn'];
-
-                // Save access token to the database
                 $this->load->model('VirtualAccountModel');
                 $this->VirtualAccountModel->saveAccessToken($clientID, $accessToken, $expiresIn);
-
-                // Return successful response
                 $this->output
                     ->set_content_type('application/json')
                     ->set_status_header(200)
@@ -112,7 +100,6 @@ class Backend extends CI_Controller
                         'expiresIn' => $expiresIn
                     ], JSON_PRETTY_PRINT));
             } else {
-                // Handle verification failure
                 $this->output
                     ->set_content_type('application/json')
                     ->set_status_header(400) // Bad Request
@@ -120,7 +107,6 @@ class Backend extends CI_Controller
             }
 
         } catch (Exception $e) {
-            // Handle any exception that occurs during processing
             log_message('error', 'Error during trigger_token: ' . $e->getMessage());
             $this->output
                 ->set_content_type('application/json')
@@ -148,12 +134,9 @@ class Backend extends CI_Controller
         }
 
         try {
-            // Validasi method POST
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                 show_404();
             }
-
-            // Validasi dan proses header yang dibutuhkan
             $requiredHeaders = ['Authorization', 'X-SIGNATURE', 'X-TIMESTAMP', 'X-PARTNER-ID', 'CHANNEL-ID', 'X-EXTERNAL-ID', 'Content-Type'];
             foreach ($requiredHeaders as $header) {
                 $headerValue = $this->input->get_request_header($header, TRUE);
@@ -168,12 +151,8 @@ class Backend extends CI_Controller
                     return;
                 }
             }
-
-            // Memproses data body dari request
             $body = file_get_contents('php://input');
             $requestData = json_decode($body, true);
-
-            // Verifikasi access token
             $Authorization = $this->input->get_request_header('Authorization', TRUE);
             $accessToken = substr($Authorization, 7); // Mengambil token tanpa "Bearer "
             $this->load->model('VirtualAccountModel');
@@ -188,12 +167,9 @@ class Backend extends CI_Controller
                     ]));
                 return;
             }
-
-            // Lakukan verifikasi signature
             $signature = $this->input->get_request_header('X-SIGNATURE', TRUE);
             $timeStamp = $this->input->get_request_header('X-TIMESTAMP', TRUE);
             $verificationResult = $this->api->validateSignature($Authorization, $requestData, $timeStamp, $signature);
-
             if ($verificationResult['responseCode'] === '2003400') {
                 if (empty($requestData['partnerServiceId'])) {
                     $this->output
@@ -205,10 +181,7 @@ class Backend extends CI_Controller
                         ]));
                     return;
                 }
-
-                // Simpan data pembayaran
                 $saveResult = $this->VirtualAccountModel->savePaymentData($requestData);
-
                 if ($saveResult) {
                     $this->output
                         ->set_content_type('application/json')
@@ -255,17 +228,38 @@ class Backend extends CI_Controller
         }
     }
 
-
-
-
-
+    public function notifikasi_payment()
+{
+    $virtualAccountNo = $this->input->post('virtualAccountNo');
+    $virtualAccount = $this->VirtualAccountModel->get_one_row_payment($virtualAccountNo);
+    if ($virtualAccount) {
+        $data = [
+            'partnerServiceId' => $virtualAccount->partner_serviceid,
+            'customerNo' => $virtualAccount->customer_no,
+            'virtualAccountNo' => $virtualAccount->virtual_account,
+            'trxDate' => $virtualAccount->trx_date,
+            'payment_requestid' => $virtualAccount->trx_date,
+            'amount' => $virtualAccount->amount,
+            'terminalid' => $virtualAccount->terminalid,
+            'bankid' => $virtualAccount->bankid,
+            'paymentStatus' => $virtualAccount->status
+        ];
+        echo json_encode([
+            'responseCode' => '2003400',
+            'responseMessage' => 'Successful',
+            'virtualAccountData' => $data
+        ]);
+    } else {
+        echo json_encode(['error' => 'Virtual Account Not Found']);
+    }
+}
 
 
     public function inquiry_payment_va_briva_controller()
     {
         $partnerServiceId = '03636';
         $customerNo = '444333';
-        $partnerServiceId = str_pad($partnerServiceId, 8, '0', STR_PAD_LEFT);  // "    77777"
+        $partnerServiceId = str_pad($partnerServiceId, 8, '0', STR_PAD_LEFT);
         $virtualAccountNo = $partnerServiceId . $customerNo;
         if (strlen($virtualAccountNo) > 28) {
             throw new Exception("virtualAccountNo terlalu panjang. Maksimal 28 karakter.");
@@ -298,20 +292,18 @@ class Backend extends CI_Controller
         $amount = $this->input->get('amount');
         $trxDateInit = $this->input->get('trxDateInit');
         $inquiryRequestId = $this->input->get('inquiryRequestId');
-        $channelCode = '9'; // Kode channel tetap
-        $sourceBankCode = '002'; // Kode bank, misalnya BRI
+        $channelCode = '9';
+        $sourceBankCode = '002';
         $passApp = 'G6bDFAAbwTUhqhMGa9qOsydLGBexH6bh';
         $idApp = 'YPGS';
         $partnerUrl = 'http://103.167.35.206:8000';
-
-        // Menyusun body request
         $body = [
             'partnerServiceId' => $partnerServiceId,
             'customerNo' => $customerNo,
             'virtualAccountNo' => $virtualAccountNo,
             'amount' => [
-                'value' => (float) $amount, // Memastikan amount dalam tipe float
-                'currency' => 'IDR' // Menetapkan mata uang
+                'value' => (float) $amount,
+                'currency' => 'IDR'
             ],
             'trxDateInit' => $trxDateInit,
             'channelCode' => $channelCode,
@@ -322,41 +314,6 @@ class Backend extends CI_Controller
             'partnerUrl' => $partnerUrl
         ];
         return $body;
-    }
-
-    public function payment_va_briva_controller()
-    {
-
-        $postData = [
-            'partnerServiceId' => '   03636',
-            'customerNo' => '444444',
-            'virtualAccountNo' => '   03636444444',
-            'trxDateTime' => '2024-10-20T23:05:07+07:00',
-            'paymentRequestId' => '1729353906',
-            'additionalInfo' => [
-                'paymentAmount' => '1234.00'
-            ]
-        ];
-
-        try {
-            $response = $this->api->payment_va_briva(
-                $postData['partnerServiceId'],
-                $postData['customerNo'],
-                $postData['virtualAccountNo'],
-                $postData['trxDateTime'],
-                $postData['paymentRequestId'],
-                $postData['additionalInfo']
-            );
-
-            header('Content-Type: application/json');
-            echo json_encode($response, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode([
-                'error' => 'Internal Server Error',
-                'message' => $e->getMessage()
-            ]);
-        }
     }
 
     public function inquiry_payment()
@@ -430,121 +387,6 @@ class Backend extends CI_Controller
                 "data" => array()
             ));
         }
-    }
-
-
-    public function process_payment_transfer_to_va()
-    {
-        $partnerServiceId = '00000';//03636
-        $customerNo = '34071';
-        $partnerServiceIdWithSpaces = '   ' . $partnerServiceId;
-        $virtualAccountNo = '   ' . $partnerServiceId . $customerNo;
-        $inquiryResponse = $this->api->inquiry_payment_va($partnerServiceIdWithSpaces, $customerNo, $virtualAccountNo);
-        if (isset($inquiryResponse['responseCode']) && $inquiryResponse['responseCode'] == '2003200') {
-            $virtualAccountData = $inquiryResponse['virtualAccountData'];
-            $virtualAccountName = $virtualAccountData['virtualAccountName'];
-            $totalAmount = $virtualAccountData['totalAmount'];
-            $paidAmountValue = $totalAmount['value'];
-            $paidAmountCurrency = $totalAmount['currency'];
-            $sourceAccountNo = '123';
-            $partnerReferenceNo = $virtualAccountData['partnerReferenceNo'];
-            $trxDateTime = new DateTime('now', new DateTimeZone('Asia/Jakarta'));
-            $trxDateTimeFormatted = $trxDateTime->format('Y-m-d\TH:i:sP');  // Format sesuai ISO-8601
-            $paidAmount = [
-                'value' => $paidAmountValue,
-                'currency' => $paidAmountCurrency
-            ];
-            $paymentResponse = $this->api->payment_va(
-                $partnerServiceIdWithSpaces,
-                $customerNo,
-                $virtualAccountNo,
-                $virtualAccountName,
-                $sourceAccountNo,
-                $partnerReferenceNo,
-                $paidAmount,
-                $trxDateTimeFormatted
-            );
-
-            if (isset($paymentResponse['responseCode']) && $paymentResponse['responseCode'] == '2003300') {
-                $this->VirtualAccountModel->save_payment($paymentResponse['virtualAccountData']);
-                $output = [
-                    'status' => true,
-                    'message' => 'Pembayaran berhasil',
-                    'data' => $paymentResponse
-                ];
-                return $this->output
-                    ->set_content_type('application/json')
-                    ->set_status_header(200)
-                    ->set_output(json_encode($output));
-            } else {
-                $output = [
-                    'status' => false,
-                    'message' => 'Gagal melakukan pembayaran',
-                    'data' => $paymentResponse
-                ];
-                return $this->output
-                    ->set_content_type('application/json')
-                    ->set_status_header(500)
-                    ->set_output(json_encode($output));
-            }
-        } else {
-            $output = [
-                'status' => false,
-                'message' => 'Inquiry VA gagal',
-                'data' => $inquiryResponse
-            ];
-            return $this->output
-                ->set_content_type('application/json')
-                ->set_status_header(500)
-                ->set_output(json_encode($output));
-        }
-    }
-
-    public function test_inquiry_payment()
-    {
-        $partnerServiceId = '   03636';
-        $customerNo = '565656';
-        $virtualAccountNo = '   03636565656';
-        $response = $this->api->inquiry_payment_va(
-            $partnerServiceId,
-            $customerNo,
-            $virtualAccountNo
-        );
-        echo json_encode($response);
-    }
-
-    public function test_payment_va()
-    {
-        $partnerServiceId = '   22084';
-        $customerNo = '444492';
-        $virtualAccountNo = '   22084444492';
-        $virtualAccountName = 'Fahmi';
-        $sourceAccountNo = '123456789012345';
-        $partnerReferenceNo = '173856548336311';
-        $paidAmountValue = '500.00';
-        $paidAmountCurrency = 'IDR';
-        $paidAmount = [
-            'value' => $paidAmountValue,
-            'currency' => $paidAmountCurrency
-        ];
-        $trxDateTime = new DateTime('now', new DateTimeZone('Asia/Jakarta'));
-        $trxDateTimeFormatted = $trxDateTime->format('Y-m-d\TH:i:sP');
-
-        $response = $this->api->payment_va(
-            $partnerServiceId,
-            $customerNo,
-            $virtualAccountNo,
-            $virtualAccountName,
-            $sourceAccountNo,
-            $partnerReferenceNo,
-            $paidAmount,
-            $trxDateTimeFormatted
-        );
-
-        // Output the result
-
-        echo json_encode($response);
-
     }
 
     public function create_virtual_account_manual_sisfo()
@@ -628,8 +470,6 @@ class Backend extends CI_Controller
                 ];
                 $response = null;
             }
-
-            // Simpan ke database
             $save_status = $this->VirtualAccountModel->save_virtual_account($data);
 
             if ($save_status) {
@@ -665,14 +505,11 @@ class Backend extends CI_Controller
 
     public function resend_failed_virtual_accounts()
     {
-        // Ambil semua entri virtual account dengan resend = 1 dari database
         $failed_accounts = $this->VirtualAccountModel->get_failed_virtual_accounts();
-
         $responses = [];
         $errors = [];
 
         foreach ($failed_accounts as $account) {
-            // Data virtual account yang gagal
             $data = [
                 'partnerServiceId' => $account['partnerServiceId'],
                 'customerNo' => $account['customerNo'],
@@ -686,7 +523,6 @@ class Backend extends CI_Controller
             ];
 
             try {
-                // Kirim ulang ke API
                 $response = $this->api->create_virtual_account(
                     $data['partnerServiceId'],
                     $data['customerNo'],
@@ -700,11 +536,10 @@ class Backend extends CI_Controller
                 );
 
                 if ($response['responseCode'] === "2002700") {
-                    // Update status di database sebagai berhasil
                     $update_data = [
                         'Status' => 'success',
                         'Deskripsi_Va' => 'Virtual Account berhasil dibuat pada percobaan ulang',
-                        'resend' => 0 // Hapus tanda untuk dikirim ulang
+                        'resend' => 0
                     ];
                     $this->VirtualAccountModel->update_virtual_account_status($account['virtualAccountNo'], $update_data);
                     $responses[] = [
@@ -713,7 +548,6 @@ class Backend extends CI_Controller
                         'message' => 'Dikirim ulang dan berhasil'
                     ];
                 } else {
-                    // Update dengan pesan error terbaru
                     $update_data = [
                         'Status' => 'error',
                         'Deskripsi_Va' => $response['responseMessage']
@@ -725,7 +559,6 @@ class Backend extends CI_Controller
                     ];
                 }
             } catch (Exception $e) {
-                // Update dengan pesan error jika terjadi exception
                 $update_data = [
                     'Status' => 'error',
                     'Deskripsi_Va' => 'API call gagal pada percobaan ulang: ' . $e->getMessage()
@@ -737,8 +570,6 @@ class Backend extends CI_Controller
                 ];
             }
         }
-
-        // Tampilkan hasil pengiriman ulang
         if (!empty($errors)) {
             $this->output->set_status_header(500);
             echo json_encode([
@@ -861,8 +692,6 @@ class Backend extends CI_Controller
             'partnerReferenceNo' => $partnerReferenceNo,
             'inquiryRequestId' => $inquiryRequestId
         );
-
-        // Memanggil API untuk membuat virtual account
         $response = $this->api->create_virtual_account(
             $data['partnerServiceId'],
             $data['customerNo'],
@@ -874,28 +703,23 @@ class Backend extends CI_Controller
             $data['trxId'],
             $data['additionalInfo']
         );
-
-        // Memastikan response adalah array
         $response = json_decode(json_encode($response), true);
-
-        // Mengecek jika response code selain 2002700 dianggap error
         if (isset($response['responseCode']) && $response['responseCode'] != '2002700') {
-            // Menyampaikan response error berdasarkan responseCode
             $this->output->set_status_header(500);
             echo json_encode(array(
-                'status' => 'error',  // Menambahkan status error
-                'responseCode' => $response['responseCode'],  // Menampilkan responseCode selain 2002700
-                'responseMessage' => isset($response['responseMessage']) ? $response['responseMessage'] : 'No message'  // Mengambil responseMessage atau fallback jika tidak ada
+                'status' => 'error',
+                'responseCode' => $response['responseCode'],
+                'responseMessage' => isset($response['responseMessage']) ? $response['responseMessage'] : 'No message'
             ));
         } else {
             $save_status = $this->VirtualAccountModel->save_virtual_account($data);
             if ($save_status) {
-                echo json_encode(array('status' => 'success', 'data' => $response));  // Mengirimkan response sukses
+                echo json_encode(array('status' => 'success', 'data' => $response));
             } else {
                 $this->output->set_status_header(500);
                 echo json_encode(array(
                     'status' => 'error',
-                    'message' => 'Failed to save Virtual Account to database'  // Mengirimkan pesan error jika gagal menyimpan ke database
+                    'message' => 'Failed to save Virtual Account to database'
                 ));
             }
         }
@@ -950,8 +774,6 @@ class Backend extends CI_Controller
             'partNumber' => $partNumber,
             'inquiryRequestId' => $inquiryRequestId
         );
-
-        // Memanggil API untuk membuat virtual account
         $response = $this->api->create_virtual_account(
             $data['partnerServiceId'],
             $data['customerNo'],
@@ -963,34 +785,28 @@ class Backend extends CI_Controller
             $data['trxId'],
             $data['additionalInfo']
         );
-
-        // Memastikan response adalah array
         $response = json_decode(json_encode($response), true);
-
-        // Mengecek jika response code selain 2002700 dianggap error
         if (isset($response['responseCode']) && $response['responseCode'] != '2002700') {
-            // Menyampaikan response error berdasarkan responseCode
             $this->output->set_status_header(500);
             echo json_encode(array(
-                'status' => 'error',  // Menambahkan status error
-                'responseCode' => $response['responseCode'],  // Menampilkan responseCode selain 2002700
-                'responseMessage' => isset($response['responseMessage']) ? $response['responseMessage'] : 'No message'  // Mengambil responseMessage atau fallback jika tidak ada
+                'status' => 'error',
+                'responseCode' => $response['responseCode'],
+                'responseMessage' => isset($response['responseMessage']) ? $response['responseMessage'] : 'No message'
             ));
         } else {
             $save_status = $this->VirtualAccountModel->save_virtual_account($data);
             if ($save_status) {
-                echo json_encode(array('status' => 'success', 'data' => $response));  // Mengirimkan response sukses
+                echo json_encode(array('status' => 'success', 'data' => $response));
             } else {
                 $this->output->set_status_header(500);
                 echo json_encode(array(
                     'status' => 'error',
-                    'message' => 'Failed to save Virtual Account to database'  // Mengirimkan pesan error jika gagal menyimpan ke database
+                    'message' => 'Failed to save Virtual Account to database'
                 ));
             }
         }
 
     }
-
 
 
     public function get_current_datetime()
@@ -999,6 +815,7 @@ class Backend extends CI_Controller
         $formattedDateTime = $currentDateTime->format('Y-m-d\TH:i');
         echo json_encode(['datetime' => $formattedDateTime]);
     }
+
     public function inquire_virtual_account()
     {
 
@@ -1013,31 +830,22 @@ class Backend extends CI_Controller
                     'virtualAccountNo' => $virtualAccount->virtualAccountNo,
                     'trxId' => $virtualAccount->trxId
                 ];
-
-                // Panggil API untuk inquiry virtual account
                 $response = $this->api->inquiry_virtual_account(
                     $data['partnerServiceId'],
                     $data['customerNo'],
                     $data['virtualAccountNo'],
                     $data['trxId']
                 );
-
-                // Menambahkan data tambahan ke response
                 $paidStatus = $this->VirtualAccountModel->get_paid_status($data['customerNo']);
                 $partnerReferenceNo = $this->VirtualAccountModel->get_partnerReferenceNo($data['customerNo']);
                 $Status = $this->VirtualAccountModel->get_Status($data['customerNo']);
                 $response['virtualAccountData']['paidStatus'] = $paidStatus ? $paidStatus : 'No Data';
                 $response['virtualAccountData']['Status'] = $Status ? $Status : 'No Data';
                 $response['virtualAccountData']['partnerReferenceNo'] = $partnerReferenceNo ? $partnerReferenceNo : 'No Data';
-
-                // Tambahkan response ke array responses
                 $responses[] = $response;
             }
-
-            // Tampilkan hasil akhir dalam format JSON
             echo json_encode($responses);
         } else {
-            // Jika tidak ada data akun virtual, tampilkan pesan error
             echo json_encode([
                 "data" => [],
                 "message" => "No virtual accounts found"
@@ -1194,19 +1002,15 @@ class Backend extends CI_Controller
     $virtualAccountNo = $this->input->post('virtualAccountNo');
     $virtualAccounts = $this->VirtualAccountModel->get_all_virtual_accounts();
     $responses = [];
-
     if (!empty($virtualAccounts)) {
         foreach ($virtualAccounts as $virtualAccount) {
-            // Jika virtualAccountNo dikirim oleh client, hanya ambil yang cocok
             if (empty($virtualAccountNo) || $virtualAccount->virtualAccountNo == $virtualAccountNo) {
                 $data = [
                     'partnerServiceId' => $virtualAccount->partnerServiceId,
                     'customerNo' => $virtualAccount->customerNo,
-                    'virtualAccountNo' => $virtualAccount->virtualAccountNo, // Perbaikan sintaks
+                    'virtualAccountNo' => $virtualAccount->virtualAccountNo,
                     'inquiryRequestId' => $virtualAccount->inquiryRequestId,
                 ];
-
-                // Panggil API untuk inquiry status VA
                 $response = $this->api->inquiry_status_va(
                     $data['partnerServiceId'],
                     $data['customerNo'],
@@ -1217,19 +1021,15 @@ class Backend extends CI_Controller
                 $responses[] = $response;
             }
         }
-
-        // Jika ditemukan data yang cocok atau semua data ditampilkan
         if (!empty($responses)) {
             echo json_encode($responses);
         } else {
-            // Jika `virtualAccountNo` tidak ditemukan dalam database
             echo json_encode([
                 "data" => [],
                 "message" => "Virtual Account Number not found"
             ]);
         }
     } else {
-        // Jika tidak ada data VA sama sekali
         echo json_encode([
             "data" => [],
             "message" => "No Virtual Accounts found"
@@ -1240,34 +1040,23 @@ class Backend extends CI_Controller
 
 public function inquiry_virtual_account()
 {
-    // Mengambil virtualAccountNo dari input POST
     $virtualAccountNo = $this->input->post('virtualAccountNo');
-    
-    // Mengambil data dari database berdasarkan virtualAccountNo
     $virtualAccount = $this->VirtualAccountModel->get_one_row($virtualAccountNo);
-    
-    // Memeriksa apakah data ditemukan
     if ($virtualAccount) {
-        // Mengisi data berdasarkan kunci yang ada
         $data = [
             'partnerServiceId' => $virtualAccount->partnerServiceId,
             'customerNo' => $virtualAccount->customerNo,
             'virtualAccountNo' => $virtualAccount->virtualAccountNo,
             'trxId' => $virtualAccount->trxId
         ];
-
-        // Panggil API untuk inquiry virtual account
         $response = $this->api->inquiry_virtual_account(
             $data['partnerServiceId'],
             $data['customerNo'],
             $data['virtualAccountNo'],
             $data['trxId']
         );
-        
-        // Mengembalikan response dalam format JSON
         echo json_encode([$response]);
     } else {
-        // Jika tidak ada data ditemukan, kembalikan pesan error
         echo json_encode(['error' => 'Virtual Account Not Found']);
     }
 }
@@ -1275,34 +1064,23 @@ public function inquiry_virtual_account()
 
 public function inquiry_status()
 {
-    // Mengambil virtualAccountNo dari input POST
     $virtualAccountNo = $this->input->post('virtualAccountNo');
-    
-    // Mengambil data dari database berdasarkan virtualAccountNo
     $virtualAccount = $this->VirtualAccountModel->get_one_row($virtualAccountNo);
-    
-    // Memeriksa apakah data ditemukan
     if ($virtualAccount) {
-        // Mengisi data berdasarkan kunci yang ada
         $data = [
             'partnerServiceId' => $virtualAccount->partnerServiceId,
             'customerNo' => $virtualAccount->customerNo,
             'virtualAccountNo' => $virtualAccount->virtualAccountNo,
             'inquiryRequestId' => $virtualAccount->inquiryRequestId,
         ];
-        
-        // Memanggil API dengan data yang telah diisi
         $response = $this->api->inquiry_status_va(
             $data['partnerServiceId'],
             $data['customerNo'],
             $data['virtualAccountNo'],
             $data['inquiryRequestId']
         );
-        
-        // Mengembalikan response dalam format JSON
         echo json_encode([$response]);
     } else {
-        // Jika tidak ada data ditemukan, kembalikan pesan error
         echo json_encode(['error' => 'Virtual Account Not Found']);
     }
 }
